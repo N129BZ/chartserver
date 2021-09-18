@@ -12,9 +12,9 @@ var db_history;
 var dbpath_tiles;
 var dbpath_history;
 
-readSettingsFile(true);
+readSettingsFile();
 
-function readSettingsFile(opendb) {
+function readSettingsFile() {
     let rawdata = fs.readFileSync(__dirname + '/settings.json');
     settings = JSON.parse(rawdata);
     dbpath_tiles = __dirname +"/public/data/" + settings.tiledb;

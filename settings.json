@@ -3,7 +3,7 @@
     "gpsintervalmsec": 1000,
     "httpport": 8080,
     "tiledb": "vfrsec.mbtiles",
-    "startupzoom": 10,
+    "startupzoom": 10.5,
     "historydb": "positionhistory.db",
     "stratuxurl": "http://192.168.1.188/getSituation",
     "lastlongitude": 0,
