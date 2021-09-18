@@ -3,28 +3,50 @@ const express = require('express');
 const Math = require("math");
 const fs = require("fs");
 
-const DB_TILES = __dirname +"/public/data/vfrsec.mbtiles";
-const DB_HISTORY = __dirname + "/public/data/positionhistory.db";
+var settings; 
+// the database objects
+var db_tiles;
+var db_history;
 
-const settings = readSettingsFile();
+// the db filepaths
+var dbpath_tiles;
+var dbpath_history;
+
+readSettingsFile();
 
 function readSettingsFile() {
     let rawdata = fs.readFileSync(__dirname + '/settings.json');
-    return JSON.parse(rawdata);
+    settings = JSON.parse(rawdata);
+    dbpath_tiles = __dirname +"/public/data/" + settings.tiledb;
+    dbpath_history = __dirname + "/public/data/" + settings.historydb;
+    
+    // open map db read only
+    db_tiles = new sqlite3.Database(dbpath_tiles, sqlite3.OPEN_READONLY, (err) => {
+        if (err) {
+            console.log("Failed to load: " + dbpath_tiles);
+            throw err;
+        }
+    });
+
+    //open historydb read/write 
+    db_history = new sqlite3.Database(dbpath_history, sqlite3.OPEN_READWRITE, (err) => {
+        if (err){
+            console.log("Failed to load: " + dbpath_history);
+        }
+    });
+
+    // get last known lng, lat, and hdg
+    let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
+    db_history.get(sql, (err, row) => {
+        if (err == null) {
+            if (row != undefined) {
+                settings.lastlongitude = row.longitude;
+                settings.lastlatitude = row.latitude;
+                settings.lastheading = row.heading;
+            }
+        }   
+    });
 }
-
-let mapdb = new sqlite3.Database(DB_TILES, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log("Failed to load: " + DB_TILES);
-        throw err;
-    }
-});
-
-let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
-    if (err){
-        console.log("Failed to load: " + DB_HISTORY);
-    }
-});
 
 // express web server  
 let app = express();
@@ -53,23 +75,19 @@ try {
         res.sendFile(__dirname + "/public/index.html");
     });
 
-    app.get("/tiles/tilesets", (req,res) => {
+    app.get("/gettiles/tilesets", (req,res) => {
         handleTilesets(req, res);
     });    
 
-    app.get("/tile/vfrsec/*", (req, res) => {
+    app.get("/gettiles/singletile/*", (req, res) => {
         handleTile(req, res)
     });
 
-    app.get("/history", (req,res) => {
-        getPositionHistory(res);
-    });
-
-    app.get("/settings", (req, res) => {
+    app.get("/getsettings", (req, res) => {
         getSettings(res);
     });
 
-    app.post("/updateposition", (req, res) => {
+    app.post("/putposition", (req, res) => {
         putPositionHistory(req.body);
         res.writeHead(200);
         res.end();
@@ -79,35 +97,13 @@ catch (error) {
     console.log(error);
 }
 
-function getPositionHistory(response) {
-    let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
-    histdb.get(sql, (err, row) => {
-        if (err == null) {
-            if (row != undefined) {
-                let obj = {};
-                obj["longitude"] = row.longitude;
-                obj["latitude"] = row.latitude;
-                obj["heading"] = row.heading;
-                response.writeHead(200);
-                response.write(JSON.stringify(obj));
-                response.end();
-            }
-        }
-        else
-        {
-            response.writeHead(500);
-            response.end();
-        }
-    });
-}
-
 function putPositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = "INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) " +
               `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
     console.log(sql); 
         
-    histdb.run(sql, function(err) {
+    db_history.run(sql, function(err) {
         if (err != null) {
             console.log(err);
         }
@@ -121,7 +117,6 @@ function getSettings(response) {
 }
 
 function handleTile(request, response) {
-	
     let x = 0;
     let y = 0;
     let z = 0;
@@ -137,7 +132,8 @@ function handleTile(request, response) {
         let yparts = parts[idx].split(".");
         y = parseInt(yparts[0])
 
-    } catch(err) {
+    } 
+    catch(err) {
         res.writeHead(500, "Failed to parse y");
         response.end();
         return;
@@ -157,7 +153,7 @@ function loadTile(z, x, y, response) {
 
     console.log(sql);
 
-    mapdb.get(sql, (err, row) => {
+    db_tiles.get(sql, (err, row) => {
         if (err == null) {
             if (row == undefined) {
                 response.writeHead(404);
@@ -188,7 +184,7 @@ function handleTilesets(request, response) {
     let meta = {};
     meta["bounds"] = "";
 
-    mapdb.all(sql, [], (err, rows) => {
+    db_tiles.all(sql, [], (err, rows) => {
         rows.forEach(row => {
             // determine extent of layer if not given.. Openlayers kinda needs this, or it can happen that it tries to do
             // a billion request do down-scale high-res pngs that aren't even there (i.e. all 404s)
@@ -199,7 +195,7 @@ function handleTilesets(request, response) {
                 let maxZoomInt = parseInt(row.value); 
                 sql = "SELECT min(tile_column) as xmin, min(tile_row) as ymin, " + 
                              "max(tile_column) as xmax, max(tile_row) as ymax FROM tiles WHERE zoom_level=?"
-                mapdb.get(sql, [maxZoomInt], (err, row) => {
+                db_tiles.get(sql, [maxZoomInt], (err, row) => {
                     let xmin = row.xmin;
                     let ymin = row.ymin; 
                     let xmax = row.xmax; 
@@ -225,13 +221,10 @@ function handleTilesets(request, response) {
 function tileToDegree(z, x, y) {
 	// osm-like schema:
 	y = (1 << z) - y - 1
-	
     let n = Math.PI - 2.0*Math.PI*y/Math.pow(2, z);
-	
     lat = 180.0 / Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));
-	
     lon = x/Math.pow(2, z)*360.0 - 180.0;
-	
+
     return [lon, lat]
 }
 

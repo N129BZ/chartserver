@@ -2,18 +2,15 @@
 
 
 // application constants
-let URL_HOST_BASE           = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-let URL_HOST_PROTOCOL       = window.location.protocol + "//";
-let URL_GET_TILESETS        = URL_HOST_PROTOCOL + URL_HOST_BASE + "/tiles/tilesets";
-let URL_GET_TILE            = URL_HOST_PROTOCOL + URL_HOST_BASE + "/tile/vfrsec/{z}/{x}/{-y}.png";
-let URL_GET_HISTORY         = URL_HOST_PROTOCOL + URL_HOST_BASE + "/history";
-let URL_GET_SETTINGS        = URL_HOST_PROTOCOL + URL_HOST_BASE + "/settings";
-let URL_PUT_HISTORY         = URL_HOST_PROTOCOL + URL_HOST_BASE + "/updateposition";
+const URL_HOST_BASE     = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+const URL_HOST_PROTOCOL = window.location.protocol + "//";
+const URL_GET_SETTINGS  = URL_HOST_PROTOCOL + URL_HOST_BASE + "/getsettings";
+const URL_GET_TILESETS  = URL_HOST_PROTOCOL + URL_HOST_BASE + "/gettiles/tilesets";
+const URL_GET_TILE      = URL_HOST_PROTOCOL + URL_HOST_BASE + "/gettiles/singletile/{z}/{x}/{-y}.png";
+const URL_GET_HISTORY   = URL_HOST_PROTOCOL + URL_HOST_BASE + "/gethistory";
+const URL_PUT_HISTORY   = URL_HOST_PROTOCOL + URL_HOST_BASE + "/putposition";
 
 var settings;
-// default values
-let histinterval = 15000;
-let gpsinterval = 1000;
 
 $.ajax({
     async: false,
@@ -21,19 +18,17 @@ $.ajax({
     url: URL_GET_SETTINGS,
     success: function (response) {
         settings = JSON.parse(response);
-        histinterval = settings.histintervalmsec;
-        gpsinterval = settings.gpsintervalmsec;
     }
 });
 
-let URL_GET_SITUATION = settings.stratuxurl;
-let currentZoom = 11;
-let format = "png";
-let file = "vfrsec.mbtiles"; 
-
-let last_longitude = 0
-let last_latitude = 0;    
-let last_heading = 0;
+let file = settings.tiledb;
+let histinterval = settings.histintervalmsec;
+let gpsinterval = settings.gpsintervalmsec;
+let startupZoom = settings.startupzoom;
+let last_longitude = settings.lastlongitude;
+let last_latitude = settings.lastlatitude;
+let last_heading = settings.lastheading;
+let url_getsituation = settings.stratuxurl;
 
 let airplaneElement = document.getElementById('airplane');
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
@@ -46,7 +41,7 @@ const map = new ol.Map({
     target: 'map',
     view: new ol.View({
         center: pos,        
-        zoom: currentZoom,
+        zoom: startupZoom,
         enableRotation: false
     })
 });
@@ -57,19 +52,6 @@ const popup = new ol.Overlay({
 popup.setOffset(offset);
 popup.setPosition(pos);
 map.addOverlay(popup);
-
-// get settings by using a synchronous ajax call 
-$.ajax({
-    async: false,
-    type: "GET",
-    url: URL_GET_HISTORY,
-    success: function (response) {
-        let histobj = JSON.parse(response);
-        last_longitude = histobj.longitude;
-        last_latitude = histobj.latitude;
-        last_heading = histobj.heading;
-    }
-});
 
 // Dynamic MBTiles layers
 $.get(URL_GET_TILESETS, function(data) {
@@ -102,7 +84,7 @@ $.get(URL_GET_TILESETS, function(data) {
 });
 
 setInterval(getGpsMessage, gpsinterval);
-setInterval(savePositionHistory, histinterval);
+setInterval(putPositionHistory, histinterval);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -129,7 +111,7 @@ let lng = 0;
 let lat = 0;
 
 function getGpsMessage() {
-    $.get(URL_GET_SITUATION, function(data) {
+    $.get(url_getsituation, function(data) {
         pos = ol.proj.fromLonLat([data.GPSLongitude, data.GPSLatitude]);
         if (data.GPSLongitude != 0 && data.GPSLatitude != 0) {
             popup.setOffset(offset);
@@ -143,7 +125,7 @@ function getGpsMessage() {
     });
 }
 
-function savePositionHistory() {
+function putPositionHistory() {
     if (lng + lat + deg + alt > 0) {
         let postage = { longitude: lng, 
             latitude: lat, 
