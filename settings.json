@@ -1,0 +1,7 @@
+{
+    "histintervalmsec": 15000,
+    "ahrsintervalmsec": 1000,
+    "httpport": 8080,
+    "tiledb": "vfrsec.mbtiles",
+    "stratuxurl": "http://192.168.1.188"
+}
