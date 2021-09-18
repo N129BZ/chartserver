@@ -14,8 +14,8 @@ User-settable values in settings.json:
     "histintervalmsec": 15000,
     "gpsintervalmsec": 1000,
     "httpport": 8080,
-    "tiledb": "vfrsec.mbtiles",
     "startupzoom": 10.5,
+    "tiledb": "vfrsec.mbtiles",
     "historydb": "positionhistory.db",
     "stratuxurl": "http://192.168.1.188/getSituation"
 }
