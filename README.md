@@ -16,10 +16,7 @@ User-definable values in settings.json:
     "tiledb": "vfrsec.mbtiles",
     "startupzoom": 10.5,
     "historydb": "positionhistory.db",
-    "stratuxurl": "http://192.168.1.188/getSituation",
-    "lastlongitude": 0,
-    "lastlatitude": 0,
-    "lastheading": 0
+    "stratuxurl": "http://192.168.1.188/getSituation"
 }
 ```
 ####
