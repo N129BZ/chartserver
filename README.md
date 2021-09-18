@@ -14,7 +14,12 @@ User-definable values in settings.json:
     "gpsintervalmsec": 1000,
     "httpport": 8080,
     "tiledb": "vfrsec.mbtiles",
-    "stratuxurl": "http://192.168.10.1/getSituation"
+    "startupzoom": 10.5,
+    "historydb": "positionhistory.db",
+    "stratuxurl": "http://192.168.1.188/getSituation",
+    "lastlongitude": 0,
+    "lastlatitude": 0,
+    "lastheading": 0
 }
 ```
 ####
