@@ -17,7 +17,7 @@ User-settable values in settings.json:
     "startupzoom": 10.5,
     "tiledb": "vfrsec.mbtiles",
     "historydb": "positionhistory.db",
-    "stratuxurl": "http://192.168.1.188/getSituation"
+    "stratuxurl": "http://192.168.10.1/getSituation"
 }
 ```
 ###
