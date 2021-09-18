@@ -5,6 +5,8 @@
 ###
 Requires vfrsec.mbtiles database to be placed in the ./public/data/ folder
 
+**Instructions:** This is a node app, so you will need node.js installed. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from vs code, or enter "node index.js" in the terminal. 
+
 **Download the vfrsec.mbtiles database (5 gb) :** https://drive.google.com/file/d/134feGg9nUAHmozji1AtMEUsjtuRnMefl/view
 
 ###
