@@ -4,7 +4,7 @@ const Math = require("math");
 const fs = require("fs");
 
 var settings; 
-// the database objects
+// the db objects
 var db_tiles;
 var db_history;
 
