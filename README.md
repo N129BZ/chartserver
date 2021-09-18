@@ -24,4 +24,4 @@ User-settable values in settings.json:
 References:
 
 https://github.com/cyoung/stratux/    
-https://openlayers.org/en/latest/apidoc/    
+https://openlayers.org/     
