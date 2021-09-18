@@ -44,6 +44,11 @@ let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];  // offset the airplane image by 50% X and Y to center
 
 const map = new ol.Map({
+    layers: [
+        new ol.layer.Tile({
+            source: new ol.source.OSM()
+        })
+    ],
     target: 'map',
     view: new ol.View({
         center: pos,        
@@ -85,8 +90,11 @@ $.get(URL_GET_TILESETS, function(data) {
         extent: ext,
         zIndex: 10
     });
-    vfrseclayer.visible = true;
-    map.addLayer(vfrseclayer);
+
+    if (!settings.useOSMonlinemap) {
+        vfrseclayer.visible = true;
+        map.addLayer(vfrseclayer);
+    }
 });
 
 setInterval(getGpsMessage, gpsinterval);
