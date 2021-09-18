@@ -10,7 +10,7 @@ Requires vfrsec.mbtiles database to be placed in the ./public/data/ folder
 **Download the vfrsec.mbtiles database (5 gb) :** https://drive.google.com/file/d/134feGg9nUAHmozji1AtMEUsjtuRnMefl/view
 
 ###
-User-settable values in settings.json:
+**User-settable values in settings.json:**
 ```
 {
     "histintervalmsec": 15000,
