@@ -23,7 +23,7 @@ User-settable values in settings.json:
 }
 ```
 ###
-References:
+**References:**
 
 https://github.com/cyoung/stratux/    
 https://openlayers.org/     
