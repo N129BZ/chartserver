@@ -14,30 +14,12 @@ var dbpath_history;
 
 readSettingsFile(true);
 
-function readSettingsFile(opendbs) {
+function readSettingsFile(opendb) {
     let rawdata = fs.readFileSync(__dirname + '/settings.json');
     settings = JSON.parse(rawdata);
     dbpath_tiles = __dirname +"/public/data/" + settings.tiledb;
     dbpath_history = __dirname + "/public/data/" + settings.historydb;
-
-    // get last known lng, lat, and hdg
-    let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
-    db_history.get(sql, (err, row) => {
-        if (err == null) {
-            if (row != undefined) {
-                settings.lastlongitude = row.longitude;
-                settings.lastlatitude = row.latitude;
-                settings.lastheading = row.heading;
-            }
-        }   
-    });
-
-    if (opendbs) {
-        openDatabases();
-    }
-}
-
-function openDatabases() {
+   
     // open map db read only
     db_tiles = new sqlite3.Database(dbpath_tiles, sqlite3.OPEN_READONLY, (err) => {
         if (err) {
@@ -52,7 +34,20 @@ function openDatabases() {
             console.log("Failed to load: " + dbpath_history);
         }
     });
+    
+    // get last known lng, lat, and hdg
+    let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
+    db_history.get(sql, (err, row) => {
+        if (err == null) {
+            if (row != undefined) {
+                settings.lastlongitude = row.longitude;
+                settings.lastlatitude = row.latitude;
+                settings.lastheading = row.heading;
+            }
+        }   
+    });
 }
+
 // express web server  
 let app = express();
 try {
@@ -116,7 +111,6 @@ function putPositionHistory(data) {
 }
 
 function getSettings(response) {
-    readSettingsFile(false);
     response.writeHead(200);
     response.write(JSON.stringify(settings));
     response.end();
