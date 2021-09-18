@@ -22,27 +22,25 @@ $.ajax({
     success: function (response) {
         settings = JSON.parse(response);
         histinterval = settings.histintervalmsec;
-        ahrsinterval = settings.ahrsintervalmsec;
+        ahrsinterval = settings.gpsintervalmsec;
     }
 });
 
-let URL_GET_SITUATION       = settings.stratuxurl + "/getSituation";
+let URL_GET_SITUATION = settings.stratuxurl";
 let currentZoom = 11;
 let format = "png";
 let file = "vfrsec.mbtiles"; 
 
-let last_longitude = -98.256202;
-let last_latitude = 30.714128;
-let last_heading = 327;
+let last_longitude = 0
+let last_latitude = 0;    
+let last_heading = 0;
 
 let airplaneElement = document.getElementById('airplane');
-
-
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
 
 let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
-let offset = [-18, -18];
+let offset = [-18, -18];  // offset the airplane image by 50% X and Y to center
 
 const map = new ol.Map({
     target: 'map',
@@ -60,6 +58,7 @@ popup.setOffset(offset);
 popup.setPosition(pos);
 map.addOverlay(popup);
 
+// get settings by using a synchronous ajax call 
 $.ajax({
     async: false,
     type: "GET",
@@ -107,7 +106,7 @@ setInterval(putPositionHistory, histinterval);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-//      JSON output returned by websocket connected Stratux at ws://[ipaddress]/situation (AHRS data)
+//      JSON output returned by polling Stratux at /getSituation returns GPS/AHRS data
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
