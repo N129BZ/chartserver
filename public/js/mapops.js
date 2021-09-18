@@ -12,6 +12,12 @@ const URL_PUT_HISTORY   = URL_HOST_PROTOCOL + URL_HOST_BASE + "/putposition";
 
 var settings;
 
+//////////////////////////////////////////////////////////////
+// NOTE: This ajax GET is synchronous because it retrieves 
+//       all of the settings for the rest of this js code
+//       and we need to guarantee we have that data before
+//       moving on...
+//////////////////////////////////////////////////////////////  
 $.ajax({
     async: false,
     type: "GET",
