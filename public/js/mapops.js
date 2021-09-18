@@ -13,7 +13,7 @@ let URL_PUT_HISTORY         = URL_HOST_PROTOCOL + URL_HOST_BASE + "/updatepositi
 var settings;
 // default values
 let histinterval = 15000;
-let ahrsinterval = 1000;
+let gpsinterval = 1000;
 
 $.ajax({
     async: false,
@@ -22,11 +22,11 @@ $.ajax({
     success: function (response) {
         settings = JSON.parse(response);
         histinterval = settings.histintervalmsec;
-        ahrsinterval = settings.gpsintervalmsec;
+        gpsinterval = settings.gpsintervalmsec;
     }
 });
 
-let URL_GET_SITUATION = settings.stratuxurl";
+let URL_GET_SITUATION = settings.stratuxurl;
 let currentZoom = 11;
 let format = "png";
 let file = "vfrsec.mbtiles"; 
@@ -101,8 +101,8 @@ $.get(URL_GET_TILESETS, function(data) {
     map.addLayer(vfrseclayer);
 });
 
-setInterval(getAhrsMessage, ahrsinterval);
-setInterval(putPositionHistory, histinterval);
+setInterval(getGpsMessage, gpsinterval);
+setInterval(savePositionHistory, histinterval);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -128,7 +128,7 @@ let alt = 0;
 let lng = 0;
 let lat = 0;
 
-function getAhrsMessage() {
+function getGpsMessage() {
     $.get(URL_GET_SITUATION, function(data) {
         pos = ol.proj.fromLonLat([data.GPSLongitude, data.GPSLatitude]);
         if (data.GPSLongitude != 0 && data.GPSLatitude != 0) {
@@ -143,7 +143,7 @@ function getAhrsMessage() {
     });
 }
 
-function putPositionHistory() {
+function savePositionHistory() {
     if (lng + lat + deg + alt > 0) {
         let postage = { longitude: lng, 
             latitude: lat, 
