@@ -1,4 +1,4 @@
-# Aviation navigation charts using OpenLayer.Map and Stratux
+# Aviation navigation charts using OpenLayers.Map and Stratux
 Web-based VFR Chart map application built with node.js express and openlayers, uses ol.Map, mbtiles database and polls Stratux GPS/AHRS data to plot ownship position and heading over US VFR sectional charts.  Basic "moving map" functionality. Polls GPS coordinates and heading data from Stratux for display, and also saves position data in a separate history database at user-defined intervals.   
 
 ###
