@@ -56,7 +56,7 @@ const map = new ol.Map({
         })
     ],
     target: 'map',
-    view: theview
+    view: view
 });
 
 const popup = new ol.Overlay({
