@@ -21,7 +21,8 @@ Offline use requires vfrsec.mbtiles database (or a mbtiles database of your own 
     "tiledb": "vfrsec.mbtiles",
     "historydb": "positionhistory.db",
     "stratuxurl": "http://192.168.10.1/getSituation",
-    "lockownshiptocenter": true
+    "lockownshiptocenter": true,
+    "ownshipimage": "airplane.png"
 }i
 ```
 **NOTE**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center.       
