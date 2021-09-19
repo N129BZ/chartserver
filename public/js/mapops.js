@@ -43,6 +43,12 @@ let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];  // offset the airplane image by 50% X and Y to center
 
+let theview = new ol.View({
+    center: pos,        
+    zoom: startupZoom,
+    enableRotation: false
+});
+
 const map = new ol.Map({
     layers: [
         new ol.layer.Tile({
@@ -50,11 +56,7 @@ const map = new ol.Map({
         })
     ],
     target: 'map',
-    view: new ol.View({
-        center: pos,        
-        zoom: startupZoom,
-        enableRotation: false
-    })
+    view: theview
 });
 
 const popup = new ol.Overlay({
@@ -135,6 +137,9 @@ function getGpsMessage() {
             alt = data.GPSAltitudeMSL;
             deg = parseInt(data.AHRSMagHeading / 10);
             airplaneElement.style.transform = "rotate(" + deg + "deg)";
+        }
+        if (settings.lockownshiptocenter) {
+            theview.setCenter(pos);
         }
     });
 }
