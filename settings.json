@@ -6,5 +6,6 @@
     "useOSMonlinemap": false,
     "tiledb": "vfrsec.mbtiles",
     "historydb": "positionhistory.db",
-    "stratuxurl": "http://192.168.10.1/getSituation"
+    "stratuxurl": "http://192.168.10.1/getSituation",
+    "lockownshiptocenter": false
 }

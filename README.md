@@ -20,7 +20,8 @@ Offline use requires vfrsec.mbtiles database (or a mbtiles database of your own 
     "useOSMonlinemap": false,
     "tiledb": "vfrsec.mbtiles",
     "historydb": "positionhistory.db",
-    "stratuxurl": "http://192.168.10.1/getSituation"
+    "stratuxurl": "http://192.168.10.1/getSituation",
+    "lockownshiptocenter": true
 }
 ```
 ###
