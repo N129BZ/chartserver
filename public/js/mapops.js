@@ -43,7 +43,7 @@ let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];  // offset the airplane image by 50% X and Y to center
 
-let theview = new ol.View({
+let view = new ol.View({
     center: pos,        
     zoom: startupZoom,
     enableRotation: false
@@ -139,7 +139,7 @@ function getGpsMessage() {
             airplaneElement.style.transform = "rotate(" + deg + "deg)";
         }
         if (settings.lockownshiptocenter) {
-            theview.setCenter(pos);
+            view.setCenter(pos);
         }
     });
 }
