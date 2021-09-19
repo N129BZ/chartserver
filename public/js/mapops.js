@@ -37,6 +37,8 @@ let last_heading = settings.lastheading;
 let url_getsituation = settings.stratuxurl;
 
 let airplaneElement = document.getElementById('airplane');
+console.log(airplaneElement.src);
+airplaneElement.src = "img/" + settings.ownshipimage;
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
 
 let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
@@ -50,14 +52,17 @@ let view = new ol.View({
 });
 
 const map = new ol.Map({
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.OSM()
-        })
-    ],
     target: 'map',
     view: view
 });
+
+let osmlayer = new ol.layer.Tile({
+    source: new ol.source.OSM()
+})
+
+if (settings.useOSMonlinemap) {
+    map.addLayer(osmlayer);
+}
 
 const popup = new ol.Overlay({
     element: airplaneElement
@@ -66,38 +71,38 @@ popup.setOffset(offset);
 popup.setPosition(pos);
 map.addOverlay(popup);
 
-// Dynamic MBTiles layers
-$.get(URL_GET_TILESETS, function(data) {
+// if using a dynamic MBTiles layer
+if (!settings.useOSMonlinemap) {
+    
+    $.get(URL_GET_TILESETS, function(data) {
+        let meta = JSON.parse(data);
+        let layertype = meta["type"] == "baselayer" ? "base" : "overlay"; 
+        let minzoom = parseInt(meta["minzoom"]);
+        let maxzoom = parseInt(meta["maxzoom"]);
+        let name = meta["name"];
 
-    let meta = JSON.parse(data);
-    let layertype = meta["type"] == "baselayer" ? "base" : "overlay"; 
-    let minzoom = parseInt(meta["minzoom"]);
-    let maxzoom = parseInt(meta["maxzoom"]);
-    let name = meta["name"];
+        if (meta.bounds) {
+            ext = meta["bounds"].split(',').map(Number);
+        }
 
-    if (meta.bounds) {
-        ext = meta["bounds"].split(',').map(Number);
-    }
+        ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
 
-    ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
+        let vfrseclayer = new ol.layer.Tile({
+            title: name,
+            type: layertype,
+            source: new ol.source.XYZ({
+                url: URL_GET_TILE,
+                maxZoom: maxzoom,
+                minZoom: minzoom
+            }),
+            extent: ext,
+            zIndex: 10,
+            visible: true
+        });
 
-    let vfrseclayer = new ol.layer.Tile({
-        title: name,
-        type: layertype,
-        source: new ol.source.XYZ({
-            url: URL_GET_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
-        }),
-        extent: ext,
-        zIndex: 10
-    });
-
-    if (!settings.useOSMonlinemap) {
-        vfrseclayer.visible = true;
         map.addLayer(vfrseclayer);
-    }
-});
+    });
+}
 
 setInterval(getGpsMessage, gpsinterval);
 setInterval(putPositionHistory, histinterval);
