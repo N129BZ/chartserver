@@ -28,3 +28,9 @@ Offline use requires vfrsec.mbtiles database (or a mbtiles database of your own 
 
 https://github.com/cyoung/stratux/    
 https://openlayers.org/     
+
+###
+**vfrsec.mbtiles rendering (offline)**  
+![VFRCHART](./images/VFRCHT.png)  
+**OpenStreetMaps rendering (online only)**  
+![OSM](./images/OSM.png)
