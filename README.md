@@ -7,7 +7,7 @@ Offline use requires vfrsec.mbtiles database (or a mbtiles database of your own 
 
 **Instructions:** This is a node app, so you will need node.js installed. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "node index.js" in the terminal. 
 
-**Download the usavfr.mbtiles database (6.2 gb):** https://drive.google.com/file/d/134feGg9nUAHmozji1AtMEUsjtuRnMefl/view
+**Download the usavfr.mbtiles database (5gb):** https://drive.google.com/file/d/134feGg9nUAHmozji1AtMEUsjtuRnMefl/view?usp=sharing
 
 ###
 **User-settable values in settings.json:**
