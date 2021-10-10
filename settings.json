@@ -4,7 +4,7 @@
     "httpport": 8080,
     "startupzoom": 10.5,
     "useOSMonlinemap": false,
-    "tiledb": "vfrsec.mbtiles",
+    "tiledb": "usavfr.mbtiles",
     "historydb": "positionhistory.db",
     "stratuxurl": "http://192.168.10.1/getSituation",
     "lockownshiptocenter": true,
