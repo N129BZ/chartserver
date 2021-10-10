@@ -127,7 +127,7 @@ let lng = 0;
 let lat = 0;
 
 function getGpsData() {
-    $.get(settings.getsituation, function(data) {
+    $.get(settings.stratuxurl, function(data) {
         pos = ol.proj.fromLonLat([data.GPSLongitude, data.GPSLatitude]);
         if (data.GPSLongitude != 0 && data.GPSLatitude != 0) {
             popup.setOffset(offset);
