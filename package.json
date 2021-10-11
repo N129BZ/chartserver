@@ -1,12 +1,9 @@
 {
-  "name": "node-mbtiles",
+  "name": "aviation-charts",
   "version": "2.0.0",
-  "description": "A simple HTTP mbtiles server. ",
+  "description": "Mbtiles server. ",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Adrian B. Hoffsten",
+  "author": "Brian A. Manlove",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
