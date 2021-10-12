@@ -1,13 +1,10 @@
 {
-  "name": "node-mbtiles",
-  "version": "2.0.0",
-  "description": "A simple HTTP mbtiles server. ",
+  "name": "aviation-charts",
+  "version": "1.0.0",
+  "description": "VFR Sectional map mbtiles server. ",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Adrian B. Hoffsten",
-  "license": "ISC",
+  "author": "Brian A. Manlove",
+  "license": "BSD 3-Clause",
   "dependencies": {
     "express": "^4.17.1",
     "fs": "^0.0.1-security",

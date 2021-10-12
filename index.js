@@ -4,24 +4,24 @@ const Math = require("math");
 const fs = require("fs");
 
 const settings = readSettingsFile();
-const DB_TILES = __dirname +"/public/data/" + settings.tiledb;
-const DB_HISTORY = __dirname + "/public/data/positionhistory.db";
+const DB_TILES = `${__dirname}/public/data/${settings.tiledb}`;
+const DB_HISTORY = `${__dirname}/public/data/positionhistory.db`;
 
 function readSettingsFile() {
-    let rawdata = fs.readFileSync(__dirname + '/settings.json');
+    let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     return JSON.parse(rawdata);
 }
 
 let mapdb = new sqlite3.Database(DB_TILES, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log("Failed to load: " + DB_TILES);
+        console.log(`Failed to load: ${DB_TILES}`);
         throw err;
     }
 });
 
 let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log("Failed to load: " + DB_HISTORY);
+        console.log(`Failed to load: ${DB_HISTORY}`);
     }
 });
 
@@ -32,7 +32,7 @@ try {
     app.use(express.json({}));
 
     app.listen(settings.httpport, () => {
-        console.log("Webserver listening at port " + settings.httpport);
+        console.log(`Webserver listening at port ${settings.httpport}`);
     }); 
 
     var options = {
@@ -46,10 +46,10 @@ try {
         }
     };
 
-    app.use(express.static(__dirname + "/public", options));
+    app.use(express.static(`${__dirname}/public`, options));
     
     app.get('/',(req, res) => {
-        res.sendFile(__dirname + "/public/index.html");
+        res.sendFile(`${__dirname}/public/index.html`);
     });
     
     app.get("/getsettings", (req, res) => {
@@ -102,8 +102,8 @@ function getPositionHistory(response) {
 
 function putPositionHistory(data) {
     let datetime = new Date().toISOString();
-    let sql = "INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) " +
-              `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
+    let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) 
+               VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
     console.log(sql); 
         
     histdb.run(sql, function(err) {
