@@ -15,15 +15,17 @@ Offline use requires usavfr.mbtiles database (or a mbtiles database of your own 
 {
     "histintervalmsec": 15000,
     "gpsintervalmsec": 1000,
+    "metarintervalmsec": 600000,
     "httpport": 8080,
-    "startupzoom": 10.5,
+    "startupzoom": 10,
     "useOSMonlinemap": false,
-    "tiledb": "usavfr.mbtiles",
-    "historydb": "positionhistory.db",
+    "tiledb": "./public/data/usavfr.mbtiles",
+    "historydb": "./public/data/positionhistory.db",
+    "airportdb": "./public/data/airports.db",
     "stratuxurl": "http://192.168.10.1/getSituation",
     "lockownshiptocenter": true,
     "ownshipimage": "airplane.png"
-}i
+}
 ```
 **NOTE**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center.       
 
