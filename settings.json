@@ -8,7 +8,7 @@
     "tiledb": "./public/data/usavfr.mbtiles",
     "historydb": "./public/data/positionhistory.db",
     "airportdb": "./public/data/airports.db",
-    "stratuxurl": "http://192.168.1.188/getSituation",
+    "stratuxurl": "http://192.168.10.1/getSituation",
     "lockownshiptocenter": true,
     "ownshipimage": "airplane.png"
 }
