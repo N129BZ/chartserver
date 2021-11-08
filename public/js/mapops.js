@@ -301,7 +301,7 @@ $.get(URL_GET_TILESETS, function(data) {
     }
 });
 
-//setInterval(getGpsData, settings.gpsintervalmsec);
+setInterval(getGpsData, settings.gpsintervalmsec);
 setInterval(putPositionHistory, settings.histintervalmsec);
 setInterval(redrawMetars, settings.metarintervalmsec);
 
