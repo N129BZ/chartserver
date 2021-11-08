@@ -2,26 +2,48 @@ const sqlite3 = require("sqlite3");
 const express = require('express');
 const Math = require("math");
 const fs = require("fs");
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const convert = require('xml-js');
 
 const settings = readSettingsFile();
-const DB_TILES = `${__dirname}/public/data/${settings.tiledb}`;
-const DB_HISTORY = `${__dirname}/public/data/positionhistory.db`;
+var airportJson;
+loadAirportsJson(settings.startupzoom);
 
 function readSettingsFile() {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     return JSON.parse(rawdata);
 }
 
-let mapdb = new sqlite3.Database(DB_TILES, sqlite3.OPEN_READONLY, (err) => {
+function loadAirportsJson(zoomlevel) {
+    let airportdb = new sqlite3.Database(settings.airportdb, sqlite3.OPEN_READONLY, (err) => {
+        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports WHERE iso_country = 'US' AND gps_code LIKE 'K%';`;
+        airportdb.all(sql, (err, rows) => {
+            if (err === null) {
+                airportJson = `{ "airports": [ `;
+                rows.forEach(row => {
+                    airportJson += `{ "ident": "${row.ident}",` +
+                                   `  "type": "${row.type}",` +
+                                   `  "elevation": ${row.elevation_ft},` +
+                                   `  "lonlat": [${row.longitude_deg}, ${row.latitude_deg}]` + 
+                                   `},`;
+                });
+                // trim final comma and add closing braces
+                airportJson = airportJson.substring(0, airportJson.length - 1) + "] }";
+            }
+        });
+    });
+}
+
+let mapdb = new sqlite3.Database(settings.tiledb, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_TILES}`);
+        console.log(`Failed to load: ${settings.tiledb}`);
         throw err;
     }
 });
 
-let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
+let histdb = new sqlite3.Database(settings.historydb, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log(`Failed to load: ${DB_HISTORY}`);
+        console.log(`Failed to load: ${settings.historydb}`);
     }
 });
 
@@ -30,6 +52,7 @@ let app = express();
 try {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json({}));
+    app.use('/img', express.static(`${__dirname}/public/img`));
 
     app.listen(settings.httpport, () => {
         console.log(`Webserver listening at port ${settings.httpport}`);
@@ -73,9 +96,39 @@ try {
         res.writeHead(200);
         res.end();
     });
+
+    app.get("/getairports", (req, res) => {
+        res.writeHead(200);
+        res.write(airportJson); 
+        res.end();
+    });
+
+    app.get("/getmetars/:airportlist", (req, res) => {
+        var data = getMetars(req.params.airportlist);
+        res.writeHead(200);
+        res.write(data); 
+        res.end();
+    });
 }
 catch (error) {
     console.log(error);
+}
+
+function getMetars(airportlist) {
+    var retval = "";
+    var xhr = new XMLHttpRequest();
+    var baseurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=";
+    let url = `${baseurl}${airportlist}`;
+    xhr.open('GET', url, false);
+    xhr.responseType = 'xml';
+    xhr.onload = () => {
+        let status = xhr.status;
+        if (status == 200) {
+            retval = xhr.responseText;
+        } 
+    };
+    xhr.send();
+    return retval;
 }
 
 function getPositionHistory(response) {
@@ -159,7 +212,7 @@ function loadTile(z, x, y, response) {
     mapdb.get(sql, (err, row) => {
         if (err == null) {
             if (row == undefined) {
-                response.writeHead(404);
+                response.writeHead(200);
                 response.end();
             }
             else {

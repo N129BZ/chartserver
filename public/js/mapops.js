@@ -4,17 +4,22 @@
 // application constants
 let URL_HOST_BASE           = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 let URL_HOST_PROTOCOL       = window.location.protocol + "//";
-let URL_GET_TILESETS        = URL_HOST_PROTOCOL + URL_HOST_BASE + "/tiles/tilesets";
-let URL_GET_TILE            = URL_HOST_PROTOCOL + URL_HOST_BASE + "/tiles/singletile/{z}/{x}/{-y}.png";
-let URL_GET_HISTORY         = URL_HOST_PROTOCOL + URL_HOST_BASE + "/gethistory";
-let URL_GET_SETTINGS        = URL_HOST_PROTOCOL + URL_HOST_BASE + "/getsettings";
-let URL_PUT_HISTORY         = URL_HOST_PROTOCOL + URL_HOST_BASE + "/puthistory";
+let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
+let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
+let URL_GET_TILE            = `${URL_SERVER}/tiles/singletile/{z}/{x}/{-y}.png`;
+let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
+let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
+let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
+let URL_GET_AIRPORTS        = `${URL_SERVER}/getairports`;
+let URL_GET_METARS          = `${URL_SERVER}/getmetars`;
 
 let settings;
+let airports;
 let last_longitude = -97;
 let last_latitude = 38;
 let last_heading = 0;
 
+let popupElement = document.getElementById('popup');
 let airplaneElement = document.getElementById('airplane');
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
 
@@ -22,7 +27,7 @@ $.ajax({
     async: false,
     type: "GET",
     url: URL_GET_SETTINGS,
-    success: function (data) {
+    success: function(data) {
         try {
             settings = JSON.parse(data);
         }
@@ -49,6 +54,19 @@ $.ajax({
     }
 });
 
+function getAirportMetars(airportlist) {
+    let retval = "";
+    $.ajax({
+        async: false,
+        type: "GET",
+        url: `${URL_GET_METARS}/${airportlist}`,
+        success: function(data) {
+            retval = data;
+        }
+    });
+    return retval;
+}
+
 let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];
@@ -58,20 +76,221 @@ const map = new ol.Map({
     view: new ol.View({
         center: pos,        
         zoom: settings.startupzoom,
-        enableRotation: false
+        enableRotation: true
     })
 });
 
-const popup = new ol.Overlay({
+const circleStyle = new ol.style.Circle({
+    fill: new ol.style.Fill({
+        color: [93, 173, 226, 1]
+    }),
+    stroke: new ol.style.Stroke({
+        color: [255,255,255,1],
+        width: 2
+    }),
+    radius: 20 
+});
+
+const fillStyle = new ol.style.Fill({
+    color: [40, 119, 247, 1]
+});
+
+const strokeStyle = new ol.style.Stroke({
+    color: [30, 30, 31, 1],
+    width: 1.2
+}); 
+
+// Icon Markers
+const mvfrMarker = new ol.style.Icon({
+    src: './img/mvfr.png',
+    size: [45, 45],
+    offset: [0, 0],
+    opacity: 1,
+    scale: .25
+});
+
+const vfrMarker = new ol.style.Icon({
+    src: './img/vfr.png',
+    size: [45, 45],
+    offset: [0, 0],
+    opacity: 1,
+    scale: .25
+});
+
+const ifrMarker = new ol.style.Icon({
+    src: './img/ifr.png',
+    size: [45, 45],
+    offset: [0, 0],
+    opacity: 1,
+    scale: .25
+});
+
+const lifrMarker = new ol.style.Icon({
+    src: './img/lifr.png',
+    size: [45, 45],
+    offset: [0, 0],
+    opacity: 1,
+    scale: .25
+});
+
+const vfrStyle = new ol.style.Style({
+    image: vfrMarker
+});
+
+const mvfrStyle = new ol.style.Style({
+    image: mvfrMarker
+});
+
+const ifrStyle = new ol.style.Style({
+    image: ifrMarker
+});
+
+const lifrStyle = new ol.style.Style({
+    image: lifrMarker
+});
+
+/*
+const blackMarker = new ol.style.Icon({
+    src: './img/blackdot.png',
+    size: [45, 45],
+    offset: [0, 0],
+    opacity: 1,
+    scale: .25
+});
+*/
+
+const myairplane = new ol.Overlay({
     element: airplaneElement
 });
-popup.setOffset(offset);
-popup.setPosition(pos);
-map.addOverlay(popup);
+
+myairplane.setOffset(offset);
+myairplane.setPosition(pos);
+map.addOverlay(myairplane);
+
+let currZoom = map.getView().getZoom();
+let apfeatures = [];
+let vectorSource;
+let airportLayer;
+
+function placeAirports(airportdata) {
+    airports = airportdata.airports;
+    airports.forEach(airport => {
+        let ident = airport.ident;
+        let aptype = airport.type;
+        let lon = airport.lonlat[0];
+        let lat = airport.lonlat[1];
+        let marker = new ol.Feature({
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+            name: ident,
+            type: aptype,
+            elevation: airport.elevation
+        });
+        marker.setStyle(vfrStyle);
+        marker.setId(ident);
+        apfeatures.push(marker);
+    });
+    
+    vectorSource = new ol.source.Vector({
+        features: apfeatures
+    });
+
+    airportLayer = new ol.layer.Vector({
+        source: vectorSource,
+        zIndex: 11
+    });
+    map.addLayer(airportLayer);   
+}
+
+map.on('moveend', function(e) {
+    let zoom = map.getView().getZoom();
+    let rawnum = .045 * zoom;
+    let rsz = rawnum.toFixed(3)
+    resizeDots(rsz);
+    currZoom = zoom;
+    console.log(`Dot size: ${rsz}, Current Zoom: ${currZoom}`);
+    getMetarsForCurrentView();
+});
+
+map.on('pointermove', function (e) {
+    popupElement.style.visibility = "hidden";
+    map.forEachFeatureAtPixel(e.pixel, function (f) {
+        var selected = f;
+        if (selected) {
+            popupElement.innerHTML = `${f.get('name')} ${f.get('elevation')}'`;
+            popupElement.style.visibility = "visible";
+        } 
+        else {
+            popupElement.innerHTML = '';
+            popupElement.style.visibility = "hidden";
+        }
+    });
+});
+
+function getMetarsForCurrentView() {
+    let metarlist = "";
+    let extent = map.getView().calculateExtent(map.getSize()); 
+    vectorSource.forEachFeatureInExtent(extent, function(feature){
+        metarlist += `${feature.get('name')},`;
+    }); 
+    metarlist = metarlist.substring(0, metarlist.length - 1);
+    let metars = getAirportMetars(metarlist);
+    let xml = $.parseXML(metars);
+    $(xml).find('METAR').each(function() {
+        let id = $(this).find('station_id').text();
+        let cat = `${$(this).find('flight_category').text()}`;
+        console.log(`METAR for ${id}: ${cat}`);
+        let feature = vectorSource.getFeatureById(id);
+        if (feature != null) {
+            try {
+                switch (cat) {
+                    case 'MVFR':
+                        feature.setStyle(mvfrStyle);
+                        break;
+                    case 'LIFR':
+                        feature.setStyle(lifrStyle);
+                        break;
+                    case 'IFR':
+                        feature.setStyle(ifrStyle)
+                        break;
+                    case 'VFR':
+                    default:
+                        feature.setStyle(vfrStyle);
+                        break;
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+    });
+}
+
+function resizeDots(newscale) {
+    console.log(`Resizing dots, new scale: ${newscale}`);
+    vfrMarker.setScale(newscale);
+    mvfrMarker.setScale(newscale);
+    lifrMarker.setScale(newscale);
+    ifrMarker.setScale(newscale);
+}
+
+$.ajax({
+    async: true,
+    type: "GET",
+    url: URL_GET_AIRPORTS,
+    success: function(data) {
+        try {
+            let airportdata = JSON.parse(data);
+            console.log(airportdata);
+            placeAirports(airportdata);
+        }
+        catch(err) {
+            console.log(err);
+        }
+    }
+});
 
 // Dynamic MBTiles layers
 $.get(URL_GET_TILESETS, function(data) {
-
     let meta = JSON.parse(data);
     let layertype = meta["type"] == "baselayer" ? "base" : "overlay"; 
     let minzoom = parseInt(meta["minzoom"]);
@@ -99,8 +318,14 @@ $.get(URL_GET_TILESETS, function(data) {
     map.addLayer(vfrseclayer);
 });
 
-setInterval(getGpsData, settings.gpsintervalmsec);
+//setInterval(getGpsData, settings.gpsintervalmsec);
 setInterval(putPositionHistory, settings.histintervalmsec);
+setInterval(redrawMetars, settings.metarintervalmsec);
+
+function redrawMetars() {
+    console.log("Timed METAR retrieval in progress");
+    getMetarsForCurrentView();
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -114,9 +339,7 @@ setInterval(putPositionHistory, settings.histintervalmsec);
 //  "GPSGroundSpeed":0,"GPSLastGroundTrackTime":"0001-01-01T00:00:00Z","GPSTime":"0001-01-01T00:00:00Z",
 //  "GPSLastGPSTimeStratuxTime":"0001-01-01T00:00:00Z","GPSLastValidNMEAMessageTime":"0001-01-01T00:01:33.5Z",
 //  "GPSLastValidNMEAMessage":"$PUBX,00,000122.90,0000.00000,N,00000.00000,E,0.000,NF,5303302,3750001,0.000,0.00,0.000,,99.99,99.99,99.99,0,0,0*20",
-//  "GPSPositionSampleRate":0,"BaroTemperature":22.1,"BaroPressureAltitude":262.4665,"BaroVerticalSpeed":-0.6568238,
-//  "BaroLastMeasurementTime":"0001-01-01T00:01:33.52Z","AHRSPitch":-1.7250436907060585,"AHRSRoll":1.086912223392926,
-//  "AHRSGyroHeading":3276.7,"AHRSMagHeading":3276.7,"AHRSSlipSkid":-0.6697750324029778,"AHRSTurnRate":3276.7,
+//  "GPSPositionSampleRate":0,"BaroTemperaturehttps://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=3276.7,"AHRSSlipSkid":-0.6697750324029778,"AHRSTurnRate":3276.7,
 //  "AHRSGLoad":0.9825397416431592,"AHRSGLoadMin":0.9799488522426687,"AHRSGLoadMax":0.9828301105039375,
 //  "AHRSLastAttitudeTime":"0001-01-01T00:01:33.55Z","AHRSStatus":6}
 //
@@ -130,8 +353,8 @@ function getGpsData() {
     $.get(settings.stratuxurl, function(data) {
         pos = ol.proj.fromLonLat([data.GPSLongitude, data.GPSLatitude]);
         if (data.GPSLongitude != 0 && data.GPSLatitude != 0) {
-            popup.setOffset(offset);
-            popup.setPosition(pos);
+            myairplane.setOffset(offset);
+            myairplane.setPosition(pos);
             lng = data.GPSLongitude;
             lat = data.GPSLatitude;
             alt = data.GPSAltitudeMSL;
@@ -142,19 +365,21 @@ function getGpsData() {
 }
 
 function putPositionHistory() {
-    if (lng + lat + deg + alt > 0) {
-        let postage = { longitude: lng, 
-            latitude: lat, 
-            heading: deg,
-            altitude: Math.round(alt) };
+    if (last_longitude != lng || last_latitude != lat) {
+        if (lng + lat + deg + alt > 0) {
+            let postage = { longitude: lng, 
+                latitude: lat, 
+                heading: deg,
+                altitude: Math.round(alt) };
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", URL_PUT_HISTORY);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", URL_PUT_HISTORY);
 
-        xhr.setRequestHeader("Content-Type", "application/json");
-        try {    
-            xhr.send(JSON.stringify(postage));
+            xhr.setRequestHeader("Content-Type", "application/json");
+            try {    
+                xhr.send(JSON.stringify(postage));
+            }
+            finally {}
         }
-        finally {}
     }
 }
