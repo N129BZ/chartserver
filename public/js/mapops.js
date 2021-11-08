@@ -80,26 +80,6 @@ const map = new ol.Map({
     })
 });
 
-const circleStyle = new ol.style.Circle({
-    fill: new ol.style.Fill({
-        color: [93, 173, 226, 1]
-    }),
-    stroke: new ol.style.Stroke({
-        color: [255,255,255,1],
-        width: 2
-    }),
-    radius: 20 
-});
-
-const fillStyle = new ol.style.Fill({
-    color: [40, 119, 247, 1]
-});
-
-const strokeStyle = new ol.style.Stroke({
-    color: [30, 30, 31, 1],
-    width: 1.2
-}); 
-
 // Icon Markers
 const mvfrMarker = new ol.style.Icon({
     src: './img/mvfr.png',
@@ -149,16 +129,6 @@ const lifrStyle = new ol.style.Style({
     image: lifrMarker
 });
 
-/*
-const blackMarker = new ol.style.Icon({
-    src: './img/blackdot.png',
-    size: [45, 45],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .25
-});
-*/
-
 const myairplane = new ol.Overlay({
     element: airplaneElement
 });
@@ -171,6 +141,8 @@ let currZoom = map.getView().getZoom();
 let apfeatures = [];
 let vectorSource;
 let airportLayer;
+let vfrsecLayer;
+let osmLayer;
 
 function placeAirports(airportdata) {
     airports = airportdata.airports;
@@ -198,7 +170,7 @@ function placeAirports(airportdata) {
         source: vectorSource,
         zIndex: 11
     });
-    map.addLayer(airportLayer);   
+    map.addLayer(airportLayer); 
 }
 
 map.on('moveend', function(e) {
@@ -289,7 +261,7 @@ $.ajax({
     }
 });
 
-// Dynamic MBTiles layers
+// VFR Sectional MBTiles layer
 $.get(URL_GET_TILESETS, function(data) {
     let meta = JSON.parse(data);
     let layertype = meta["type"] == "baselayer" ? "base" : "overlay"; 
@@ -303,7 +275,7 @@ $.get(URL_GET_TILESETS, function(data) {
 
     ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
 
-    let vfrseclayer = new ol.layer.Tile({
+    vfrsecLayer = new ol.layer.Tile({
         title: name,
         type: layertype,
         source: new ol.source.XYZ({
@@ -314,8 +286,19 @@ $.get(URL_GET_TILESETS, function(data) {
         extent: ext,
         zIndex: 10
     });
-    vfrseclayer.visible = true;
-    map.addLayer(vfrseclayer);
+    
+    osmLayer = new ol.layer.Tile({
+        source: new ol.source.OSM(),
+        extent: ext,
+        zIndex: 10
+    });
+
+    if (settings.useOSMonlinemap) {
+        map.addLayer(osmLayer);
+    }
+    else {
+        map.addLayer(vfrsecLayer);
+    }
 });
 
 //setInterval(getGpsData, settings.gpsintervalmsec);

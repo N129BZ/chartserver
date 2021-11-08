@@ -125,7 +125,7 @@ function getMetars(airportlist) {
         let status = xhr.status;
         if (status == 200) {
             retval = xhr.responseText;
-        } 
+        }
     };
     xhr.send();
     return retval;
@@ -167,8 +167,9 @@ function putPositionHistory(data) {
 }
 
 function getSettings(response) {
+    let json = readSettingsFile();
     response.writeHead(200);
-    response.write(JSON.stringify(settings));
+    response.write(JSON.stringify(json));
     response.end();
 }
 
