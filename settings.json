@@ -4,7 +4,7 @@
     "metarintervalmsec": 600000,
     "httpport": 8080,
     "startupzoom": 10,
-    "useOSMonlinemap": true,
+    "useOSMonlinemap": false,
     "tiledb": "./public/data/usavfr.mbtiles",
     "historydb": "./public/data/positionhistory.db",
     "airportdb": "./public/data/airports.db",

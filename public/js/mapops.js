@@ -12,6 +12,8 @@ let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
 let URL_GET_AIRPORTS        = `${URL_SERVER}/getairports`;
 let URL_GET_METARS          = `${URL_SERVER}/getmetars`;
+let URL_GET_TAF             = `${URL_SERVER}/gettaf`;
+let URL_GET_PIREPS          = `${URL_SERVER}/getpireps`;
 
 let settings;
 let airports;
@@ -19,7 +21,23 @@ let last_longitude = -97;
 let last_latitude = 38;
 let last_heading = 0;
 
-let popupElement = document.getElementById('popup');
+const container = document.getElementById('popup');
+const content = document.getElementById('popup-content');
+const closer = document.getElementById('popup-closer');
+const overlay = new ol.Overlay({
+    element: container,
+    autoPan: true,
+    autoPanAnimation: {
+      duration: 250,
+    },
+});
+
+closer.onclick = function () {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+};
+
 let airplaneElement = document.getElementById('airplane');
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
 
@@ -67,6 +85,32 @@ function getAirportMetars(airportlist) {
     return retval;
 }
 
+function getTaf(airport) {
+    let retval = "";
+    $.ajax({
+        async: false,
+        type: "GET",
+        url: `${URL_GET_TAF}/${airport}`,
+        success: function(data) {
+            retval = data;
+        }
+    });
+    return retval;
+}
+
+function getPireps() {
+    let retval = "";
+    $.ajax({
+        async: false,
+        type: "GET",
+        url: URL_GET_PIREPS,
+        success: function(data) {
+            retval = data;
+        }
+    });
+    return retval;
+}
+
 let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];
@@ -77,7 +121,8 @@ const map = new ol.Map({
         center: pos,        
         zoom: settings.startupzoom,
         enableRotation: true
-    })
+    }),
+    overlays: [overlay]
 });
 
 // Icon Markers
@@ -180,20 +225,16 @@ map.on('moveend', function(e) {
     resizeDots(rsz);
     currZoom = zoom;
     console.log(`Dot size: ${rsz}, Current Zoom: ${currZoom}`);
+    getPireps();
     getMetarsForCurrentView();
 });
 
-map.on('pointermove', function (e) {
-    popupElement.style.visibility = "hidden";
-    map.forEachFeatureAtPixel(e.pixel, function (f) {
-        var selected = f;
-        if (selected) {
-            popupElement.innerHTML = `${f.get('name')} ${f.get('elevation')}'`;
-            popupElement.style.visibility = "visible";
-        } 
-        else {
-            popupElement.innerHTML = '';
-            popupElement.style.visibility = "hidden";
+map.on('pointermove', function (evt) {
+    map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+        if (feature) {
+            let coordinate = evt.coordinate;
+            content.innerHTML = '<p><code>' + feature.get('METAR') + '</code></p>';
+            overlay.setPosition(coordinate);
         }
     });
 });
@@ -213,6 +254,7 @@ function getMetarsForCurrentView() {
         console.log(`METAR for ${id}: ${cat}`);
         let feature = vectorSource.getFeatureById(id);
         if (feature != null) {
+            feature.set('METAR', $(this).find('raw_text').text());
             try {
                 switch (cat) {
                     case 'MVFR':

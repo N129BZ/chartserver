@@ -3,7 +3,10 @@ const express = require('express');
 const Math = require("math");
 const fs = require("fs");
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const convert = require('xml-js');
+
+const metarurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=";
+const tafurl = "https://www.aviationweather.gov/taf/data?ids=###AIRPORT###&format=decoded&metars=off";
+const pirepurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?datasource=pireps&requesttype=retrieve&format=xml&hoursBeforeNow=.5";
 
 const settings = readSettingsFile();
 var airportJson;
@@ -109,6 +112,20 @@ try {
         res.write(data); 
         res.end();
     });
+
+    app.get("/gettaf/:airport", (req, res) => {
+        var data = getTaf(req.params.airport);
+        res.writeHead(200);
+        res.write(data); 
+        res.end();
+    });
+
+    app.get("/getpireps", (req, res) => {
+        var data = getPireps();
+        res.writeHead(200);
+        res.write(data); 
+        res.end();
+    });
 }
 catch (error) {
     console.log(error);
@@ -117,13 +134,46 @@ catch (error) {
 function getMetars(airportlist) {
     var retval = "";
     var xhr = new XMLHttpRequest();
-    var baseurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=";
-    let url = `${baseurl}${airportlist}`;
+    let url = `${metarurl}${airportlist}`;
     xhr.open('GET', url, false);
     xhr.responseType = 'xml';
     xhr.onload = () => {
         let status = xhr.status;
         if (status == 200) {
+            console.log(xhr.responseText);
+            retval = xhr.responseText;
+        }
+    };
+    xhr.send();
+    return retval;
+}
+
+function getTaf(airport) {
+    var retval = "";
+    var xhr = new XMLHttpRequest();
+    let url = tafurl.replace("###AIRPORT###", airport);
+    xhr.open('GET', url, false);
+    xhr.responseType = 'xml';
+    xhr.onload = () => {
+        let status = xhr.status;
+        if (status == 200) {
+            console.log(xhr.responseText);
+            retval = xhr.responseText;
+        }
+    };
+    xhr.send();
+    return retval;
+}
+
+function getPireps() {
+    var retval = "";
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', pirepurl, false);
+    xhr.responseType = 'xml';
+    xhr.onload = () => {
+        let status = xhr.status;
+        if (status == 200) {
+            console.log(xhr.responseText);
             retval = xhr.responseText;
         }
     };
@@ -174,7 +224,6 @@ function getSettings(response) {
 }
 
 function handleTile(request, response) {
-	
     let x = 0;
     let y = 0;
     let z = 0;
