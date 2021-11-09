@@ -1,6 +1,5 @@
 'use strict';
 
-
 // application constants
 let URL_HOST_BASE           = window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 let URL_HOST_PROTOCOL       = window.location.protocol + "//";
@@ -216,6 +215,7 @@ function placeAirports(airportdata) {
         zIndex: 11
     });
     map.addLayer(airportLayer); 
+    //getMetarsForCurrentView();
 }
 
 map.on('moveend', function(e) {
@@ -224,17 +224,22 @@ map.on('moveend', function(e) {
     let rsz = rawnum.toFixed(3)
     resizeDots(rsz);
     currZoom = zoom;
-    console.log(`Dot size: ${rsz}, Current Zoom: ${currZoom}`);
-    getPireps();
     getMetarsForCurrentView();
 });
 
 map.on('pointermove', function (evt) {
     map.forEachFeatureAtPixel(evt.pixel, function (feature) {
         if (feature) {
-            let coordinate = evt.coordinate;
-            content.innerHTML = '<p><code>' + feature.get('METAR') + '</code></p>';
-            overlay.setPosition(coordinate);
+            let fmetar = feature.get('metar');
+            let fcat = feature.get('fltcat');
+            if (fmetar !== undefined) {
+                let coordinate = evt.coordinate;
+                content.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
+                overlay.setPosition(coordinate);
+            }
+            else {
+                closer.onclick();
+            }
         }
     });
 });
@@ -243,18 +248,36 @@ function getMetarsForCurrentView() {
     let metarlist = "";
     let extent = map.getView().calculateExtent(map.getSize()); 
     vectorSource.forEachFeatureInExtent(extent, function(feature){
-        metarlist += `${feature.get('name')},`;
+        let aptype = feature.get('type');
+        if (currZoom < 7.5) {
+            if (aptype === 'large_airport') {
+                metarlist += `${feature.get('name')},`;
+            }
+        }
+        else if (currZoom >= 7.5 && currZoom < 10) {
+            if (aptype === 'large_airport' || aptype === 'medium_airport') {
+                metarlist += `${feature.get('name')},`;
+            }
+        }
+        else if (currZoom >= 10) {
+            if (aptype === 'large_airport' || aptype === 'medium_airport' || aptype === 'small_airport') {
+                metarlist += `${feature.get('name')},`;
+            }
+        }
     }); 
     metarlist = metarlist.substring(0, metarlist.length - 1);
+    console.log(metarlist);
     let metars = getAirportMetars(metarlist);
     let xml = $.parseXML(metars);
     $(xml).find('METAR').each(function() {
         let id = $(this).find('station_id').text();
-        let cat = `${$(this).find('flight_category').text()}`;
-        console.log(`METAR for ${id}: ${cat}`);
+        let cat = $(this).find('flight_category').text();
+        let metar = $(this).find('raw_text').text()
         let feature = vectorSource.getFeatureById(id);
-        if (feature != null) {
-            feature.set('METAR', $(this).find('raw_text').text());
+        if (feature !== null) {
+            console.log(`METAR for ${id}: ${cat}: ${metar}`);
+            feature.set('metar', metar);
+            feature.set('fltcat', cat);
             try {
                 switch (cat) {
                     case 'MVFR':
@@ -343,8 +366,8 @@ $.get(URL_GET_TILESETS, function(data) {
     }
 });
 
-setInterval(getGpsData, settings.gpsintervalmsec);
-setInterval(putPositionHistory, settings.histintervalmsec);
+//setInterval(getGpsData, settings.gpsintervalmsec);
+//setInterval(putPositionHistory, settings.histintervalmsec);
 setInterval(redrawMetars, settings.metarintervalmsec);
 
 function redrawMetars() {
@@ -377,9 +400,9 @@ let lat = 0;
 function getGpsData() {
     $.get(settings.stratuxurl, function(data) {
         pos = ol.proj.fromLonLat([data.GPSLongitude, data.GPSLatitude]);
-        if (data.GPSLongitude != 0 && data.GPSLatitude != 0) {
+        if (data.GPSLongitude !== 0 && data.GPSLatitude !== 0) {
             myairplane.setOffset(offset);
-            myairplane.setPosition(pos);
+            myairplane.setPosition(pos);m
             lng = data.GPSLongitude;
             lat = data.GPSLatitude;
             alt = data.GPSAltitudeMSL;
@@ -390,7 +413,7 @@ function getGpsData() {
 }
 
 function putPositionHistory() {
-    if (last_longitude != lng || last_latitude != lat) {
+    if (last_longitude !== lng || last_latitude !== lat) {
         if (lng + lat + deg + alt > 0) {
             let postage = { longitude: lng, 
                 latitude: lat, 
