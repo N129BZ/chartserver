@@ -215,7 +215,6 @@ function placeAirports(airportdata) {
         zIndex: 11
     });
     map.addLayer(airportLayer); 
-    //getMetarsForCurrentView();
 }
 
 map.on('moveend', function(e) {
@@ -248,20 +247,23 @@ function getMetarsForCurrentView() {
     let metarlist = "";
     let extent = map.getView().calculateExtent(map.getSize()); 
     vectorSource.forEachFeatureInExtent(extent, function(feature){
-        let aptype = feature.get('type');
-        if (currZoom < 7.5) {
-            if (aptype === 'large_airport') {
-                metarlist += `${feature.get('name')},`;
+        let name = feature.get('name');
+        if (name.startsWith("K")) {
+            let aptype = feature.get('type');
+            if (currZoom < 7.5) {
+                if (aptype === 'large_airport') {
+                    metarlist += `${name},`;
+                }
             }
-        }
-        else if (currZoom >= 7.5 && currZoom < 10) {
-            if (aptype === 'large_airport' || aptype === 'medium_airport') {
-                metarlist += `${feature.get('name')},`;
+            else if (currZoom >= 7.5 && currZoom < 10) {
+                if (aptype === 'large_airport' || aptype === 'medium_airport') {
+                    metarlist += `${name},`;
+                }
             }
-        }
-        else if (currZoom >= 10) {
-            if (aptype === 'large_airport' || aptype === 'medium_airport' || aptype === 'small_airport') {
-                metarlist += `${feature.get('name')},`;
+            else if (currZoom >= 10) {
+                if (aptype === 'large_airport' || aptype === 'medium_airport' || aptype === 'small_airport') {
+                    metarlist += `${name},`;
+                }
             }
         }
     }); 
@@ -275,7 +277,7 @@ function getMetarsForCurrentView() {
         let metar = $(this).find('raw_text').text()
         let feature = vectorSource.getFeatureById(id);
         if (feature !== null) {
-            console.log(`METAR for ${id}: ${cat}: ${metar}`);
+            console.log(`${cat}: ${metar}`);
             feature.set('metar', metar);
             feature.set('fltcat', cat);
             try {
