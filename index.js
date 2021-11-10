@@ -19,7 +19,7 @@ function readSettingsFile() {
 
 function loadAirportsJson(zoomlevel) {
     let airportdb = new sqlite3.Database(settings.airportdb, sqlite3.OPEN_READONLY, (err) => {
-        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports WHERE iso_country = 'US';`;
+        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports WHERE (type NOT IN ('heliport','seaplane_base','closed')) AND iso_country = 'US';`;
         airportdb.all(sql, (err, rows) => {
             if (err === null) {
                 airportJson = `{ "airports": [ `;

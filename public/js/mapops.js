@@ -201,7 +201,9 @@ function placeAirports(airportdata) {
             type: aptype,
             elevation: airport.elevation
         });
-        marker.setStyle(vfrStyle);
+        if (airport.type === 'large_airport' || airport.type === 'medium_airport') {
+            marker.setStyle(vfrStyle);
+        }
         marker.setId(ident);
         apfeatures.push(marker);
     });
@@ -217,18 +219,40 @@ function placeAirports(airportdata) {
     map.addLayer(airportLayer); 
 }
 
+let wsweather = new WebSocket(settings.weatherurl);
+wsweather.onopen = function(evt) {
+    console.log(evt);
+};
+wsweather.onmessage = function(evt) {
+    let data = JSON.parse(evt.data);
+    console.log(data);
+    try {
+        let feature = vectorSource.getFeatureById(data.Location);
+        if (feature !== null && data.Type === 'METAR') {
+            feature.set('metar', data.Data);
+            console.log(`metar set for ${data.Location}`);
+        }
+    }
+    finally{}
+};
+
 map.on('moveend', function(e) {
-    let zoom = map.getView().getZoom();
-    let rawnum = .045 * zoom;
-    let rsz = rawnum.toFixed(3)
-    resizeDots(rsz);
-    currZoom = zoom;
-    getMetarsForCurrentView();
+    try {
+        let zoom = map.getView().getZoom();
+        let rawnum = .045 * zoom;
+        let rsz = rawnum.toFixed(3)
+        resizeDots(rsz);
+        currZoom = zoom;
+        getMetarsForCurrentView();
+    }
+    finally {}
 });
 
 map.on('pointermove', function (evt) {
+    let hasfeature = false;
     map.forEachFeatureAtPixel(evt.pixel, function (feature) {
         if (feature) {
+            hasfeature = true;
             let fmetar = feature.get('metar');
             let fcat = feature.get('fltcat');
             if (fmetar !== undefined) {
@@ -236,72 +260,68 @@ map.on('pointermove', function (evt) {
                 content.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
                 overlay.setPosition(coordinate);
             }
-            else {
-                closer.onclick();
-            }
         }
+        
     });
+    if (!hasfeature) {
+        closer.onclick();
+    }
 });
 
 function getMetarsForCurrentView() {
     let metarlist = "";
-    let extent = map.getView().calculateExtent(map.getSize()); 
-    vectorSource.forEachFeatureInExtent(extent, function(feature){
-        let name = feature.get('name');
-        if (name.startsWith("K")) {
-            let aptype = feature.get('type');
-            if (currZoom < 7.5) {
-                if (aptype === 'large_airport') {
-                    metarlist += `${name},`;
+    let extent = map.getView().calculateExtent(map.getSize());
+    try { 
+        vectorSource.forEachFeatureInExtent(extent, function(feature){
+            let name = feature.get('name');
+            if (name.startsWith("K")) {
+                let aptype = feature.get('type');
+                if (currZoom < 7.5) {
+                    if (aptype === 'large_airport') {
+                        metarlist += `${name},`;
+                    }
+                }
+                else if (aptype === 'large_airport' || aptype === 'medium_airport') {
+                        metarlist += `${name},`;
                 }
             }
-            else if (currZoom >= 7.5 && currZoom < 10) {
-                if (aptype === 'large_airport' || aptype === 'medium_airport') {
-                    metarlist += `${name},`;
+        }); 
+    }
+    finally {
+        metarlist = metarlist.substring(0, metarlist.length - 1);
+        console.log(metarlist);
+        let metars = getAirportMetars(metarlist);
+        let xml = $.parseXML(metars);
+        $(xml).find('METAR').each(function() {
+            let id = $(this).find('station_id').text();
+            let cat = $(this).find('flight_category').text();
+            let metar = $(this).find('raw_text').text()
+            let feature = vectorSource.getFeatureById(id);
+            if (feature !== null) {
+                console.log(`${cat}: ${metar}`);
+                feature.set('metar', metar);
+                feature.set('fltcat', cat);
+                try {
+                    switch (cat) {
+                        case 'MVFR':
+                            feature.setStyle(mvfrStyle);
+                            break;
+                        case 'LIFR':
+                            feature.setStyle(lifrStyle);
+                            break;
+                        case 'IFR':
+                            feature.setStyle(ifrStyle)
+                            break;
+                        case 'VFR':
+                        default:
+                            feature.setStyle(vfrStyle);
+                            break;
+                    }
                 }
+                finally{}
             }
-            else if (currZoom >= 10) {
-                if (aptype === 'large_airport' || aptype === 'medium_airport' || aptype === 'small_airport') {
-                    metarlist += `${name},`;
-                }
-            }
-        }
-    }); 
-    metarlist = metarlist.substring(0, metarlist.length - 1);
-    console.log(metarlist);
-    let metars = getAirportMetars(metarlist);
-    let xml = $.parseXML(metars);
-    $(xml).find('METAR').each(function() {
-        let id = $(this).find('station_id').text();
-        let cat = $(this).find('flight_category').text();
-        let metar = $(this).find('raw_text').text()
-        let feature = vectorSource.getFeatureById(id);
-        if (feature !== null) {
-            console.log(`${cat}: ${metar}`);
-            feature.set('metar', metar);
-            feature.set('fltcat', cat);
-            try {
-                switch (cat) {
-                    case 'MVFR':
-                        feature.setStyle(mvfrStyle);
-                        break;
-                    case 'LIFR':
-                        feature.setStyle(lifrStyle);
-                        break;
-                    case 'IFR':
-                        feature.setStyle(ifrStyle)
-                        break;
-                    case 'VFR':
-                    default:
-                        feature.setStyle(vfrStyle);
-                        break;
-                }
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-    });
+        });
+    }
 }
 
 function resizeDots(newscale) {
