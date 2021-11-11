@@ -119,7 +119,7 @@ const map = new ol.Map({
     view: new ol.View({
         center: pos,        
         zoom: settings.startupzoom,
-        enableRotation: true
+        enableRotation: false
     }),
     overlays: [overlay]
 });
