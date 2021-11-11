@@ -258,7 +258,8 @@ function handleTile(request, response) {
 
 function loadTile(z, x, y, response) {
 
-    let sql = `SELECT tile_data FROM tiles WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
+    let sql = `SELECT tile_data FROM tiles
+               WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
 
     console.log(sql);
 
@@ -285,9 +286,11 @@ function loadTile(z, x, y, response) {
 }
 
 function handleTilesets(request, response) {
-    let sql = "SELECT name, value FROM metadata" +
-            " UNION SELECT 'minzoom', min(zoom_level) FROM tiles WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom')" +
-            " UNION SELECT 'maxzoom', max(zoom_level) FROM tiles WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')";
+    let sql = `SELECT name, value FROM metadata
+                UNION SELECT 'minzoom', min(zoom_level) FROM tiles 
+                    WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom')
+                UNION SELECT 'maxzoom', max(zoom_level) FROM tiles 
+                    WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
     console.log(sql);
     let found = false;
     let meta = {};
@@ -300,8 +303,9 @@ function handleTilesets(request, response) {
             }
             if (row.name === "maxzoom" && row.value != null && !found) {
                 let maxZoomInt = parseInt(row.value); 
-                sql = "SELECT min(tile_column) as xmin, min(tile_row) as ymin, " + 
-                             "max(tile_column) as xmax, max(tile_row) as ymax FROM tiles WHERE zoom_level=?"
+                sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, 
+                              max(tile_column) as xmax, max(tile_row) as ymax 
+                       FROM tiles WHERE zoom_level=?`;
                 mapdb.get(sql, [maxZoomInt], (err, row) => {
                     let xmin = row.xmin;
                     let ymin = row.ymin; 
