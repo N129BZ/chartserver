@@ -19,10 +19,8 @@ function readSettingsFile() {
 
 function loadAirportsJson(zoomlevel) {
     let airportdb = new sqlite3.Database(settings.airportdb, sqlite3.OPEN_READONLY, (err) => {
-        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg 
-                   FROM airports 
-                   WHERE (type NOT IN ('heliport','seaplane_base','closed')) 
-                       AND iso_country = 'US';`;
+        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports ` +
+                  `WHERE (type NOT IN ('heliport','seaplane_base','closed')) AND iso_country = 'US';`;
         airportdb.all(sql, (err, rows) => {
             if (err === null) {
                 airportJson = `{ "airports": [ `;
@@ -208,8 +206,8 @@ function getPositionHistory(response) {
 
 function putPositionHistory(data) {
     let datetime = new Date().toISOString();
-    let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) 
-               VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
+    let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
+              `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
     console.log(sql); 
         
     histdb.run(sql, function(err) {
@@ -258,11 +256,7 @@ function handleTile(request, response) {
 
 function loadTile(z, x, y, response) {
 
-    let sql = `SELECT tile_data FROM tiles
-               WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
-
-    console.log(sql);
-
+    let sql = `SELECT tile_data FROM tiles WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
     mapdb.get(sql, (err, row) => {
         if (err == null) {
             if (row == undefined) {
@@ -286,12 +280,9 @@ function loadTile(z, x, y, response) {
 }
 
 function handleTilesets(request, response) {
-    let sql = `SELECT name, value FROM metadata
-                UNION SELECT 'minzoom', min(zoom_level) FROM tiles 
-                    WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom')
-                UNION SELECT 'maxzoom', max(zoom_level) FROM tiles 
-                    WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
-    console.log(sql);
+    let sql = `SELECT name, value FROM metadata UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
+              `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
+              `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
     let found = false;
     let meta = {};
     meta["bounds"] = "";
@@ -303,9 +294,9 @@ function handleTilesets(request, response) {
             }
             if (row.name === "maxzoom" && row.value != null && !found) {
                 let maxZoomInt = parseInt(row.value); 
-                sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, 
-                              max(tile_column) as xmax, max(tile_row) as ymax 
-                       FROM tiles WHERE zoom_level=?`;
+                sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
+                             `max(tile_column) as xmax, max(tile_row) as ymax ` +
+                      `FROM tiles WHERE zoom_level=?`;
                 mapdb.get(sql, [maxZoomInt], (err, row) => {
                     let xmin = row.xmin;
                     let ymin = row.ymin; 

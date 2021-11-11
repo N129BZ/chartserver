@@ -195,17 +195,17 @@ function placeAirports(airportdata) {
         let aptype = airport.type;
         let lon = airport.lonlat[0];
         let lat = airport.lonlat[1];
-        let marker = new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
-            name: ident,
-            type: aptype,
-            elevation: airport.elevation
-        });
         if (airport.type === 'large_airport' || airport.type === 'medium_airport') {
+            let marker = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                name: ident,
+                type: aptype,
+                elevation: airport.elevation
+            });
             marker.setStyle(vfrStyle);
+            marker.setId(ident);
+            apfeatures.push(marker);
         }
-        marker.setId(ident);
-        apfeatures.push(marker);
     });
     
     vectorSource = new ol.source.Vector({
