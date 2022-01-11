@@ -302,7 +302,7 @@ function handleTilesets(request, response) {
                     let ymin = row.ymin; 
                     let xmax = row.xmax; 
                     let ymax = row.ymax;  
-            
+                    
                     llmin = tileToDegree(maxZoomInt, xmin, ymin);
                     llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
                     
