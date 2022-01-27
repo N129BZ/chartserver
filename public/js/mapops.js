@@ -5,7 +5,7 @@ let URL_HOST_BASE           = window.location.hostname + (window.location.port ?
 let URL_HOST_PROTOCOL       = window.location.protocol + "//";
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
-let URL_GET_TILE            = `${URL_SERVER}/tiles/singletile/{z}/{x}/{-y}.png`;
+let URL_GET_TILE            = `${URL_SERVER}/tiles/singletile/{z}/{x}/{-y}.jpg`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
@@ -187,6 +187,7 @@ let vectorSource;
 let airportLayer;
 let vfrsecLayer;
 let osmLayer;
+let tiledebug;
 
 function placeAirports(airportdata) {
     airports = airportdata.airports;
@@ -219,6 +220,7 @@ function placeAirports(airportdata) {
     map.addLayer(airportLayer); 
 }
 
+/*
 let wsweather = new WebSocket(settings.weatherurl);
 wsweather.onopen = function(evt) {
     console.log(evt);
@@ -235,6 +237,7 @@ wsweather.onmessage = function(evt) {
     }
     finally{}
 };
+*/
 
 map.on('moveend', function(e) {
     try {
@@ -243,7 +246,9 @@ map.on('moveend', function(e) {
         let rsz = rawnum.toFixed(3)
         resizeDots(rsz);
         currZoom = zoom;
-        getMetarsForCurrentView();
+        if (settings.getmetars) {
+            getMetarsForCurrentView();
+        }
     }
     finally {}
 });
@@ -363,8 +368,8 @@ $.get(URL_GET_TILESETS, function(data) {
     ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
 
     vfrsecLayer = new ol.layer.Tile({
-        title: name,
-        type: layertype,
+        title: "VFR Chart",
+        type: "overlay", //layertype,
         source: new ol.source.XYZ({
             url: URL_GET_TILE,
             maxZoom: maxzoom,
@@ -375,22 +380,44 @@ $.get(URL_GET_TILESETS, function(data) {
     });
     
     osmLayer = new ol.layer.Tile({
+        title: "OSM",
+        type: "overlay",
         source: new ol.source.OSM(),
         extent: ext,
         zIndex: 10
     });
 
-    if (settings.useOSMonlinemap) {
-        map.addLayer(osmLayer);
-    }
-    else {
-        map.addLayer(vfrsecLayer);
-    }
+    // TileDebug
+    tiledebug = new ol.layer.Tile({
+        source: new ol.source.TileDebug(),
+        visible: false,
+        title: 'TileDebugLayer',
+        extent: ext,
+        zIndex: 12
+    })
+
+    map.addLayer(osmLayer);
+    map.addLayer(vfrsecLayer);
+    map.addLayer(tiledebug);
+
+    let layerSwitcher = new ol.control.LayerSwitcher({
+        tipLabel: 'Layers', // Optional label for button
+        groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
+    });
+    map.addControl(layerSwitcher);
 });
 
-//setInterval(getGpsData, settings.gpsintervalmsec);
-//setInterval(putPositionHistory, settings.histintervalmsec);
-setInterval(redrawMetars, settings.metarintervalmsec);
+if (settings.getmetars) {
+    setInterval(redrawMetars, settings.metarintervalmsec);
+}
+
+if (settings.putpositionhistory) {
+    setInterval(putPositionHistory, settings.histintervalmsec);
+}
+
+if (settings.getgpsfromstratux) {
+    setInterval(getGpsData, settings.gpsintervalmsec);
+}
 
 function redrawMetars() {
     console.log("Timed METAR retrieval in progress");
