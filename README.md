@@ -12,7 +12,7 @@ Offline use requires usavfr.mbtiles database (or a mbtiles database of your own 
 **Download the usavfr.mbtiles database (5gb):** https://drive.google.com/file/d/134feGg9nUAHmozji1AtMEUsjtuRnMefl/view?usp=sharing
 
 ###
-**User-settable values in settings.json:**
+**User-editable values in settings.json:**
 ```
 {
     "putpositionhistory": false,
