@@ -396,10 +396,11 @@ $.get(URL_GET_TILESETS, function(data) {
         extent: ext,
         zIndex: 12
     })
-
+    
+    map.addLayer(tiledebug);
     map.addLayer(osmLayer);
     map.addLayer(vfrsecLayer);
-    map.addLayer(tiledebug);
+    
 
     let layerSwitcher = new ol.control.LayerSwitcher({
         tipLabel: 'Layers', // Optional label for button
