@@ -37,9 +37,6 @@ closer.onclick = function () {
     return false;
 };
 
-let airplaneElement = document.getElementById('airplane');
-airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
-
 $.ajax({
     async: false,
     type: "GET",
@@ -53,6 +50,10 @@ $.ajax({
         }
     }
 });
+
+let airplaneElement = document.getElementById('airplane');
+airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
+airplaneElement.src = `${URL_SERVER}/img/${settings.ownshipimage}`;
 
 $.ajax({
     async: false,
