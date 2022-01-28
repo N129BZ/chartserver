@@ -15,9 +15,12 @@ Offline use requires usavfr.mbtiles database (or a mbtiles database of your own 
 **User-settable values in settings.json:**
 ```
 {
+    "putpositionhistory": false,
     "histintervalmsec": 15000,
+    "getgpsfromstratux": false,
     "gpsintervalmsec": 1000,
-    "metarintervalmsec": 600000,
+    "getmetars": false,
+    "metarintervalmsec": 300000,
     "httpport": 8080,
     "startupzoom": 10,
     "useOSMonlinemap": false,
