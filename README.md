@@ -1,4 +1,4 @@
-# Aviation navigation charts using OpenLayers mapping via GPS coordinates from Stratux
+# FAA VFR navigation charts using OpenLayers maps, with optional connection to Stratux for ownship GPS coordinates         
 
 **See http://github.con/N129BZ/VfrSecChartMaker for an automated FAA chart processor**                   
                                          
