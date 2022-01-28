@@ -1,5 +1,7 @@
 # Aviation navigation charts using OpenLayers mapping via GPS coordinates from Stratux
 
+**See http://github.con/N129BZ/VfrSecChartMaker for an automated FAA chart processor**                   
+                                         
 **Web-based application can use either offline VFR Charts or online OSM maps. Application built with node.js express and OpenLayers. Offline VFR charts use usavfr.mbtiles database. Application polls Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. Also saves position data in a separate history database at user-defined intervals.**   
 
 ###
