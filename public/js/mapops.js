@@ -480,7 +480,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         extent: extent,
         zIndex: 11
     }); 
-    
+
     map.addLayer(tiledebug);
     map.addLayer(airportLayer); 
     map.addLayer(caribLayer);
