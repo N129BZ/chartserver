@@ -52,20 +52,34 @@ $.ajax({
     }
 });
 
-const container = document.getElementById('popup');
-const content = document.getElementById('popup-content');
-const closer = document.getElementById('popup-closer');
-const overlay = new ol.Overlay({
-    element: container,
+const metarpopup = document.getElementById('popup');
+const metarcontent = document.getElementById('popup-content');
+const metarcloser = document.getElementById('popup-closer');
+
+const metaroverlay = new ol.Overlay({
+    element: metarpopup,
     autoPan: true,
     autoPanAnimation: {
       duration: 250,
     },
 });
 
-closer.onclick = function () {
-    overlay.setPosition(undefined);
-    closer.blur();
+const loadingpopup = document.getElementById('loadingpopup');
+const loadingcontent = document.getElementById('loadingpopup-content');
+const loadingcloser = document.getElementById('loadingpopup-closer');
+
+const loadingoverlay = new ol.Overlay({
+    element: loadingpopup,
+    autoPan: true,
+    autoPanAnimation: {
+      duration: 250,
+    },
+});
+loadingoverlay.setPosition(undefined);
+
+metarcloser.onclick = function () {
+    metaroverlay.setPosition(undefined);
+    metarcloser.blur();
     return false;
 };
 
@@ -140,7 +154,7 @@ const map = new ol.Map({
         zoom: settings.startupzoom,
         enableRotation: false
     }),
-    overlays: [overlay]
+    overlays: [metaroverlay, loadingoverlay]
 });
 
 // Icon Markers
@@ -198,62 +212,6 @@ const circleStyle = new ol.style.Circle({
     stroke: new ol.style.Stroke({color: 'red', width: 1}),
 });
 
-/*
-const getStyleFunction = function (feature) {
-    let style = vfrStyle;
-    switch (feature.getGeometry().getType()) {
-        case 'LineString': 
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'green',
-                    width: 1,
-                })
-            });
-            break;
-        case 'MultiLineString': 
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'green',
-                    width: 1,
-                })
-            });
-            break;
-        case 'MultiPoint': 
-            style = new ol.style.Style({
-                image: circleStyle,
-            });
-            break;
-        case 'MultiPolygon': 
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'yellow',
-                    width: 1,
-                }),
-                fill: new Fill({
-                    color: 'rgba(255, 255, 0, 0.1)',
-                }),
-            });
-            break;
-        case 'Polygon': 
-            style = new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                    color: 'blue',
-                    lineDash: [4],
-                    width: 3,
-                }),
-                fill: new ol.style.Fill({
-                    color: 'rgba(0, 0, 255, 0.1)',
-                }),
-            });
-        case 'Point':
-        default:
-            style = vfrStyle;
-            break;
-    }
-    return style;
-};
-*/
-
 const myairplane = new ol.Overlay({
     element: airplaneElement
 });
@@ -294,7 +252,6 @@ chkmetars.id = "chkmetars";
 chkmetars.checked = false;
 chkmetars.addEventListener('change', () => {
     let checked = chkmetars.checked;
-    console.log(`CHECKBOX: ${checked}`);
     if (!getmetars && checked) {
         getMetarsForCurrentView();
     }
@@ -306,7 +263,9 @@ chkdiv.className = 'ol-control-panel ol-unselectable ol-control';
 chkdiv.innerHTML="<b>Get Airport Metars</b>&nbsp;";
 chkdiv.appendChild(chkmetars);
 chkdiv.style.position = "fixed";
-chkdiv.style.left = "85%"
+chkdiv.style.top = "30px";
+chkdiv.style.left = "83%"
+chkdiv.style.visibility = "hidden";
 chkdiv.style.fontFamily = "Arial, Helvetica, sans-serif";
 let metarPanel = new ol.control.Control({
     element: chkdiv
@@ -346,27 +305,36 @@ map.on('moveend', function(e) {
     finally {}
 });
 
-map.on('pointermove', function (evt) {
-    let hasfeature = false;
-    map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-        if (feature) {
-            hasfeature = true;
-            let fmetar = feature.get('metar');
-            let fcat = feature.get('fltcat');
-            if (getmetars && fmetar !== undefined) {
-                let coordinate = evt.coordinate;
-                content.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
-                overlay.setPosition(coordinate);
+map.on('pointermove', (evt) => {
+    if (getmetars) {
+        let hasfeature = false;
+        map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            if (feature) {
+                hasfeature = true;
+                let fmetar = feature.get('metar');
+                let fcat = feature.get('fltcat');
+                if (fmetar !== undefined) {
+                    let coordinate = evt.coordinate;
+                    metarcontent.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
+                    metaroverlay.setPosition(coordinate);
+                }
             }
+        });
+        if (!hasfeature) {
+            metarcloser.onclick();
         }
-        
-    });
-    if (!hasfeature) {
-        closer.onclick();
     }
 });
 
+const closeLoadingPopup = () => {
+    loadingoverlay.setPosition(undefined)
+}
+
 function getMetarsForCurrentView() {
+    // loadingcontent.innerHTML = `<p><code>Loading METARS for airports in the current viewport...</code></p>`;
+    // loadingoverlay.setPosition(map.getView().getCenter());
+    // setTimeout(closeLoadingPopup, 2500); 
+
     let metarlist = "";
     let extent = map.getView().calculateExtent(map.getSize());
     try { 
@@ -380,7 +348,7 @@ function getMetarsForCurrentView() {
                     }
                 }
                 else if (aptype === 'large_airport' || aptype === 'medium_airport') {
-                        metarlist += `${name},`;
+                    metarlist += `${name},`;
                 }
             }
         }); 
@@ -518,7 +486,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         title: "Grand Canyon GA",
         type: "overlay", 
         source: new ol.source.XYZ({
-            url: URL_GET_GCGA_TILE,
+            url: URL_GET_GCGA_TILE,  
             maxZoom: maxzoom,
             minZoom: minzoom
         }),
@@ -527,15 +495,17 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         zIndex: 10
     });
 
-    osmLayer = new ol.layer.Tile({
-        title: "OSM",
-        type: "overlay",
-        source: new ol.source.OSM(),
-        visible: false,
-        extent: ext,
-        zIndex: 9
-    });
-    
+    if (settings.useOSMonlinemap) {
+        osmLayer = new ol.layer.Tile({
+            title: "OSM",
+            type: "overlay",
+            source: new ol.source.OSM(),
+            visible: false,
+            extent: ext,
+            zIndex: 9
+        });
+    }
+
     tiledebug = new ol.layer.Tile({
         title: "Debug",
         type: "overlay",
@@ -552,8 +522,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         visible: false,
         zIndex: 11
     }); 
-    //airportVectorLayer.displayInLayerSwitcher=true
-
+    
     map.addLayer(tiledebug);
     map.addLayer(airportLayer); 
     map.addLayer(caribLayer);
@@ -562,14 +531,20 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     map.addLayer(heliLayer);
     map.addLayer(termLayer);
     map.addLayer(vfrsecLayer);
-    map.addLayer(osmLayer);
-    
+    if (settings.useOSMonlinemap) {
+        map.addLayer(osmLayer);
+    }
 
     let layerSwitcher = new ol.control.LayerSwitcher({
         tipLabel: 'Layers', 
         groupSelectStyle: 'children'
     });
     map.addControl(layerSwitcher);
+
+    airportLayer.on('change:visible', () => {
+        let visible = airportLayer.get('visible');
+        chkdiv.style.visibility = visible ? "visible" : "hidden";
+    });
 });
 
 if (settings.getmetars) {
