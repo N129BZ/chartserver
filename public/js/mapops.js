@@ -246,51 +246,6 @@ function loadAirportsArray(jsonobj) {
     });
 }
 
-let chkmetars = document.createElement('input');
-chkmetars.type = "checkbox";
-chkmetars.id = "chkmetars";
-chkmetars.checked = false;
-chkmetars.addEventListener('change', () => {
-    let checked = chkmetars.checked;
-    if (!getmetars && checked) {
-        getMetarsForCurrentView(true);
-    }
-    getmetars = checked;
-});
-
-let chkdiv = document.createElement('div');
-chkdiv.className = 'ol-control-panel ol-unselectable ol-control';
-chkdiv.innerHTML="<b>Get Airport Metars</b>&nbsp;";
-chkdiv.appendChild(chkmetars);
-chkdiv.style.position = "fixed";
-chkdiv.style.top = "30px";
-chkdiv.style.left = "83%"
-chkdiv.style.visibility = "hidden";
-chkdiv.style.fontFamily = "Arial, Helvetica, sans-serif";
-let metarPanel = new ol.control.Control({
-    element: chkdiv
-});
-map.addControl(metarPanel);
-
-/*
-let wsweather = new WebSocket(settings.weatherurl);
-wsweather.onopen = function(evt) {
-    console.log(evt);
-};
-wsweather.onmessage = function(evt) {
-    let data = JSON.parse(evt.data);
-    console.log(data);
-    try {
-        let feature = airportVectorSource.getFeatureById(data.Location);
-        if (feature !== null && data.Type === 'METAR') {
-            feature.set('metar', data.Data);
-            console.log(`metar set for ${data.Location}`);
-        }
-    }
-    finally{}
-};
-*/
-
 map.on('moveend', function(e) {
     try {
         let zoom = map.getView().getZoom();
@@ -416,7 +371,7 @@ $.get({
 });
 
 $.get(`${URL_GET_TILESETS}`, (data) => {
-    ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
+    let extent = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
     let minzoom = 8;
     let maxzoom = 12;
     
@@ -425,11 +380,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_VFRSEC_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 11,
+            minZoom: 5
         }),
         visible: true,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
     
@@ -438,11 +393,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_TERM_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 12,
+            minZoom: 8
         }),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
 
@@ -451,11 +406,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_HELI_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 13,
+            minZoom: 8
         }),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
 
@@ -464,11 +419,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_CARIB_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 11,
+            minZoom: 5
         }),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
 
@@ -477,11 +432,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_GCAO_TILE,
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 12,
+            minZoom: 8
         }),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
 
@@ -490,11 +445,11 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_GCGA_TILE,  
-            maxZoom: maxzoom,
-            minZoom: minzoom
+            maxZoom: 12,
+            minZoom: 8
         }),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 10
     });
 
@@ -504,7 +459,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             type: "overlay",
             source: new ol.source.OSM(),
             visible: false,
-            extent: ext,
+            extent: extent,
             zIndex: 9
         });
     }
@@ -514,15 +469,15 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         type: "overlay",
         source: new ol.source.TileDebug(),
         visible: false,
-        extent: ext,
+        extent: extent,
         zIndex: 12
     });
 
     airportLayer = new ol.layer.Vector({
-        title: "Airports",
-        type: "overlay",
+        title: "Get Airport Metars",
         source: airportVectorSource,
         visible: false,
+        extent: extent,
         zIndex: 11
     }); 
     
@@ -534,6 +489,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     map.addLayer(heliLayer);
     map.addLayer(termLayer);
     map.addLayer(vfrsecLayer);
+
     if (settings.useOSMonlinemap) {
         map.addLayer(osmLayer);
     }
@@ -546,7 +502,10 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
 
     airportLayer.on('change:visible', () => {
         let visible = airportLayer.get('visible');
-        chkdiv.style.visibility = visible ? "visible" : "hidden";
+        getmetars = visible;
+        if (visible) {
+            getMetarsForCurrentView(true);
+        }
     });
 });
 
