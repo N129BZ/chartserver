@@ -9,7 +9,8 @@
     "express": "^4.17.1",
     "fs": "^0.0.1-security",
     "math": "0.0.3",
-    "sqlite3": "^4.2.0",
+    "sqlite3": "^5.0.2",
+    "url": "^0.11.0",
     "xml-js": "^1.6.11",
     "xmlhttprequest": "^1.8.0"
   }

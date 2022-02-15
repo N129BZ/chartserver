@@ -2,52 +2,99 @@ const sqlite3 = require("sqlite3");
 const express = require('express');
 const Math = require("math");
 const fs = require("fs");
+const url = require('url');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
 const metarurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=";
 const tafurl = "https://www.aviationweather.gov/taf/data?ids=###AIRPORT###&format=decoded&metars=off";
 const pirepurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?datasource=pireps&requesttype=retrieve&format=xml&hoursBeforeNow=.5";
 
-const settings = readSettingsFile();
-var airportJson;
-loadAirportsJson(settings.startupzoom);
 
+const settings = readSettingsFile();
 function readSettingsFile() {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     return JSON.parse(rawdata);
 }
 
-function loadAirportsJson(zoomlevel) {
-    let airportdb = new sqlite3.Database(settings.airportdb, sqlite3.OPEN_READONLY, (err) => {
-        let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports ` +
-                  `WHERE (type NOT IN ('heliport','seaplane_base','closed')) AND iso_country = 'US';`;
-        airportdb.all(sql, (err, rows) => {
-            if (err === null) {
-                airportJson = `{ "airports": [ `;
-                rows.forEach(row => {
-                    airportJson += `{ "ident": "${row.ident}",` +
-                                   `  "type": "${row.type}",` +
-                                   `  "elevation": ${row.elevation_ft},` +
-                                   `  "lonlat": [${row.longitude_deg}, ${row.latitude_deg}]` + 
-                                   `},`;
-                });
-                // trim final comma and add closing braces
-                airportJson = airportJson.substring(0, airportJson.length - 1) + "] }";
-            }
-        });
-    });
-}
+const DB_PATH        = `${__dirname}/public/data`;
+const DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
+const DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
+const DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
+const DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
+const DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
+const DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
+const DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
+const DB_AIRPORTS    = `${DB_PATH}/${settings.airportsDb}`;
 
-let mapdb = new sqlite3.Database(settings.tiledb, sqlite3.OPEN_READONLY, (err) => {
+let airpdb = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${settings.tiledb}`);
+        console.log(`Failed to load: ${DB_AIRPORTS}`);
         throw err;
     }
 });
 
-let histdb = new sqlite3.Database(settings.historydb, sqlite3.OPEN_READWRITE, (err) => {
+let airportJson = ""; 
+loadAirportsJson();
+
+function loadAirportsJson() {
+    let strjson = ""; 
+    let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports ` +
+                `WHERE (type NOT IN ('heliport','seaplane_base','closed')) AND iso_country = 'US';`;
+    airpdb.all(sql, (err, rows) => {
+        if (err === null) {
+            rows.forEach(row => {
+                strjson += `, { "ident": "${row.ident}", "type": "${row.type}", "elevation": ${row.elevation_ft},"lonlat": [${row.longitude_deg}, ${row.latitude_deg}] }`; 
+            });
+            let newjson = `{ "airports": [ ${strjson.substring(1)} ] }`;
+            airportJson = newjson;
+        }
+    });
+}
+
+let vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_SECTIONAL}`);
+        throw err;
+    }
+});
+
+let termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_TERMINAL}`);
+        throw err;
+    }
+});
+
+let helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_HELICOPTER}`);
+        throw err;
+    }
+});
+
+let caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_CARIBBEAN}`);
+        throw err;
+    }
+});
+
+let gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_GCANYONAO}`);
+        throw err;
+    }
+});
+
+let gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_GCANYONGA}`);
+        throw err;
+    }
+});
+
+let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log(`Failed to load: ${settings.historydb}`);
+        console.log(`Failed to load: ${DB_HISTORY}`);
     }
 });
 
@@ -80,15 +127,38 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
-        getSettings(res);
+        let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
+        res.writeHead(200);
+        res.write(rawdata);
+        res.end();
     });
     
     app.get("/tiles/tilesets", (req,res) => {
         handleTilesets(req, res);
     });    
 
-    app.get("/tiles/singletile/*", (req, res) => {
-        handleTile(req, res)
+    app.get("/tiles/vfrsectile/*", (req, res) => {
+        handleTile(req, res, vfrdb);
+    });
+
+    app.get("/tiles/termtile/*", (req, res) => {
+        handleTile(req, res, termdb);
+    });
+
+    app.get("/tiles/helitile/*", (req, res) => {
+        handleTile(req, res, helidb);
+    });
+
+    app.get("/tiles/caribtile/*", (req, res) => {
+        handleTile(req, res, caribdb);
+    });
+
+    app.get("/tiles/gcaotile/*", (req, res) => {
+        handleTile(req, res, gcaodb);
+    });
+
+    app.get("/tiles/gcgatile/*", (req, res) => {
+        handleTile(req, res, gcgadb);
     });
 
     app.get("/gethistory", (req,res) => {
@@ -217,14 +287,8 @@ function putPositionHistory(data) {
     });
 }
 
-function getSettings(response) {
-    let json = readSettingsFile();
-    response.writeHead(200);
-    response.write(JSON.stringify(json));
-    response.end();
-}
 
-function handleTile(request, response) {
+function handleTile(request, response, db) {
     let x = 0;
     let y = 0;
     let z = 0;
@@ -251,13 +315,13 @@ function handleTile(request, response) {
     idx--
     z = parseInt(parts[idx]);
     idx--
-    loadTile(z, x, y, response); 
+    loadTile(z, x, y, response, db); 
 }
 
-function loadTile(z, x, y, response) {
+function loadTile(z, x, y, response, db) {
 
     let sql = `SELECT tile_data FROM tiles WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
-    mapdb.get(sql, (err, row) => {
+    db.get(sql, (err, row) => {
         if (err == null) {
             if (row == undefined) {
                 response.writeHead(200);
@@ -286,8 +350,29 @@ function handleTilesets(request, response) {
     let found = false;
     let meta = {};
     meta["bounds"] = "";
+    let db = vfrdb;
+    let parms = url.parse(request.url,true).query
+    switch (parms.layer) {
+        case "term":
+            db = termdb;
+            break;
+        case "heli":
+            db = helidb;
+            break;
+        case "carib":
+            db = caribdb;
+            break;
+        case "gcao":
+            db = gcaodb;
+            break;
+        case "gcga":
+            db = gcgadb;
+            break;
+        default:
+            break;
+    }
 
-    mapdb.all(sql, [], (err, rows) => {
+    db.all(sql, [], (err, rows) => {
         rows.forEach(row => {
             if (row.value != null) {
                 meta[row.name] = `${row.value}`;
@@ -297,7 +382,7 @@ function handleTilesets(request, response) {
                 sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
                              `max(tile_column) as xmax, max(tile_row) as ymax ` +
                       `FROM tiles WHERE zoom_level=?`;
-                mapdb.get(sql, [maxZoomInt], (err, row) => {
+                db.get(sql, [maxZoomInt], (err, row) => {
                     let xmin = row.xmin;
                     let ymin = row.ymin; 
                     let xmax = row.xmax; 

@@ -5,7 +5,12 @@ let URL_HOST_BASE           = window.location.hostname + (window.location.port ?
 let URL_HOST_PROTOCOL       = window.location.protocol + "//";
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
-let URL_GET_TILE            = `${URL_SERVER}/tiles/singletile/{z}/{x}/{-y}.jpg`;
+let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
+let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
+let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
+let URL_GET_CARIB_TILE      = `${URL_SERVER}/tiles/caribtile/{z}/{x}/{-y}.png`;
+let URL_GET_GCAO_TILE       = `${URL_SERVER}/tiles/gcaotile/{z}/{x}/{-y}.png`;
+let URL_GET_GCGA_TILE       = `${URL_SERVER}/tiles/gcgatile/{z}/{x}/{-y}.png`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
@@ -14,11 +19,38 @@ let URL_GET_METARS          = `${URL_SERVER}/getmetars`;
 let URL_GET_TAF             = `${URL_SERVER}/gettaf`;
 let URL_GET_PIREPS          = `${URL_SERVER}/getpireps`;
 
-let settings;
-let airports;
+let settings = {};
+let getmetars = false;
+let airportJson = {};
 let last_longitude = -97;
 let last_latitude = 38;
 let last_heading = 0;
+let apfeatures = [];
+let airportLayer;
+let airportVectorSource;
+let vfrsecLayer;
+let termLayer;
+let heliLayer;
+let caribLayer;
+let gcaoLayer;
+let gcgaLayer;
+let osmLayer;
+let tiledebug;
+
+$.ajax({
+    async: false,
+    type: "GET",
+    url: URL_GET_SETTINGS,
+    success: (data) => {
+        try {
+            settings = JSON.parse(data);
+            getmetars = settings.getmetars;
+        }
+        catch(err) {
+            console.log(err);
+        }
+    }
+});
 
 const container = document.getElementById('popup');
 const content = document.getElementById('popup-content');
@@ -36,20 +68,6 @@ closer.onclick = function () {
     closer.blur();
     return false;
 };
-
-$.ajax({
-    async: false,
-    type: "GET",
-    url: URL_GET_SETTINGS,
-    success: function(data) {
-        try {
-            settings = JSON.parse(data);
-        }
-        catch(err) {
-            console.log(err);
-        }
-    }
-});
 
 let airplaneElement = document.getElementById('airplane');
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
@@ -174,6 +192,68 @@ const lifrStyle = new ol.style.Style({
     image: lifrMarker
 });
 
+const circleStyle = new ol.style.Circle({
+    radius: 5,
+    fill: null,
+    stroke: new ol.style.Stroke({color: 'red', width: 1}),
+});
+
+/*
+const getStyleFunction = function (feature) {
+    let style = vfrStyle;
+    switch (feature.getGeometry().getType()) {
+        case 'LineString': 
+            style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'green',
+                    width: 1,
+                })
+            });
+            break;
+        case 'MultiLineString': 
+            style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'green',
+                    width: 1,
+                })
+            });
+            break;
+        case 'MultiPoint': 
+            style = new ol.style.Style({
+                image: circleStyle,
+            });
+            break;
+        case 'MultiPolygon': 
+            style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'yellow',
+                    width: 1,
+                }),
+                fill: new Fill({
+                    color: 'rgba(255, 255, 0, 0.1)',
+                }),
+            });
+            break;
+        case 'Polygon': 
+            style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: 'blue',
+                    lineDash: [4],
+                    width: 3,
+                }),
+                fill: new ol.style.Fill({
+                    color: 'rgba(0, 0, 255, 0.1)',
+                }),
+            });
+        case 'Point':
+        default:
+            style = vfrStyle;
+            break;
+    }
+    return style;
+};
+*/
+
 const myairplane = new ol.Overlay({
     element: airplaneElement
 });
@@ -183,16 +263,9 @@ myairplane.setPosition(pos);
 map.addOverlay(myairplane);
 
 let currZoom = map.getView().getZoom();
-let apfeatures = [];
-let vectorSource;
-let airportLayer;
-let vfrsecLayer;
-let osmLayer;
-let tiledebug;
 
-function placeAirports(airportdata) {
-    airports = airportdata.airports;
-    airports.forEach(airport => {
+function loadAirportsArray(jsonobj) {
+    jsonobj.airports.forEach(airport => {
         let ident = airport.ident;
         let aptype = airport.type;
         let lon = airport.lonlat[0];
@@ -209,17 +282,36 @@ function placeAirports(airportdata) {
             apfeatures.push(marker);
         }
     });
-    
-    vectorSource = new ol.source.Vector({
+
+    airportVectorSource = new ol.source.Vector({
         features: apfeatures
     });
-
-    airportLayer = new ol.layer.Vector({
-        source: vectorSource,
-        zIndex: 11
-    });
-    map.addLayer(airportLayer); 
 }
+
+let chkmetars = document.createElement('input');
+chkmetars.type = "checkbox";
+chkmetars.id = "chkmetars";
+chkmetars.checked = false;
+chkmetars.addEventListener('change', () => {
+    let checked = chkmetars.checked;
+    console.log(`CHECKBOX: ${checked}`);
+    if (!getmetars && checked) {
+        getMetarsForCurrentView();
+    }
+    getmetars = checked;
+});
+
+let chkdiv = document.createElement('div');
+chkdiv.className = 'ol-control-panel ol-unselectable ol-control';
+chkdiv.innerHTML="<b>Get Airport Metars</b>&nbsp;";
+chkdiv.appendChild(chkmetars);
+chkdiv.style.position = "fixed";
+chkdiv.style.left = "85%"
+chkdiv.style.fontFamily = "Arial, Helvetica, sans-serif";
+let metarPanel = new ol.control.Control({
+    element: chkdiv
+});
+map.addControl(metarPanel);
 
 /*
 let wsweather = new WebSocket(settings.weatherurl);
@@ -230,7 +322,7 @@ wsweather.onmessage = function(evt) {
     let data = JSON.parse(evt.data);
     console.log(data);
     try {
-        let feature = vectorSource.getFeatureById(data.Location);
+        let feature = airportVectorSource.getFeatureById(data.Location);
         if (feature !== null && data.Type === 'METAR') {
             feature.set('metar', data.Data);
             console.log(`metar set for ${data.Location}`);
@@ -247,7 +339,7 @@ map.on('moveend', function(e) {
         let rsz = rawnum.toFixed(3)
         resizeDots(rsz);
         currZoom = zoom;
-        if (settings.getmetars) {
+        if (getmetars) {
             getMetarsForCurrentView();
         }
     }
@@ -261,7 +353,7 @@ map.on('pointermove', function (evt) {
             hasfeature = true;
             let fmetar = feature.get('metar');
             let fcat = feature.get('fltcat');
-            if (fmetar !== undefined) {
+            if (getmetars && fmetar !== undefined) {
                 let coordinate = evt.coordinate;
                 content.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
                 overlay.setPosition(coordinate);
@@ -278,7 +370,7 @@ function getMetarsForCurrentView() {
     let metarlist = "";
     let extent = map.getView().calculateExtent(map.getSize());
     try { 
-        vectorSource.forEachFeatureInExtent(extent, function(feature){
+        airportVectorSource.forEachFeatureInExtent(extent, (feature) => {
             let name = feature.get('name');
             if (name.startsWith("K")) {
                 let aptype = feature.get('type');
@@ -302,7 +394,7 @@ function getMetarsForCurrentView() {
             let id = $(this).find('station_id').text();
             let cat = $(this).find('flight_category').text();
             let metar = $(this).find('raw_text').text()
-            let feature = vectorSource.getFeatureById(id);
+            let feature = airportVectorSource.getFeatureById(id);
             if (feature !== null) {
                 console.log(`${cat}: ${metar}`);
                 feature.set('metar', metar);
@@ -338,15 +430,13 @@ function resizeDots(newscale) {
     ifrMarker.setScale(newscale);
 }
 
-$.ajax({
+$.get({
     async: true,
     type: "GET",
     url: URL_GET_AIRPORTS,
-    success: function(data) {
+    success: (data) => {
         try {
-            let airportdata = JSON.parse(data);
-            console.log(airportdata);
-            placeAirports(airportdata);
+            loadAirportsArray(JSON.parse(data));
         }
         catch(err) {
             console.log(err);
@@ -354,57 +444,130 @@ $.ajax({
     }
 });
 
-// VFR Sectional MBTiles layer
-$.get(URL_GET_TILESETS, function(data) {
-    let meta = JSON.parse(data);
-    let layertype = meta["type"] == "baselayer" ? "base" : "overlay"; 
-    let minzoom = parseInt(meta["minzoom"]);
-    let maxzoom = parseInt(meta["maxzoom"]);
-    let name = meta["name"];
-
-    if (meta.bounds) {
-        ext = meta["bounds"].split(',').map(Number);
-    }
-
+$.get(`${URL_GET_TILESETS}`, (data) => {
     ext = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
-
+    let minzoom = 8;
+    let maxzoom = 12;
+    
     vfrsecLayer = new ol.layer.Tile({
-        title: "VFR Chart",
-        type: "overlay", //layertype,
+        title: "VFR Sectional Chart",
+        type: "overlay", 
         source: new ol.source.XYZ({
-            url: URL_GET_TILE,
+            url: URL_GET_VFRSEC_TILE,
             maxZoom: maxzoom,
             minZoom: minzoom
         }),
+        visible: true,
         extent: ext,
         zIndex: 10
     });
     
+    termLayer = new ol.layer.Tile({
+        title: "Terminal Area Charts",
+        type: "overlay", 
+        source: new ol.source.XYZ({
+            url: URL_GET_TERM_TILE,
+            maxZoom: maxzoom,
+            minZoom: minzoom
+        }),
+        visible: false,
+        extent: ext,
+        zIndex: 10
+    });
+
+    heliLayer = new ol.layer.Tile({
+        title: "Helicopter Charts",
+        type: "overlay", 
+        source: new ol.source.XYZ({
+            url: URL_GET_HELI_TILE,
+            maxZoom: maxzoom,
+            minZoom: minzoom
+        }),
+        visible: false,
+        extent: ext,
+        zIndex: 10
+    });
+
+    caribLayer = new ol.layer.Tile({
+        title: "Caribbean Charts",
+        type: "overlay", 
+        source: new ol.source.XYZ({
+            url: URL_GET_CARIB_TILE,
+            maxZoom: maxzoom,
+            minZoom: minzoom
+        }),
+        visible: false,
+        extent: ext,
+        zIndex: 10
+    });
+
+    gcaoLayer = new ol.layer.Tile({
+        title: "Grand Canyon Air Operators",
+        type: "overlay", 
+        source: new ol.source.XYZ({
+            url: URL_GET_GCAO_TILE,
+            maxZoom: maxzoom,
+            minZoom: minzoom
+        }),
+        visible: false,
+        extent: ext,
+        zIndex: 10
+    });
+
+    gcgaLayer = new ol.layer.Tile({
+        title: "Grand Canyon GA",
+        type: "overlay", 
+        source: new ol.source.XYZ({
+            url: URL_GET_GCGA_TILE,
+            maxZoom: maxzoom,
+            minZoom: minzoom
+        }),
+        visible: false,
+        extent: ext,
+        zIndex: 10
+    });
+
     osmLayer = new ol.layer.Tile({
         title: "OSM",
         type: "overlay",
         source: new ol.source.OSM(),
+        visible: false,
         extent: ext,
-        zIndex: 10
+        zIndex: 9
     });
-
-    // TileDebug
+    
     tiledebug = new ol.layer.Tile({
+        title: "Debug",
+        type: "overlay",
         source: new ol.source.TileDebug(),
         visible: false,
-        title: 'TileDebugLayer',
         extent: ext,
         zIndex: 12
-    })
-    
+    });
+
+    airportLayer = new ol.layer.Vector({
+        title: "Airports",
+        type: "overlay",
+        source: airportVectorSource,
+        visible: false,
+        zIndex: 11
+    }); 
+    //airportVectorLayer.displayInLayerSwitcher=true
+
     map.addLayer(tiledebug);
-    map.addLayer(osmLayer);
+    map.addLayer(airportLayer); 
+    map.addLayer(caribLayer);
+    map.addLayer(gcaoLayer);
+    map.addLayer(gcgaLayer);
+    map.addLayer(heliLayer);
+    map.addLayer(termLayer);
     map.addLayer(vfrsecLayer);
+    map.addLayer(osmLayer);
     
 
     let layerSwitcher = new ol.control.LayerSwitcher({
-        tipLabel: 'Layers', // Optional label for button
-        groupSelectStyle: 'children' // Can be 'children' [default], 'group' or 'none'
+        tipLabel: 'Layers', 
+        groupSelectStyle: 'children'
     });
     map.addControl(layerSwitcher);
 });
@@ -439,7 +602,7 @@ function redrawMetars() {
 //  "GPSLastGPSTimeStratuxTime":"0001-01-01T00:00:00Z","GPSLastValidNMEAMessageTime":"0001-01-01T00:01:33.5Z",
 //  "GPSLastValidNMEAMessage":"$PUBX,00,000122.90,0000.00000,N,00000.00000,E,0.000,NF,5303302,3750001,0.000,0.00,0.000,,99.99,99.99,99.99,0,0,0*20",
 //  "GPSPositionSampleRate":0,"BaroTemperature":22.1,"BaroPressureAltitude":262.4665,"BaroVerticalSpeed":-0.6568238,
-//  "BaroLastMeasurementTime":"0001-01-01T00:01:33.52Z","AHRSPitch":-1.7250436907060585,"AHRSRoll":1.086912223392926,
+//  "BaroLastMeasurementTime":"0001-01-01T00:01:33.52Z","AHRSPitch":-1.7250436907060false585,"AHRSRoll":1.086912223392926,
 //  "AHRSGyroHeading":3276.7,"AHRSMagHeading":3276.7,"AHRSSlipSkid":-0.6697750324029778,"AHRSTurnRate":3276.7,
 //  "AHRSGLoad":0.9825397416431592,"AHRSGLoadMin":0.9799488522426687,"AHRSGLoadMax":0.9828301105039375,
 //  "AHRSLastAttitudeTime":"0001-01-01T00:01:33.55Z","AHRSStatus":6}
