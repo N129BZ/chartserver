@@ -253,7 +253,7 @@ chkmetars.checked = false;
 chkmetars.addEventListener('change', () => {
     let checked = chkmetars.checked;
     if (!getmetars && checked) {
-        getMetarsForCurrentView();
+        getMetarsForCurrentView(true);
     }
     getmetars = checked;
 });
@@ -299,7 +299,7 @@ map.on('moveend', function(e) {
         resizeDots(rsz);
         currZoom = zoom;
         if (getmetars) {
-            getMetarsForCurrentView();
+            getMetarsForCurrentView(false);
         }
     }
     finally {}
@@ -328,12 +328,15 @@ map.on('pointermove', (evt) => {
 
 const closeLoadingPopup = () => {
     loadingoverlay.setPosition(undefined)
+    loadingcloser.blur();
 }
 
-function getMetarsForCurrentView() {
-    // loadingcontent.innerHTML = `<p><code>Loading METARS for airports in the current viewport...</code></p>`;
-    // loadingoverlay.setPosition(map.getView().getCenter());
-    // setTimeout(closeLoadingPopup, 2500); 
+function getMetarsForCurrentView(isFirstTime) {
+    if (isFirstTime) {
+        loadingcontent.innerHTML = `<p><code>Loading METARS for airports in the current viewport...</code></p>`;
+        loadingoverlay.setPosition(map.getView().getCenter());
+        setTimeout(closeLoadingPopup, 2500); 
+    }
 
     let metarlist = "";
     let extent = map.getView().calculateExtent(map.getSize());
@@ -561,7 +564,7 @@ if (settings.getgpsfromstratux) {
 
 function redrawMetars() {
     console.log("Timed METAR retrieval in progress");
-    getMetarsForCurrentView();
+    getMetarsForCurrentView(false);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -575,7 +578,7 @@ function redrawMetars() {
 //  "GPSVerticalAccuracy":999999,"GPSVerticalSpeed":0,"GPSLastFixLocalTime":"0001-01-01T00:00:00Z","GPSTrueCourse":0,"GPSTurnRate":0,
 //  "GPSGroundSpeed":0,"GPSLastGroundTrackTime":"0001-01-01T00:00:00Z","GPSTime":"0001-01-01T00:00:00Z",
 //  "GPSLastGPSTimeStratuxTime":"0001-01-01T00:00:00Z","GPSLastValidNMEAMessageTime":"0001-01-01T00:01:33.5Z",
-//  "GPSLastValidNMEAMessage":"$PUBX,00,000122.90,0000.00000,N,00000.00000,E,0.000,NF,5303302,3750001,0.000,0.00,0.000,,99.99,99.99,99.99,0,0,0*20",
+//  "GPSLastValidNMEAMessage":"$PUBX,00,000122.90,0000.00000,N,00000.00000,E,0.000,NF,5303302,3750001,0.000,0.redrawMetars00,0.000,,99.99,99.99,99.99,0,0,0*20",
 //  "GPSPositionSampleRate":0,"BaroTemperature":22.1,"BaroPressureAltitude":262.4665,"BaroVerticalSpeed":-0.6568238,
 //  "BaroLastMeasurementTime":"0001-01-01T00:01:33.52Z","AHRSPitch":-1.7250436907060false585,"AHRSRoll":1.086912223392926,
 //  "AHRSGyroHeading":3276.7,"AHRSMagHeading":3276.7,"AHRSSlipSkid":-0.6697750324029778,"AHRSTurnRate":3276.7,
