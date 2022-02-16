@@ -50,6 +50,8 @@ https://openlayers.org/
 ![ANIMWX](./images/WxRadar.png)
 **Multiple layers, showing layer switcher with Grand Canyon GA, Helicopter (over LA) and animated weather selected**
 ![MULTIMENU](./images/MultiLayerMenu.png)
+**Caribbean chart with animated weather and METARS**
+![CARIBMETAR](./images/CaribbeanWithMetars.png)
 **Sectional chart zoomed in**  
 ![VFRCHART](./images/VFRCHT.png)  
 **OpenStreetMaps layer (online only)**  
