@@ -18,7 +18,7 @@ let URL_GET_AIRPORTS        = `${URL_SERVER}/getairports`;
 let URL_GET_METARS          = `${URL_SERVER}/getmetars`;
 let URL_GET_TAF             = `${URL_SERVER}/gettaf`;
 let URL_GET_PIREPS          = `${URL_SERVER}/getpireps`;
-let URL_GET_WEATHER         = 'https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi';
+
 let settings = {};
 let getmetars = false;
 let showingmetar = false;
@@ -468,7 +468,7 @@ $.get({
 
 wxSource = new ol.source.TileWMS({
     attributions: ['Iowa State University'],
-    url: URL_GET_WEATHER,
+    url: settings.weatherurl,
     params: {'LAYERS': 'nexrad-n0r-wmst'},
 });
 
