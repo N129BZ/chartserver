@@ -55,6 +55,9 @@ $.ajax({
         catch(err) {
             console.log(err);
         }
+    },
+    error: function (request, status, error) {
+        console.log("ERROR PARSING SETTINGS: " + error);
     }
 });
 
@@ -97,18 +100,19 @@ $.ajax({
     async: false,
     type: "GET",
     url: URL_GET_HISTORY,
-    success: function (data) {
+    success: (data) => {
         try {
             let histobj = JSON.parse(data);
             last_longitude = histobj.longitude;
             last_latitude = histobj.latitude;
             last_heading = histobj.heading;
         }
-        catch(err) {
-            console.log("using first run lat/long");
-            last_latitude = settings.firstrunlatlong[0];
-            last_longitude = settings.firstrunlatlong[1];
+        catch (err) {
+            console.log(err);
         }
+    },
+    error: function (request, status, error) {
+        console.log("Error: " + error);
     }
 });
 
@@ -267,11 +271,11 @@ map.on('moveend', function(e) {
     if (!showingmetar) {
         try {
             let zoom = map.getView().getZoom();
-            let rawnum = .045 * zoom;
-            let rsz = rawnum.toFixed(3)
-            resizeDots(rsz);
             currZoom = zoom;
             if (getmetars) {
+                let rawnum = .045 * zoom;
+                let rsz = rawnum.toFixed(3)
+                resizeDots(rsz);
                 getMetarsForCurrentView(false);
             }
         }
