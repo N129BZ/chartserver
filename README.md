@@ -1,13 +1,9 @@
-# FAA VFR navigation charts using OpenLayers maps, with optional connection to Stratux for ownship GPS coordinates         
-                                         
-**This web-based application uses FAA charts, OSM map, animated weather, and more, using node.js express and the OpenLayers map API. Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean,and both versions of Grand Canyon charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.**   
+## This web-based application displays FAA charts, OpenStreetMaps, animated weather, and much more, using node.js express and the OpenLayers map API.        
+### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean,and both versions of Grand Canyon charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
 
 **See https://github.com/N129BZ/ChartMaker for an automated FAA chart mbtiles processor**
 
-###
-Offline use requires .mbtiles databases (or a mbtiles database of your own choosing) to be placed in the ./public/data/ folder.
-
-**Instructions:** This is a node app, so you will need node.js installed. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "node index.js" in the terminal. 
+**Instructions:** Obviously since this is a node app, you will need node.js installed. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "node index.js" in the terminal. 
 
 ###
 **User-editable values in settings.json:**
@@ -37,7 +33,7 @@ Offline use requires .mbtiles databases (or a mbtiles database of your own choos
     "ownshipimage": "blueplane.png"
 }
 ```
-**NOTE**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center.       
+**NOTE**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center. You could also use a sqlite database tool to enter a position history record with your preferred latitude and longitude to be used as a center point when the maps are loaded.      
 
 ###
 **References:**
