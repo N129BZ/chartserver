@@ -48,9 +48,9 @@ https://openlayers.org/
 ###
 **Animated weather radar layer over the Sectional chart**
 ![ANIMWX](./images/SectWithWx.png)
-**Multiple layers, showing layer switcher with Grand Canyon GA, Helicopter (over LA) and animated weather selected**
+**Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
 ![MULTI](./images/MultiLayer.png)
-**Caribbean chart with animated weather and METARS**
+**Caribbean chart with color-coded airport points showing a METAR when you mousing over a point, plus animated weather**
 ![CARIBMETAR](./images/CaribbeanWithMetars.png)
 **Sectional chart zoomed in**  
 ![SECTCLOSE](./images/SectionalCloseup.png)  
