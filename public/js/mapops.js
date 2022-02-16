@@ -61,7 +61,6 @@ $.ajax({
 const metarpopup = document.getElementById('popup');
 const metarcontent = document.getElementById('popup-content');
 const metarcloser = document.getElementById('popup-closer');
-
 const metaroverlay = new ol.Overlay({
     element: metarpopup,
     autoPan: true,
@@ -73,7 +72,6 @@ const metaroverlay = new ol.Overlay({
 const loadingpopup = document.getElementById('loadingpopup');
 const loadingcontent = document.getElementById('loadingpopup-content');
 const loadingcloser = document.getElementById('loadingpopup-closer');
-
 const loadingoverlay = new ol.Overlay({
     element: loadingpopup,
     autoPan: true,
@@ -92,6 +90,8 @@ metarcloser.onclick = function () {
 let airplaneElement = document.getElementById('airplane');
 airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
 airplaneElement.src = `${URL_SERVER}/img/${settings.ownshipimage}`;
+
+const animatecontrol = document.getElementById('wxbuttons');
 
 $.ajax({
     async: false,
@@ -530,7 +530,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     });
 
     gcaoLayer = new ol.layer.Tile({
-        title: "Grand Canyon Air Operators",
+        title: "Grand Canyon Air Ops",
         type: "overlay", 
         source: new ol.source.XYZ({
             url: URL_GET_GCAO_TILE,
@@ -618,6 +618,12 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             getMetarsForCurrentView(true);
         }
     });
+
+    wxLayer.on('change:visible', () => {
+        let visible = wxLayer.get('visible');
+        animatecontrol.style.visibility = visible ? 'visible' : 'hidden';
+    });
+
 });
 
 if (settings.getmetars) {

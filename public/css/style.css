@@ -15,6 +15,7 @@ html, body {
     position:absolute;
     top:805px;
     left:8px;
+    visibility:hidden;
 }
 #mapoptions {
     top: 2;
