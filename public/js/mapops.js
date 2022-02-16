@@ -18,7 +18,7 @@ let URL_GET_AIRPORTS        = `${URL_SERVER}/getairports`;
 let URL_GET_METARS          = `${URL_SERVER}/getmetars`;
 let URL_GET_TAF             = `${URL_SERVER}/gettaf`;
 let URL_GET_PIREPS          = `${URL_SERVER}/getpireps`;
-
+let URL_GET_WEATHER         = 'https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi';
 let settings = {};
 let getmetars = false;
 let showingmetar = false;
@@ -36,7 +36,12 @@ let caribLayer;
 let gcaoLayer;
 let gcgaLayer;
 let osmLayer;
-let tiledebug;
+let wxLayer;
+let wxSource;
+let tiledebug;  
+let startDate = threeHoursAgo();
+const frameRate = 0.5; // frames per second
+let animationId = null;
 
 $.ajax({
     async: false,
@@ -461,6 +466,12 @@ $.get({
     }
 });
 
+wxSource = new ol.source.TileWMS({
+    attributions: ['Iowa State University'],
+    url: URL_GET_WEATHER,
+    params: {'LAYERS': 'nexrad-n0r-wmst'},
+});
+
 $.get(`${URL_GET_TILESETS}`, (data) => {
     let extent = ol.proj.transformExtent(ext, 'EPSG:4326', 'EPSG:3857')
     let minzoom = 8;
@@ -474,7 +485,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             maxZoom: 11,
             minZoom: 5
         }),
-        visible: true,
+        visible: false,
         extent: extent,
         zIndex: 10
     });
@@ -549,7 +560,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             title: "OSM",
             type: "overlay",
             source: new ol.source.OSM(),
-            visible: false,
+            visible: true,
             extent: extent,
             zIndex: 9
         });
@@ -572,8 +583,17 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         zIndex: 11
     }); 
 
+    wxLayer = new ol.layer.Tile({
+        title: "Animated Weather",
+        extent: extent,
+        source: wxSource,
+        visible: false,
+        zIndex: 11
+    });
+
     map.addLayer(tiledebug);
     map.addLayer(airportLayer); 
+    map.addLayer(wxLayer);
     map.addLayer(caribLayer);
     map.addLayer(gcaoLayer);
     map.addLayer(gcgaLayer);
@@ -739,3 +759,43 @@ function getAltimeterSetting(altimeter) {
     let dbl = parseFloat(altimeter);
     return dbl.toFixed(2).toString();
 }
+
+// animation stuff
+function threeHoursAgo() {
+    return new Date(Math.round(Date.now() / 3600000) * 3600000 - 3600000 * 3);
+}
+
+function updateInfo() {
+    const el = document.getElementById('info');
+    el.innerHTML = getLocalTimeZone(startDate.toString());
+}
+  
+function setTime() {
+    startDate.setMinutes(startDate.getMinutes() + 15);
+    if (startDate > Date.now()) {
+      startDate = threeHoursAgo();
+    }
+    wxSource.updateParams({'TIME': startDate.toISOString()});
+    updateInfo();
+}
+setTime();
+  
+const stop = function () {
+    if (animationId !== null) {
+      window.clearInterval(animationId);
+      animationId = null;
+    }
+};
+  
+const play = function () {
+    stop();
+    animationId = window.setInterval(setTime, 1000 / frameRate);
+};
+  
+const startButton = document.getElementById('play');
+startButton.addEventListener('click', play, false);
+  
+const stopButton = document.getElementById('pause');
+stopButton.addEventListener('click', stop, false);
+
+updateInfo();
