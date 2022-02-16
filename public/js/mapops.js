@@ -21,6 +21,7 @@ let URL_GET_PIREPS          = `${URL_SERVER}/getpireps`;
 
 let settings = {};
 let getmetars = false;
+let showingmetar = false;
 let airportJson = {};
 let last_longitude = -97;
 let last_latitude = 38;
@@ -237,6 +238,7 @@ function loadAirportsArray(jsonobj) {
             });
             marker.setStyle(vfrStyle);
             marker.setId(ident);
+            marker.set('hasmetar', false)
             apfeatures.push(marker);
         }
     });
@@ -247,17 +249,19 @@ function loadAirportsArray(jsonobj) {
 }
 
 map.on('moveend', function(e) {
-    try {
-        let zoom = map.getView().getZoom();
-        let rawnum = .045 * zoom;
-        let rsz = rawnum.toFixed(3)
-        resizeDots(rsz);
-        currZoom = zoom;
-        if (getmetars) {
-            getMetarsForCurrentView(false);
+    if (!showingmetar) {
+        try {
+            let zoom = map.getView().getZoom();
+            let rawnum = .045 * zoom;
+            let rsz = rawnum.toFixed(3)
+            resizeDots(rsz);
+            currZoom = zoom;
+            if (getmetars) {
+                getMetarsForCurrentView(false);
+            }
         }
+        finally {}
     }
-    finally {}
 });
 
 map.on('pointermove', (evt) => {
@@ -266,16 +270,46 @@ map.on('pointermove', (evt) => {
         map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             if (feature) {
                 hasfeature = true;
-                let fmetar = feature.get('metar');
-                let fcat = feature.get('fltcat');
-                if (fmetar !== undefined) {
-                    let coordinate = evt.coordinate;
-                    metarcontent.innerHTML = `<p><code>${fcat}</code></p><p><code>${fmetar}</code></p>`;
-                    metaroverlay.setPosition(coordinate);
+                if (feature.get('hasmetar')) {
+                    let id = feature.get('id');
+                    let cat = feature.get('cat');
+                    let time = getLocalTimeZone(feature.get('time'));
+                    let temp = feature.get('temp');
+                    let dewp = feature.get('dewp');
+                    let windir = feature.get('windir');
+                    let winspd = feature.get('winspd');
+                    let wingst = feature.get('wingst');
+                    let altim = getAltimeterSetting(feature.get('altim'));
+                    let vis = feature.get('vis');
+                    let sky = feature.get('sky');
+                    let skyconditions = "";
+                    sky.forEach((level) => {
+                        skyconditions += `<b>${level[0]}:</b> ${level[1]}<br />`;
+                    });
+                    if (id != undefined) {
+                        let coordinate = evt.coordinate;
+                        let html = `<pre><code><p>`
+                        html +=     id != "" ? `<p><b>Station:</b> ${id}<br />` : "";
+                        html +=    cat != "" ? `<b>Category:</b> ${cat}<br />` : "";
+                        html +=   time != "" ? `<b>Time:</b> ${time}<br />` : "";
+                        html +=   temp != "" ? `<b>Temp:</b> ${temp} C<br />` : "";
+                        html +=   dewp != "" ? `<b>Dewpoint:</b> ${dewp}<br />` : "";
+                        html += windir != "" ? `<b>Wind Dir:</b> ${windir}<br />` : "";
+                        html += winspd != "" ? `<b>Wind Speed:</b> ${winspd} kt<br />` : "";
+                        html += wingst != "" ? `<b>Wind Gust:</b> ${wingst} kt<br />` : "";
+                        html +=  altim != "" ? `<b>Altimeter:</b> ${altim} hg<br />` : "";
+                        html +=    vis != "" ? `<b>Visibility:</b> ${vis} statute miles<br />` : "";
+                        html += skyconditions != "" ? `${skyconditions}` : "";
+                        html += `</p></code></pre>`;
+                        metarcontent.innerHTML = html; 
+                        showingmetar = true;
+                        metaroverlay.setPosition(coordinate);
+                    }
                 }
             }
         });
         if (!hasfeature) {
+            showingmetar = false;
             metarcloser.onclick();
         }
     }
@@ -290,7 +324,7 @@ function getMetarsForCurrentView(isFirstTime) {
     if (isFirstTime) {
         loadingcontent.innerHTML = `<p><code>Loading METARS for airports in the current viewport...</code></p>`;
         loadingoverlay.setPosition(map.getView().getCenter());
-        setTimeout(closeLoadingPopup, 2500); 
+        setTimeout(closeLoadingPopup, 3000); 
     }
 
     let metarlist = "";
@@ -316,15 +350,64 @@ function getMetarsForCurrentView(isFirstTime) {
         console.log(metarlist);
         let metars = getAirportMetars(metarlist);
         let xml = $.parseXML(metars);
+        console.log(xml);
+        /*-------------------------------------------------------------
+                          EXAMPLE OF METAR XML 
+         -------------------------------------------------------------
+            <station_id>KHLR</station_id>
+            <observation_time>2022-02-15T16:58:00Z</observation_time>
+            <latitude>31.13</latitude>
+            <longitude>-97.72</longitude>
+            <temp_c>17.0</temp_c>
+            <dewpoint_c>8.4</dewpoint_c>
+            <wind_dir_degrees>180</wind_dir_degrees>
+            <wind_speed_kt>22</wind_speed_kt>
+            <wind_gust_kt>28</wind_gust_kt>
+            <visibility_statute_mi>9.0</visibility_statute_mi>
+            <altim_in_hg>30.200787</altim_in_hg>
+            <sea_level_pressure_mb>1022.4</sea_level_pressure_mb>
+            <quality_control_flags>
+                <auto>TRUE</auto>
+                <auto_station>TRUE</auto_station>
+            </quality_control_flags>
+            <sky_condition sky_cover="FEW" cloud_base_ft_agl="2900"/>
+            <flight_category>VFR</flight_category>
+            <metar_type>SPECI</metar_type>
+            <elevation_m>271.0</elevation_m>
+        */
         $(xml).find('METAR').each(function() {
             let id = $(this).find('station_id').text();
             let cat = $(this).find('flight_category').text();
-            let metar = $(this).find('raw_text').text()
+            let time = $(this).find('observation_time').text();
+            let temp = $(this).find('temp').text();
+            let dewp = $(this).find('dewpoint').text();
+            let windir = $(this).find('wind_dir').text();
+            let winspd = $(this).find('wind_speed').text();
+            let wingst = $(this).find('wind_gust').text();
+            let altim = $(this).find('altim_in_hg').text();
+            let vis = $(this).find('visibility_statute_mi').text();
+            let sky = [];
+            $(this).find('sky_condition').each(function() {
+                $.each(this.attributes, function(i, attrib){
+                    let str = replaceAll(attrib.name, "_", " ");
+                    str = str.charAt(0).toUpperCase() + str.substring(1);
+                    sky.push([str, attrib.value]);
+                });
+            });
             let feature = airportVectorSource.getFeatureById(id);
             if (feature !== null) {
-                console.log(`${cat}: ${metar}`);
-                feature.set('metar', metar);
-                feature.set('fltcat', cat);
+                feature.set('hasmetar', true);
+                feature.set('id', id);
+                feature.set('cat', cat);
+                feature.set('time', time);
+                feature.set('temp', temp);
+                feature.set('dewp', dewp);
+                feature.set('windir', windir);
+                feature.set('winspd', winspd);
+                feature.set('wingst', wingst);
+                feature.set('altim', altim);
+                feature.set('vis', vis);
+                feature.set('sky', sky);
                 try {
                     switch (cat) {
                         case 'MVFR':
@@ -400,7 +483,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         extent: extent,
         zIndex: 10
     });
-
+    
     heliLayer = new ol.layer.Tile({
         title: "Helicopter Charts",
         type: "overlay", 
@@ -503,7 +586,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     airportLayer.on('change:visible', () => {
         let visible = airportLayer.get('visible');
         getmetars = visible;
-        if (visible) {
+        if (getmetars) {
             getMetarsForCurrentView(true);
         }
     });
@@ -583,4 +666,68 @@ function putPositionHistory() {
             finally {}
         }
     }
+}
+
+function replaceAll(string, search, replace) {
+    return string.split(search).join(replace);
+}
+
+function getLocalTimeZone(zuludate) {
+    let date = new Date(zuludate);
+    let time = date.toString();
+    let retval = time;
+    if (time.search("Eastern Standard") > -1) {
+        retval = time.replace("Eastern Standard Time", "EST");
+        return retval;
+    }
+    if (time.search("Eastern Daylignt") > -1) {
+        retval = time.replace("Eastern Standard Time", "EDT");
+        return retval;
+    }
+    if (time.search("Central Standard") > -1) {
+        retval = time.replace("Central Standard Time", "CST");
+        return retval;
+    }
+    if (time.search("Central Daylight") > -1) {
+        retval = time.replace("Eastern Standard Time", "CDT");
+        return retval;
+    }
+    if (time.search("Mountain Standard") > -1) {
+        retval = time.replace("Mountain Standard Time", "MST");
+        return retval;
+    }
+    if (time.search("Mountain Daylight") > -1) {
+        retval = time.replace("Eastern Standard Time", "MDT");
+        return retval;
+    }
+    if (time.search("Pacific Standard") > -1) {
+        retval = time.replace("Pacific Standard Time", "PST");
+        return retval;
+    }
+    if (time.search("Pacific Daylight") > -1) {
+        retval = time.replace("Pacific Daylight Time", "PDT");
+        return retval;
+    }
+    if (time.search("Alaska Standard") > -1) {
+        retval = time.replace("Alaska Standard Time", "AKST");
+        return retval;
+    }
+    if (time.search("Alaska Daylight") > -1) {
+        retval = time.replace("Alaska Daylight Time", "AKDT");
+        return retval;
+    }
+    if (time.search("Atlantic Standard") > -1) {
+        retval = time.replace("Atlantic Standard Time", "AST");
+        return retval;
+    }
+    if (time.search("Atlantic Daylight") > -1) {
+        retval = time.replace("Atlantic Daylight Time", "ADT");
+        return retval;
+    }
+    return retval;
+}
+
+function getAltimeterSetting(altimeter) {
+    let dbl = parseFloat(altimeter);
+    return dbl.toFixed(2).toString();
 }
