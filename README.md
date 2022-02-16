@@ -50,7 +50,7 @@ https://openlayers.org/
 ![ANIMWX](./images/SectWithWx.png)
 **Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
 ![MULTI](./images/MultiLayer.png)
-**Caribbean chart with color-coded airport points showing a METAR when hovering mouse over a point (plus animated weather)**
+**Caribbean chart with color-coded airport features, showing a METAR when hovering mouse over an airport**
 ![CARIBMETAR](./images/CaribbeanWithMetars.png)
 **Sectional chart zoomed in**  
 ![SECTCLOSE](./images/SectionalCloseup.png)  
