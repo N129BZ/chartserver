@@ -46,7 +46,11 @@ https://github.com/cyoung/stratux/
 https://openlayers.org/     
 
 ###
-**Sectional.mbtiles rendering (offline)**  
+**Animated weather radar layer over the Sectional chart**
+![ANIMWX](./images/WxRadar.png)
+**Multiple layers, showing Grand Canyon GA, Helicopter (over LA) and animated weather**
+![MULTIMENU](./images/MultiLayerMenu.png)
+**Sectional chart zoomed in**  
 ![VFRCHART](./images/VFRCHT.png)  
-**OpenStreetMaps rendering (online only)**  
+**OpenStreetMaps layer (online only)**  
 ![OSM](./images/OSM.png)
