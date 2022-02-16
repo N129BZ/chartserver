@@ -23,8 +23,8 @@ let settings = {};
 let getmetars = false;
 let showingmetar = false;
 let airportJson = {};
-let last_longitude = -97;
-let last_latitude = 38;
+let last_longitude = 0;
+let last_latitude = 0;
 let last_heading = 0;
 let apfeatures = [];
 let airportLayer;
@@ -105,7 +105,9 @@ $.ajax({
             last_heading = histobj.heading;
         }
         catch(err) {
-            console.log(err);
+            console.log("using first run lat/long");
+            last_latitude = settings.firstrunlatlong[0];
+            last_longitude = settings.firstrunlatlong[1];
         }
     }
 });

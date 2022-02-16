@@ -19,6 +19,7 @@
     "airportsDb": "airports.db",
     "stratuxurl": "http://192.168.10.1/getSituation",
     "weatherurl": "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
+    "firstrunlatlong": [30.71443, -98.25498],
     "lockownshiptocenter": true,
     "ownshipimage": "blueplane.png"
 }
