@@ -53,6 +53,4 @@ https://openlayers.org/
 **Caribbean chart with color-coded airport features, showing a METAR when hovering mouse over an airport**
 ![CARIBMETAR](./images/CaribbeanWithMetars.png)
 **Sectional chart zoomed in**  
-![SECTCLOSE](./images/SectionalCloseup.png)  
-**OpenStreetMaps layer (online only)**  
-![OSM](./images/OSM.png)
+![SECTCLOSE](./images/SectionalCloseup.png)
