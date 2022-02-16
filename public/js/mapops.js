@@ -148,6 +148,13 @@ let pos = ol.proj.fromLonLat([last_longitude, last_latitude]);
 let ext = [-180, -85, 180, 85];
 let offset = [-18, -18];
 
+const scaleLine = new ol.control.ScaleLine({
+    units: 'imperial',
+    bar: true,
+    steps: 4,
+    minWidth: 140
+});
+
 const map = new ol.Map({
     target: 'map',
     view: new ol.View({
@@ -155,6 +162,7 @@ const map = new ol.Map({
         zoom: settings.startupzoom,
         enableRotation: false
     }),
+    controls: ol.control.defaults().extend([scaleLine]),
     overlays: [metaroverlay, loadingoverlay]
 });
 
