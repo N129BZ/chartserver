@@ -45,7 +45,7 @@ https://openlayers.org/
 **Animated weather radar layer over the Sectional chart**
 ![ANIMWX](./images/SectWithWx.png)
 **OpenStreetMap with airport status colored markers and METAR popup**
-![OSMWMETAR](./images/OsmWitnMetars.png)
+![OSMWMETAR](./images/OsmWithMetars.png)
 **Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
 ![MULTI](./images/MultiLayer.png)
 **Caribbean chart with color-coded airport features, showing a METAR when hovering mouse over an airport**
