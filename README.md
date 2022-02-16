@@ -48,7 +48,7 @@ https://openlayers.org/
 ###
 **Animated weather radar layer over the Sectional chart**
 ![ANIMWX](./images/WxRadar.png)
-**Multiple layers, showing Grand Canyon GA, Helicopter (over LA) and animated weather**
+**Multiple layers, showing layer switcher with Grand Canyon GA, Helicopter (over LA) and animated weather selected**
 ![MULTIMENU](./images/MultiLayerMenu.png)
 **Sectional chart zoomed in**  
 ![VFRCHART](./images/VFRCHT.png)  
