@@ -415,7 +415,7 @@ function tileToDegree(z, x, y) {
 
 function conditionalLog(entry) {
     if (settings.debug) {
-        console.Log(entry);
+        console.log(entry);
     }
 }
 
