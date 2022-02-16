@@ -53,6 +53,6 @@ https://openlayers.org/
 **Caribbean chart with animated weather and METARS**
 ![CARIBMETAR](./images/CaribbeanWithMetars.png)
 **Sectional chart zoomed in**  
-![VFRCHART](./images/VFRCHT.png)  
+![SECTCLOSE](./images/SectionalCloseup.png)  
 **OpenStreetMaps layer (online only)**  
 ![OSM](./images/OSM.png)
