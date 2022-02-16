@@ -27,7 +27,7 @@ const DB_AIRPORTS    = `${DB_PATH}/${settings.airportsDb}`;
 
 let airpdb = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_AIRPORTS}`);
+        conditionalLog(`Failed to load: ${DB_AIRPORTS}`);
         throw err;
     }
 });
@@ -52,49 +52,49 @@ function loadAirportsJson() {
 
 let vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_SECTIONAL}`);
+        conditionalLog(`Failed to load: ${DB_SECTIONAL}`);
         throw err;
     }
 });
 
 let termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_TERMINAL}`);
+        conditionalLog(`Failed to load: ${DB_TERMINAL}`);
         throw err;
     }
 });
 
 let helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_HELICOPTER}`);
+        conditionalLog(`Failed to load: ${DB_HELICOPTER}`);
         throw err;
     }
 });
 
 let caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_CARIBBEAN}`);
+        conditionalLog(`Failed to load: ${DB_CARIBBEAN}`);
         throw err;
     }
 });
 
 let gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_GCANYONAO}`);
+        conditionalLog(`Failed to load: ${DB_GCANYONAO}`);
         throw err;
     }
 });
 
 let gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_GCANYONGA}`);
+        conditionalLog(`Failed to load: ${DB_GCANYONGA}`);
         throw err;
     }
 });
 
 let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log(`Failed to load: ${DB_HISTORY}`);
+        conditionalLog(`Failed to load: ${DB_HISTORY}`);
     }
 });
 
@@ -106,7 +106,7 @@ try {
     app.use('/img', express.static(`${__dirname}/public/img`));
 
     app.listen(settings.httpport, () => {
-        console.log(`Webserver listening at port ${settings.httpport}`);
+        conditionalLog(`Webserver listening at port ${settings.httpport}`);
     }); 
 
     var options = {
@@ -199,7 +199,7 @@ try {
     });
 }
 catch (error) {
-    console.log(error);
+    conditionalLog(error);
 }
 
 function getMetars(airportlist) {
@@ -211,7 +211,7 @@ function getMetars(airportlist) {
     xhr.onload = () => {
         let status = xhr.status;
         if (status == 200) {
-            console.log(xhr.responseText);
+            conditionalLog(xhr.responseText);
             retval = xhr.responseText;
         }
     };
@@ -228,7 +228,7 @@ function getTaf(airport) {
     xhr.onload = () => {
         let status = xhr.status;
         if (status == 200) {
-            console.log(xhr.responseText);
+            conditionalLog(xhr.responseText);
             retval = xhr.responseText;
         }
     };
@@ -244,7 +244,7 @@ function getPireps() {
     xhr.onload = () => {
         let status = xhr.status;
         if (status == 200) {
-            console.log(xhr.responseText);
+            conditionalLog(xhr.responseText);
             retval = xhr.responseText;
         }
     };
@@ -278,11 +278,11 @@ function putPositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
               `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
-    console.log(sql); 
+    conditionalLog(sql); 
         
     histdb.run(sql, function(err) {
         if (err != null) {
-            console.log(err);
+            conditionalLog(err);
         }
     });
 }
@@ -411,5 +411,11 @@ function tileToDegree(z, x, y) {
     lat = 180.0 / Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));
     lon = x/Math.pow(2, z)*360.0 - 180.0;
     return [lon, lat]
+}
+
+function conditionalLog(entry) {
+    if (settings.debug) {
+        console.Log(entry);
+    }
 }
 
