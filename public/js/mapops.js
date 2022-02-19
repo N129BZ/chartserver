@@ -244,20 +244,23 @@ let currZoom = map.getView().getZoom();
 
 function loadAirportsArray(jsonobj) {
     jsonobj.airports.forEach(airport => {
+        let id = airport.id;
         let ident = airport.ident;
+        let name = airport.name;
         let aptype = airport.type;
         let lon = airport.lonlat[0];
         let lat = airport.lonlat[1];
         if (airport.type === 'large_airport' || airport.type === 'medium_airport') {
             let marker = new ol.Feature({
                 geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
-                name: ident,
+                name: name,
                 type: aptype,
-                elevation: airport.elevation
+                elevation: airport.elevation,
+                hasmetar: false,
+                ident: ident
             });
             marker.setStyle(vfrStyle);
-            marker.setId(ident);
-            marker.set('hasmetar', false)
+            marker.setId(id);
             apfeatures.push(marker);
         }
     });

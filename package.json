@@ -1,18 +1,20 @@
 {
-  "name": "aviation-charts",
+  "name": "aviationmaps",
   "version": "1.0.0",
-  "description": "VFR Sectional map mbtiles server. ",
-  "main": "index.js",
+  "description": "Aviation and Weather Maps",
+  "main": "main.js",
   "author": "Brian A. Manlove",
   "license": "BSD 3-Clause",
   "dependencies": {
-    "express": "^4.17.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.2",
+    "fast-xml-parser": "^4.0.3",
     "fs": "^0.0.1-security",
     "math": "0.0.3",
-    "parcel": "^2.3.1",
+    "serve-favicon": "^2.5.0",
     "sqlite3": "^5.0.2",
     "url": "^0.11.0",
-    "xml-js": "^1.6.11",
+    "websocket": "^1.0.34",
     "xmlhttprequest": "^1.8.0"
   }
 }

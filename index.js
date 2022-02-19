@@ -1,15 +1,59 @@
-const sqlite3 = require("sqlite3");
 const express = require('express');
+const favicon = require('serve-favicon');
+const cors = require('cors');
+const url = require('url');
+const sqlite3 = require("sqlite3");
 const Math = require("math");
 const fs = require("fs");
-const url = require('url');
+const http = require('http');
+const WebSocketServer = require('websocket').server;
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const metarurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=";
-const tafurl = "https://www.aviationweather.gov/taf/data?ids=###AIRPORT###&format=decoded&metars=off";
-const pirepurl = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?datasource=pireps&requesttype=retrieve&format=xml&hoursBeforeNow=.5";
+const { XMLParser } = require('fast-xml-parser');
 
+// const MessageTypes = {
+//     metars: {
+//         self: "metars",
+//         type: "METARS",
+//         token: "@SOURCE"
+//     },
+//     tafs: {
+//         self: "tafs",
+//         type: "TAFS",
+//         token: "@SOURCE"
+//     },
+//     pireps: {
+//         self: "pireps",
+//         type: "PIREPS",
+//         token: ""
+//     },
+//     airports: {
+//         self: "airports",
+//         type: "AIRPORTS",
+//         token: ""
+//     },
+//     allairports: {
+//         self: "allairports",
+//         type: "ALLAIRPORTS",
+//         token: ""
+//     }
+// }
+
+const alwaysArray = [
+    "response.data.METAR.sky_condition"
+];
+const xmlParseOptions = {
+    ignoreAttributes : false,
+    attributeNamePrefix : "",
+    allowBooleanAttributes: true,
+    ignoreDeclaration: true,
+    isArray: (name, jpath, isLeafNode, isAttribute) => { 
+        if( alwaysArray.indexOf(jpath) !== -1) return true;
+    }
+};
+const parser = new XMLParser(xmlParseOptions);
 
 const settings = readSettingsFile();
+
 function readSettingsFile() {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     return JSON.parse(rawdata);
@@ -24,92 +68,160 @@ const DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
 const DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
 const DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
 const DB_AIRPORTS    = `${DB_PATH}/${settings.airportsDb}`;
+const URL_GET_ADDSWX = `${settings.addswxurl}`;
+const URL_GET_PIREPS = `${settings.pirepsurl}`;
+const MessageTypes   = settings.messagetypes;
 
-let airpdb = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        conditionalLog(`Failed to load: ${DB_AIRPORTS}`);
-        throw err;
+let airportJson = "";
+let wss;
+let connection;
+startWebsocketServer();
+
+function startWebsocketServer() {
+    // http websocket server to forward serial data to browser client
+    let server = http.createServer(function (request, response) { });
+    try {
+        server.listen(settings.wsport, function () { });
+        // create the server
+        wss = new WebSocketServer({ httpServer: server });
+        console.log(`Data forwarding server enabled at port ${settings.wsport}`); 
     }
-});
+    catch (error) {
+        console.log(error);
+    }
 
-let airportJson = ""; 
-loadAirportsJson();
-
-function loadAirportsJson() {
-    let strjson = ""; 
-    let sql = `SELECT ident, type, elevation_ft, longitude_deg, latitude_deg FROM airports ` +
-                `WHERE (type NOT IN ('heliport','seaplane_base','closed')) AND iso_country = 'US';`;
-    airpdb.all(sql, (err, rows) => {
-        if (err === null) {
-            rows.forEach(row => {
-                strjson += `, { "ident": "${row.ident}", "type": "${row.type}", "elevation": ${row.elevation_ft},"lonlat": [${row.longitude_deg}, ${row.latitude_deg}] }`; 
+    try {
+        wss.on('request', function (request) {
+            connection = request.accept(null, request.origin);
+            console.log("new connection");
+            
+            connection.on('close', function () {
+                console.log("connection closed");
             });
-            let newjson = `{ "airports": [ ${strjson.substring(1)} ] }`;
-            airportJson = newjson;
-        }
-    });
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
 }
 
-let vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
+const airpdb = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_SECTIONAL}`);
+        console.log(`Failed to load: ${DB_AIRPORTS}`);
+        throw err;
+    }
+});   
+
+const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(`Failed to load: ${DB_SECTIONAL}`);
         throw err;
     }
 });
 
-let termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
+const termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_TERMINAL}`);
+        console.log(`Failed to load: ${DB_TERMINAL}`);
         throw err;
     }
 });
 
-let helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
+const helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_HELICOPTER}`);
+        console.log(`Failed to load: ${DB_HELICOPTER}`);
         throw err;
     }
 });
 
-let caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
+const caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_CARIBBEAN}`);
+        console.log(`Failed to load: ${DB_CARIBBEAN}`);
         throw err;
     }
 });
 
-let gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
+const gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_GCANYONAO}`);
+        console.log(`Failed to load: ${DB_GCANYONAO}`);
         throw err;
     }
 });
 
-let gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
+const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        conditionalLog(`Failed to load: ${DB_GCANYONGA}`);
+        console.log(`Failed to load: ${DB_GCANYONGA}`);
         throw err;
     }
 });
 
-let histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
+const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        conditionalLog(`Failed to load: ${DB_HISTORY}`);
+        console.log(`Failed to load: ${DB_HISTORY}`);
     }
 });
+
+function loadAirportsJson(useAllAirports = false) {
+    let msgtype = "";
+    if (useAllAirports) {
+        msgtype = MessageTypes.allairports.type;
+        sql = `SELECT ident, type, name, elevation_ft, longitude_deg, latitude_deg, iso_region ` + 
+              `FROM airports ` +
+              `WHERE iso_region LIKE 'US%' ` +
+              `ORDER BY iso_region ASC;`;
+    }
+    else {
+        msgtype = MessageTypes.airports.type;
+        sql = `SELECT ident, type, name, elevation_ft, longitude_deg, latitude_deg ` + 
+              `FROM airports ` +
+              `WHERE (type = 'large_airport' OR type = 'medium_airport') ` + 
+              `AND iso_country = 'US';`;
+    }
+    
+    let jsonout = {
+        "airports": []
+    };
+    
+    airpdb.all(sql, (err, rows) => {
+        if (err == null) {
+            rows.forEach(row => {
+                let thisrecord = {
+                    "ident": row.ident,
+                    "type": row.type,
+                    "name": row.name,
+                    "elev": row.elevation_ft,
+                    "lon": row.longitude_deg,
+                    "lat": row.latitude_deg,
+                    "isoregion": row.iso_region
+                }
+                jsonout.airports.push(thisrecord);
+            });
+        }
+        else {
+            console.log(err);
+        }
+        let payload = JSON.stringify(jsonout);
+        let message = {
+            type: msgtype,
+            payload: payload
+        };
+        let outstr = JSON.stringify(message);
+        connection.send(outstr);
+    });
+}
 
 // express web server  
 let app = express();
 try {
-    app.use(express.urlencoded({ extended: true }));
-    app.use(express.json({}));
-    app.use('/img', express.static(`${__dirname}/public/img`));
-
-    app.listen(settings.httpport, () => {
-        conditionalLog(`Webserver listening at port ${settings.httpport}`);
+        app.use(express.urlencoded({ extended: true }));
+        app.use(express.json({}));
+        app.use(cors());
+        app.use(favicon(`${__dirname }/images/favicon.png`));
+        app.use(express.static('public'))
+        app.listen(settings.httpport, () => {
+        console.log(`Webserver listening at port ${settings.httpport}`);
     }); 
 
-    var options = {
+    let appOptions = {
         dotfiles: 'ignore',
         etag: false,
         extensions: ['html'],
@@ -117,10 +229,13 @@ try {
         redirect: false,
         setHeaders: function (res, path, stat) {
             res.set('x-timestamp', Date.now());
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader('Access-Control-Allow-Methods', '*');
+            res.setHeader("Access-Control-Allow-Headers", "*");
         }
     };
 
-    app.use(express.static(`${__dirname}/public`, options));
+    app.use(express.static(`${__dirname}/public`, appOptions));
     
     app.get('/',(req, res) => {
         res.sendFile(`${__dirname}/public/index.html`);
@@ -172,80 +287,117 @@ try {
     });
 
     app.get("/getairports", (req, res) => {
+        setTimeout(() => {
+            loadAirportsJson(false)
+        }, 200);
         res.writeHead(200);
-        res.write(airportJson); 
+        res.end();
+    });
+    
+    app.get("/getallairports", (req, res) => {
+        setTimeout(() => {
+            loadAirportsJson(true)
+        }, 200);
+        res.writeHead(200);
         res.end();
     });
 
     app.get("/getmetars/:airportlist", (req, res) => {
-        var data = getMetars(req.params.airportlist);
+        let airportlist = req.params.airportlist;
+        setTimeout(() => {
+            getMetars(airportlist)
+        }, 200);
         res.writeHead(200);
-        res.write(data); 
         res.end();
     });
 
     app.get("/gettaf/:airport", (req, res) => {
-        var data = getTaf(req.params.airport);
+        getTaf(req.params.airport);
         res.writeHead(200);
-        res.write(data); 
         res.end();
     });
 
     app.get("/getpireps", (req, res) => {
-        var data = getPireps();
+        getPireps();
         res.writeHead(200);
-        res.write(data); 
         res.end();
     });
 }
 catch (error) {
-    conditionalLog(error);
+    console.log(error);
 }
 
-function getMetars(airportlist) {
-    var retval = "";
-    var xhr = new XMLHttpRequest();
-    let url = `${metarurl}${airportlist}`;
-    xhr.open('GET', url, false);
+async function getMetars(airportlist) {
+    let xhr = new XMLHttpRequest();
+    let metars = MessageTypes.metars;
+    let url = URL_GET_ADDSWX.replace(metars.token, metars.self) + airportlist;
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    xhr.setRequestHeader('Access-Control-Allow-Methods', '*');
+    xhr.setRequestHeader("Access-Control-Allow-Headers", "*");
     xhr.responseType = 'xml';
     xhr.onload = () => {
-        let status = xhr.status;
-        if (status == 200) {
-            conditionalLog(xhr.responseText);
-            retval = xhr.responseText;
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            let msgfield = parser.parse(xhr.responseText);
+            let payload = JSON.stringify(msgfield);
+            let message = {
+                type: metars.type,
+                payload: payload
+            };
+            const json = JSON.stringify(message);
+            console.log(message);
+            connection.send(json);
         }
     };
     xhr.send();
-    return retval;
 }
 
-function getTaf(airport) {
-    var retval = "";
-    var xhr = new XMLHttpRequest();
-    let url = tafurl.replace("###AIRPORT###", airport);
-    xhr.open('GET', url, false);
+async function getTaf(airport) {
+    let xhr = new XMLHttpRequest();
+    let tafs = MessageTypes.tafs;
+    let url = URL_GET_ADDSWX.replace(tafs.token, tafs.self) + airport;
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    xhr.setRequestHeader('Access-Control-Allow-Methods', '*');
+    xhr.setRequestHeader("Access-Control-Allow-Headers", "*");
     xhr.responseType = 'xml';
     xhr.onload = () => {
-        let status = xhr.status;
-        if (status == 200) {
-            conditionalLog(xhr.responseText);
-            retval = xhr.responseText;
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            let msgfield = parser.parse(xhr.responseText);
+            let payload = JSON.stringify(msgfield);
+            let message = {
+                type: tafs.type,
+                payload: payload
+            };
+            const json = JSON.stringify(message);
+            console.log(message);
+            connection.send(json);
         }
     };
     xhr.send();
-    return retval;
 }
 
-function getPireps() {
-    var retval = "";
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', pirepurl, false);
+async function getPireps() {
+    let xhr = new XMLHttpRequest();
+    let pireps = MessageTypes.pireps;
+    xhr.open('GET', URL_GET_PIREPS, true);
+    xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+    xhr.setRequestHeader('Access-Control-Allow-Methods', '*');
+    xhr.setRequestHeader("Access-Control-Allow-Headers", "*");
     xhr.responseType = 'xml';
     xhr.onload = () => {
-        let status = xhr.status;
-        if (status == 200) {
-            conditionalLog(xhr.responseText);
-            retval = xhr.responseText;
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            let msgfield = parser.parse(xhr.responseText);
+            let payload = JSON.stringify(msgfield);
+            let message = {
+                type: pireps.type,
+                payload: payload
+            }
+            const json = JSON.stringify(message);
+            console.log(message);
+            connection.send(json);
         }
     };
     xhr.send();
@@ -278,11 +430,11 @@ function putPositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
               `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
-    conditionalLog(sql); 
+    console.log(sql); 
         
     histdb.run(sql, function(err) {
         if (err != null) {
-            conditionalLog(err);
+            console.log(err);
         }
     });
 }
@@ -412,10 +564,3 @@ function tileToDegree(z, x, y) {
     lon = x/Math.pow(2, z)*360.0 - 180.0;
     return [lon, lat]
 }
-
-function conditionalLog(entry) {
-    if (settings.debug) {
-        console.log(entry);
-    }
-}
-

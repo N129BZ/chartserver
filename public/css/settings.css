@@ -1,0 +1,61 @@
+input[type=submit], input[type=cancel] {
+    background-color: darkgray;
+    border: outset;
+    color:black;
+    padding: 8px 10px;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 4px 10px;
+    cursor: pointer;
+    width: 92px;
+    height: 44px;
+    text-align: center;
+    vertical-align: middle;
+}
+.label {
+    background-color:white;
+    color: black;
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 26px;
+}
+.textlabel {
+    background-color:white;
+    color: black;
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 20px;
+    padding-left: 30px;
+    padding-right: 10px;
+}
+.textbox {
+    background-color:white;
+    color: black;
+    width: 70px;
+    padding-left: 20px,;
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 20px;
+}
+.selectlist {
+    background-color: white;
+    font-size: 20px;
+    font-weight: bold;
+    height: 44px;
+    width: 192px;
+}
+#portname {
+    background-color: white;
+    font-size: 20px;
+    font-weight: bold;
+    height: 44px;
+    width: 192px;
+}
+#baudrate {
+    background-color: white;
+    font-size: 20px;
+    font-weight: bold;
+    height: 44px;
+    width: 192px;
+}
