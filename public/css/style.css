@@ -2,8 +2,7 @@ html, body {
     margin: 0;
     height: 100%;
     width: 100%;
-  }
-  
+}
 #map {
     position: absolute;
     top:0px;
@@ -29,7 +28,7 @@ html, body {
     height:36px;
     transform: rotate(0deg);
 }
-#mymetar {
+#featurepopup {
     font-family: Arial, Helvetica, sans-serif;
     font-size:small;
 }
@@ -39,6 +38,10 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
     font-size:larger;
     font-weight: bold;
+    display:inline-block;
+    overflow: hidden;
+    text-align: center;
+    width: 100%;
 }
 .metarlifr {
     background-color: #f984f9;
@@ -46,6 +49,10 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: larger;
     font-weight: bold;
+    display:inline-block;
+    overflow: hidden;
+    text-align: center;
+    width: 100%;
 }
 .metarmvfr {
     background-color: #0000cd;
@@ -53,6 +60,10 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: larger;
     font-weight: bold;
+    display:inline-block;
+    overflow: hidden;
+    text-align: center;
+    width: 100%;
 }
 .metarvfr {
     background-color: #12f23c;
@@ -60,6 +71,10 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
     font-size:larger;
     font-weight: bold;
+    display:inline-block;
+    overflow: hidden;
+    text-align: center;
+    width: 100%;
 }
 .wxbuttons {
     position:absolute;
@@ -95,19 +110,165 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 18px;
 }
+.metar {
+    height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.taf {
+    width: 400px;
+    height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.tafmessage {
+    border: 2px;
+    width: 400px;
+}
+.taflabel {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: smaller;
+}
+.taftitle {
+    background-color: #080e8c;
+    width:400px;
+    height:2em;
+    align-content: center;
+}
+.taftitlelabel {
+    background-color: #080e8c;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif; 
+    font-weight:bold;
+    font-size:large;
+    text-align: center;
+    margin-top: .4em;
+    position:absolute;
+    width:400px;
+}
+.tafheader {
+    background-color: #080e8c;
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif; 
+    font-weight: bold;
+    font-size:medium;
+}
+.tafbody {
+    width: 400px;
+}
+.tafsubheader {
+    background-color:lavender;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight:normal;
+    font-size: smaller;
+    display:inline-block;
+    overflow: hidden;
+    width: 370px;
+}
+.tafskyheader {
+    background-color:lavender;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: italic;
+    font-weight:bold;
+    font-size: medium;
+    display:inline-block;
+    overflow: hidden;
+    text-align:center;
+    width: 370px;
+}
+.tafwxlabel {
+    background-color:lightyellow;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: smaller;
+    display:inline-block;
+    overflow: hidden;
+    width:370px;
+}
+.fcstlabel {
+    background-color:lavender;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    font-size:medium;
+    display:inline-block;
+    overflow: hidden;
+    text-align:center;
+    width:370px;
+}
+.tafdata {
+    background-color: white;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight:normal;
+    font-size: smaller;
+    width: 100%;
+}
+.pirepitem {
+    background-color:lightyellow;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size:medium;
+    display:inline-block;
+    overflow: hidden;
+    width:370px;
+}
+.pirepskyheader {
+    background-color:lavender;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: italic;
+    font-weight:bold;
+    font-size: medium;
+    display:inline-block;
+    overflow: hidden;
+    text-align:center;
+    width: 370px;
+}
+.conditionimage {
+    text-align: center;
+    align-items: center;
+    scale: .80;
+    /*width: 370px;*/
+}
+.airportpopuplabel {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size:larger;
+    font-weight:bolder;
+    text-align: center;
+}
+.rawdata {
+    background-color:lightyellow;
+    color:#000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: smaller;
+    width:360px;
+}
+.windsvg {
+    height: 150px;
+    width: 150px;
+    left: 242px;
+    top: 58px;
+    position: absolute;
+}
 .ol-popup {
     position: absolute;
     background-color: white;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
     border: 1px solid #cccccc;
     bottom: 12px;
     left: -50px;
     min-width: 280px;
-  }
-
-  .ol-popup:after, .ol-popup:before {
+    /*min-height: 310px;*/
+}
+.ol-popup:after, .ol-popup:before {
     top: 100%;
     border: solid transparent;
     content: " ";
@@ -115,30 +276,38 @@ html, body {
     width: 0;
     position: absolute;
     pointer-events: none;
-  }
-
-  .ol-popup:after {
+}
+.ol-popup:after {
     border-top-color: white;
     border-width: 10px;
     left: 48px;
     margin-left: -10px;
-  }
-
-  .ol-popup:before {
+}
+.ol-popup:before {
     border-top-color: #cccccc;
     border-width: 11px;
     left: 48px;
     margin-left: -11px;
-  }
-
-  .ol-popup-closer {
-    text-decoration: none;
+}
+.ol-popup-closer {
+    text-decoration:none;
     position: absolute;
-    top: 2px;
-    right: 8px;
-  }
-  .dot {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bolder;
+    background-color: lightgray;
+    color:darkslateblue;
+    top: 90%;
+    left: 10px;
+}
+.dot {
       width:45px;
       height:45px;
       visibility: hidden;
-  }
+}
+hr { 
+    display: block; 
+    overflow: hidden; 
+    border-style: 
+    inset; 
+    border-width: 1px;
+}
