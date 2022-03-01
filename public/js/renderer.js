@@ -134,7 +134,7 @@ let debugTileLayer;
 
 /**
  * Websocket object, flag, and message definition
- * JSON object that is filled by returned settingsws://${window.location.hostname}
+ * JSON object that is filled by returned settings
  */
 let websock;
 let wsOpen = false;
@@ -158,7 +158,7 @@ const regionselect = document.getElementById("regionselect");
 let regionmap = new Map();
 
 /** 
- * Request settings JSON object from serverself
+ * Request settings JSON object from server
  */
  $.get({
     async: false,
@@ -212,7 +212,9 @@ let regionmap = new Map();
  * Setup scheduled updates to run every 6 minutes
  */
 function setupScheduledUpdates() {
-    setInterval(getUpdates, 480000);
+    setInterval(() => {
+        getUpdates() 
+    }, 480000);
 }
 
 /**
@@ -243,7 +245,8 @@ async function getUpdates() {
         websock = new WebSocket(wsurl);
         websock.onmessage = (evt) => {
             let message = JSON.parse(evt.data);
-            let payload = JSON.parse(message.payload); 
+            let payload = JSON.parse(message.payload);
+
             switch (message.type) {
                 case MessageTypes.airports.type:
                     processAirports(payload);

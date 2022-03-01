@@ -6,7 +6,7 @@ const sqlite3 = require("sqlite3");
 const Math = require("math");
 const fs = require("fs");
 const http = require('http');
-const { WebSocketServer } = require('ws');
+const WebSocket = require('ws');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
 
@@ -26,7 +26,7 @@ const xmlparser = new XMLParser(xmlParseOptions);
 
 let settings = {};
 let wss;
-let connection;
+let connections = new Map();
 
 (() => {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
@@ -48,30 +48,33 @@ const MessageTypes   = settings.messagetypes;
 /**
  * 
  */
-(() => {
+ (() => {
     // http websocket server to forward weather data to page
-    let server = http.createServer(function (request, response) { });
-    try {
-        server.listen(settings.wsport, function () { });
-        wss = new WebSocketServer({ server });
-        console.log(`Data forwarding server enabled at port ${settings.wsport}`); 
-    }
-    catch (err) {
-        console.log(err);
-    }
+    // let server = http.createServer(function (request, response) { });
+    // try {
+    //     server.listen(settings.wsport, function () { });
+    //     wss = new WebSocketServer({ server });
+    //     console.log(`Websocket server enabled on port ${settings.wsport}`); 
+    // }
+    // catch (err) {
+    //     console.log(err);
+    // }
 
+    wss = new WebSocket.Server({ port: settings.wsport });
     try {
-        wss.on('connection', function connect(ws) {
-            connection = ws;
-            console.log("new Websocket connection");
+        wss.on('connection', (ws) => {
+            const id = Date.now();
+            connections.set(ws, id);
+            console.log(`Websocket connected, id: ${id}`);
 
             runDownloads(true);
             
-            connection.on('close', function() {
+            ws.on('close', function() {
+                connections.delete(ws);
                 console.log("connection closed");
             });
 
-            connection.on('message', function(data) {
+            ws.on('message', function(data) {
             });
 
         });
@@ -171,7 +174,7 @@ function loadAirportsJson() {
         };
         try {
             let outstr = JSON.stringify(message);
-            connection.send(outstr);
+            sendMessageToClients(outstr);
         }
         catch(err) {
             console.log(err);
@@ -183,14 +186,12 @@ function loadAirportsJson() {
 // express web server  
 let app = express();
 try {
-        app.use(express.urlencoded({ extended: true }));
-        app.use(express.json({}));
-        app.use(cors());
-        app.use(favicon(`${__dirname }/images/favicon.png`));
-        app.use(express.static('public'))
-        app.listen(settings.httpport, () => {
-        console.log(`Webserver listening at port ${settings.httpport}`);
-    }); 
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json({}));
+    app.use(cors());
+    app.use(favicon(`${__dirname }/images/favicon.png`));
+    app.use(express.static('public'))
+    app.listen(settings.httpport); 
 
     let appOptions = {
         dotfiles: 'ignore',
@@ -499,7 +500,7 @@ async function processTafJsonObjects(tafs) {
         payload: payload
     };
     const json = JSON.stringify(message);
-    connection.send(json);
+    sendMessageToClients(json);
 }
 
 async function processMetarJsonObjects(metars) {
@@ -509,7 +510,7 @@ async function processMetarJsonObjects(metars) {
         payload: payload
     };
     const json = JSON.stringify(message);
-    connection.send(json);
+    sendMessageToClients(json);
 }
 
 async function processPirepJsonObjects(pireps) {
@@ -519,5 +520,11 @@ async function processPirepJsonObjects(pireps) {
         payload: payload
     }
     const json = JSON.stringify(message);
-    connection.send(json);
+    sendMessageToClients(json);
+}
+
+async function sendMessageToClients(jsonmessage) {
+    [...connections.keys()].forEach((client) => {
+        client.send(jsonmessage);
+    });
 }
