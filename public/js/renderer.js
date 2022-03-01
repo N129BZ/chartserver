@@ -369,11 +369,11 @@ let vfrPirep = new ol.style.Icon({
  */
 let tafMarker = new ol.style.Icon({
     crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/taf.png`,
-    size: [85, 85],
+    src: `${URL_SERVER}/img/taf.svg`,
+    size: [126, 90],
     offset: [0, 0],
     opacity: 1,
-    scale: .50
+    scale: .25
 });
 /*--------------------------------------*/
 let airportMarker = new ol.style.Icon({
@@ -1302,7 +1302,7 @@ function resizeDots() {
     mvfrMarker.setScale(newscale);
     lifrMarker.setScale(newscale);
     ifrMarker.setScale(newscale);
-    tafMarker.setScale(newscale);
+    //tafMarker.setScale(newscale);
     airportMarker.setScale(newscale);
     heliportMarker.setScale(newscale);
 }
