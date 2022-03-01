@@ -23,7 +23,7 @@
  let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
  let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
  let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
- let URL_GET_AIRPORTS        = `${URL_SERVER}/getairports`;
+ let URL_GET_UPDATES         = `${URL_SERVER}/getupdates`;
  let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
 
 //Metar Object
@@ -65,7 +65,6 @@ class Variation {
 class Cloud {
     constructor() {
     }
-
 };
 
 /**
@@ -172,6 +171,8 @@ let regionmap = new Map();
             DistanceUnits = settings.distanceunits;
             distanceunit = settings.distanceunit;
             currentZoom = settings.startupzoom;
+
+            setTimeout(setupScheduledUpdates, 1000);
         }
         catch(err) {
             console.log(err);
@@ -206,6 +207,31 @@ let regionmap = new Map();
         console.error(xhr.status, thrownError);
     }
 });
+
+/**
+ * Setup scheduled updates to run every 6 minutes
+ */
+function setupScheduledUpdates() {
+    setInterval(getUpdates, 480000);
+}
+
+/**
+ * Get scheduled updates, called by the setInterval function above.
+ */
+async function getUpdates() {
+    console.log("Getting scheduled updates.")
+    $.get({
+        async:true,
+        type: "GET",
+        url: URL_GET_UPDATES,
+        success: () => {
+            console.log("Requested sc=heduled Metar, TAF, and Pirep updates from server");
+        },
+        error: (xhr, ajaxOptions, thrownError) => {
+            console.error(xhr.status, thrownError)
+        }
+    });
+}
 
 /**
  * JQuery method to immediately initialize the websocket connection
@@ -436,6 +462,7 @@ function processAirports(jsonobj) {
             }
             airportFeatures.push(airportmarker);
             airportNameKeymap.set(airport.ident, airport.name);
+            airportmarker.changed();
         }
 
         /**
@@ -776,6 +803,12 @@ function displayTafPopup(feature) {
     popupcontent.innerHTML = innerhtml;
 }
 
+/**
+ * 
+ * @param {string} rawfieldname - the object key before "cleaning" underscores, etc.
+ * @param {object} fieldvalue json object corresponding to the key
+ * @returns 
+ */
 function parseForecastField(rawfieldname, fieldvalue) {
     let fieldname = tafFieldKeymap.get(rawfieldname);
     let html = "";
@@ -1163,6 +1196,7 @@ function processMetars(metarsobject) {
                             break;
                     }
                     metarFeatures.push(feature);
+                    feature.changed();
                 }
                 catch(error){
                    console.log(error.message); 
@@ -1197,6 +1231,7 @@ function processTafs(tafsobject) {
                 taffeature.setId(taf.station_id);
                 taffeature.setStyle(tafStyle);
                 tafFeatures.push(taffeature);
+                taffeature.changed();
             });
         }
         catch (error){
@@ -1241,6 +1276,7 @@ function processTafs(tafsobject) {
                                     })
                 );
                 pirepFeatures.push(pirepfeature);
+                pirepfeature.changed();
             });
         }
         catch (error){

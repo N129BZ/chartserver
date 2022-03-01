@@ -65,17 +65,13 @@ const MessageTypes   = settings.messagetypes;
             connection = ws;
             console.log("new Websocket connection");
 
-            runDownloads();
+            runDownloads(true);
             
             connection.on('close', function() {
                 console.log("connection closed");
             });
 
             connection.on('message', function(data) {
-                let message = JSON.parse(data);
-                if (message.type === MessageTypes.keepalive.type) {
-                    //console.log(message.payload);
-                }
             });
 
         });
@@ -257,6 +253,12 @@ try {
         getPositionHistory(res);
     });
 
+    app.get("/getupdates", (req,res) => {
+        runDownloads(false);
+        res.writeHead(200);
+        res.end();
+    });
+
     app.post("/puthistory", (req, res) => {
         putPositionHistory(req.body);
         res.writeHead(200);
@@ -318,7 +320,8 @@ function handleTile(request, response, db) {
         let yparts = parts[idx].split(".");
         y = parseInt(yparts[0])
 
-    } catch(err) {
+    } 
+    catch(err) {
         res.writeHead(500, "Failed to parse y");
         response.end();
         return;
@@ -371,7 +374,7 @@ function handleTilesets(request, response) {
     switch (parms.layer) {
         case "term":
             db = termdb;
-            break;
+            break;include
         case "heli":
             db = helidb;
             break;
@@ -436,10 +439,13 @@ function tileToDegree(z, x, y) {
     return [lon, lat]
 }
 
-async function runDownloads() {
-    setTimeout(() => {
-        loadAirportsJson();
-    }, 100);
+async function runDownloads(includeAirports) {
+    
+    if (includeAirports) {
+        setTimeout(() => {
+            loadAirportsJson();
+        }, 100);
+    }
 
     setTimeout(() => { 
         downloadXmlFile(settings.messagetypes.metars); 
