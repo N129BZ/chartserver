@@ -225,7 +225,7 @@ async function getUpdates() {
         type: "GET",
         url: URL_GET_UPDATES,
         success: () => {
-            console.log("Requested sc=heduled Metar, TAF, and Pirep updates from server");
+            console.log("Requested scheduled Metar, TAF, and Pirep updates from server");
         },
         error: (xhr, ajaxOptions, thrownError) => {
             console.error(xhr.status, thrownError)
