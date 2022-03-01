@@ -7,7 +7,7 @@
     "keepaliveintervalmsec": 30000,
     "httpport": 5000,
     "wsport": 5050,
-    "startupzoom": 7,
+    "startupzoom": 10,
     "useOSMonlinemap": false,
     "debug": false,
     "osmofflineDb": "osm.mbtiles",

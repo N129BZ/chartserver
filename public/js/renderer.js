@@ -659,6 +659,8 @@ map.on('pointermove', (evt) => {
  */
 map.on('click', (evt) => {
     let hasfeature = false;
+    let coords = ol.proj.toLonLat(evt.coordinate);
+    console.log(coords);
     currentZoom = map.getView().getZoom();
     resizeDots();
     map.forEachFeatureAtPixel(evt.pixel, (feature) => {
@@ -801,7 +803,6 @@ function displayTafPopup(feature) {
         }
     }
     
-    console.log(html);
     html += `</p></div><textarea class="rawdata">${rawtaf}</textarea><br />`;
     html += `<p><button class="ol-popup-closer" onclick="closePopup()">close</button></p></div>`;
     let innerhtml = outerhtml.replace("###", html);
@@ -1332,7 +1333,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             minZoom: 5,
             attributionsCollapsible: false
         }),
-        visible: false,
+        visible: true,
         extent: extent,
         zIndex: 10
     });
@@ -1424,7 +1425,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             title: "Open Street Maps (online)",
             type: "overlay",
             source: new ol.source.OSM(),
-            visible: true,
+            visible: false,
             extent: extent,
             zIndex: 9
         });
@@ -1438,7 +1439,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
                 maxZoom: 7,
                 minZoom: 1
             }),
-            visible: true,
+            visible: false,
             extent: extent,
             zIndex: 9
         });
