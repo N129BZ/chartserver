@@ -56,14 +56,14 @@ const MessageTypes   = settings.messagetypes;
         wss = new WebSocketServer({ server });
         console.log(`Data forwarding server enabled at port ${settings.wsport}`); 
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        console.log(err);
     }
 
     try {
         wss.on('connection', function connect(ws) {
             connection = ws;
-            console.log("new connection");
+            console.log("new Websocket connection");
 
             runDownloads();
             
@@ -74,69 +74,69 @@ const MessageTypes   = settings.messagetypes;
             connection.on('message', function(data) {
                 let message = JSON.parse(data);
                 if (message.type === MessageTypes.keepalive.type) {
-                    console.log(message.payload);
+                    //console.log(message.payload);
                 }
             });
 
         });
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        console.log(err);
     }
 })();
 
 const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_SECTIONAL}`);
+        console.log(`Failed to load: ${DB_SECTIONAL}: ${err}`);
         throw err;
     }
 });
 
 const termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_TERMINAL}`);
+        console.log(`Failed to load: ${DB_TERMINAL}: ${err}`);
         throw err;
     }
 });
 
 const helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_HELICOPTER}`);
+        console.log(`Failed to load: ${DB_HELICOPTER}: ${err}`);
         throw err;
     }
 });
 
 const caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_CARIBBEAN}`);
+        console.log(`Failed to load: ${DB_CARIBBEAN}: ${err}`);
         throw err;
     }
 });
 
 const gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_GCANYONAO}`);
+        console.log(`Failed to load: ${DB_GCANYONAO}: ${err}`);
         throw err;
     }
 });
 
 const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
-        console.log(`Failed to load: ${DB_GCANYONGA}`);
+        console.log(`Failed to load: ${DB_GCANYONGA}: ${err}`);
         throw err;
     }
 });
 
 const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log(`Failed to load: ${DB_HISTORY}`);
+        console.log(`Failed to load: ${DB_HISTORY}: ${err}`);
     }
 });
 
 function loadAirportsJson() {
     const db = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
         if (err) {
-            console.log(`Failed to load: ${DB_AIRPORTS}`);
+            console.log(`Failed to load: ${DB_AIRPORTS}: ${err}`);
             throw err;
         }
     });
@@ -152,7 +152,7 @@ function loadAirportsJson() {
     };
     
     db.all(sql, (err, rows) => {
-        if (err == null) {
+        if (!err) {
             rows.forEach(row => {
                 let thisrecord = {
                     "ident": row.ident,
@@ -179,8 +179,8 @@ function loadAirportsJson() {
             let outstr = JSON.stringify(message);
             connection.send(outstr);
         }
-        catch(error) {
-            console.log(error.message);
+        catch(err) {
+            console.log(err);
         }
     });
     db.close();
@@ -263,14 +263,14 @@ try {
         res.end();
     });
 }
-catch (error) {
-    console.log(error);
+catch (err) {
+    console.log(err);
 }
 
 function getPositionHistory(response) {
     let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
     histdb.get(sql, (err, row) => {
-        if (err == null) {
+        if (!err) {
             if (row != undefined) {
                 let obj = {};
                 obj["longitude"] = row.longitude;
@@ -283,6 +283,7 @@ function getPositionHistory(response) {
         }
         else
         {
+            console.log(err);
             response.writeHead(500);
             response.end();
         }
@@ -293,10 +294,9 @@ function putPositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
               `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
-    console.log(sql); 
         
     histdb.run(sql, function(err) {
-        if (err != null) {
+        if (err) {
             console.log(err);
         }
     });
@@ -336,7 +336,7 @@ function loadTile(z, x, y, response, db) {
 
     let sql = `SELECT tile_data FROM tiles WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
     db.get(sql, (err, row) => {
-        if (err == null) {
+        if (!err) {
             if (row == undefined) {
                 response.writeHead(200);
                 response.end();
@@ -351,6 +351,7 @@ function loadTile(z, x, y, response, db) {
             }
         }
         else {
+            console.log(err);
             response.writeHead(500, err.message);
             response.end();
         } 
@@ -390,35 +391,40 @@ function handleTilesets(request, response) {
     }
 
     db.all(sql, [], (err, rows) => {
-        rows.forEach((row) => {
-            if (row.value != null) {
-                meta[row.name] = row.value;
-            }
-            if (row.name === "maxzoom" && row.value != null && !found) {
-                let maxZoomInt = parseInt(row.value); 
-                sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
-                             `max(tile_column) as xmax, max(tile_row) as ymax ` +
-                      `FROM tiles WHERE zoom_level=?`;
-                db.get(sql, [maxZoomInt], (err, row) => {
-                    let xmin = row.xmin;
-                    let ymin = row.ymin; 
-                    let xmax = row.xmax; 
-                    let ymax = row.ymax;  
-                    
-                    llmin = tileToDegree(maxZoomInt, xmin, ymin);
-                    llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
-                    
-                    retarray = `${llmin[0]}, ${llmin[1]}, ${llmax[0]}, ${llmax[1]}`;
-                    meta["bounds"] = retarray;
-                    let output = JSON.stringify(meta);
-                    found = true;
-                    response.writeHead(200);
-                    response.write(output);
-                    response.end();
-                    return;
-                });
-            }
-        });
+        if (!err) {
+            rows.forEach((row) => {
+                if (row.value != null) {
+                    meta[row.name] = row.value;
+                }
+                if (row.name === "maxzoom" && row.value != null && !found) {
+                    let maxZoomInt = parseInt(row.value); 
+                    sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
+                                `max(tile_column) as xmax, max(tile_row) as ymax ` +
+                        `FROM tiles WHERE zoom_level=?`;
+                    db.get(sql, [maxZoomInt], (err, row) => {
+                        let xmin = row.xmin;
+                        let ymin = row.ymin; 
+                        let xmax = row.xmax; 
+                        let ymax = row.ymax;  
+                        
+                        llmin = tileToDegree(maxZoomInt, xmin, ymin);
+                        llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
+                        
+                        retarray = `${llmin[0]}, ${llmin[1]}, ${llmax[0]}, ${llmax[1]}`;
+                        meta["bounds"] = retarray;
+                        let output = JSON.stringify(meta);
+                        found = true;
+                        response.writeHead(200);
+                        response.write(output);
+                        response.end();
+                        return;
+                    });
+                }
+            });
+        }
+        else {
+            console.log(err);
+        }
     });
 }
 
@@ -433,7 +439,7 @@ function tileToDegree(z, x, y) {
 async function runDownloads() {
     setTimeout(() => {
         loadAirportsJson();
-    }, 200);
+    }, 100);
 
     setTimeout(() => { 
         downloadXmlFile(settings.messagetypes.metars); 
@@ -460,7 +466,6 @@ async function downloadXmlFile(source) {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             let response = xhr.responseText;
-            //fs.writeFileSync(`${DB_PATH}/${source.type}.xml`, response);
             let messageJSON = xmlparser.parse(response);
             switch(source.type) {
                 case "tafs":
@@ -472,14 +477,14 @@ async function downloadXmlFile(source) {
                 case "pireps":
                     processPirepJsonObjects(messageJSON);
                     break;
-            }
+            }2
         }
     };
     try { 
         xhr.send();
     }
-    catch (error) {
-        console.log(`Error getting message type ${xmlmessage.type}: ${error}`);
+    catch (err) {
+        console.log(`Error getting message type ${xmlmessage.type}: ${err}`);
     }
 }
 
