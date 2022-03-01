@@ -1302,7 +1302,6 @@ function resizeDots() {
     mvfrMarker.setScale(newscale);
     lifrMarker.setScale(newscale);
     ifrMarker.setScale(newscale);
-    //tafMarker.setScale(newscale);
     airportMarker.setScale(newscale);
     heliportMarker.setScale(newscale);
 }
@@ -1327,7 +1326,6 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         title: "VFR Sectional Chart",
         type: "overlay", 
         source: new ol.source.XYZ({
-            attributions: ["© <a href='https://www.openflightmaps.org'>openflightmaps.org</a>"],
             url: URL_GET_VFRSEC_TILE,
             maxZoom: 11,
             minZoom: 5,
@@ -1425,7 +1423,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             title: "Open Street Maps (online)",
             type: "overlay",
             source: new ol.source.OSM(),
-            visible: false,
+            visible: true,
             extent: extent,
             zIndex: 9
         });
@@ -1439,7 +1437,8 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
                 maxZoom: 7,
                 minZoom: 1
             }),
-            visible: false,
+            attributions: ["© <a href='https://www.openstreetmap.org/copyright'>© OpenStreetMap contributors</a>"],
+            visible: true,
             extent: extent,
             zIndex: 9
         });
