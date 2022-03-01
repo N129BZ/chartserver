@@ -1435,9 +1435,9 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             source: new ol.source.XYZ({
                 url: URL_GET_OSM_TILE,  
                 maxZoom: 7,
-                minZoom: 1
+                minZoom: 1,
+                attributions: [ol.source.OSM.ATTRIBUTION],
             }),
-            attributions: ["© <a href='https://www.openstreetmap.org/copyright'>© OpenStreetMap contributors</a>"],
             visible: true,
             extent: extent,
             zIndex: 9
