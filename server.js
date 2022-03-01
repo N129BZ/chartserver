@@ -42,6 +42,8 @@ const DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
 const DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
 const DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
 const DB_AIRPORTS    = `${DB_PATH}/${settings.airportsDb}`;
+const DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
+
 const MessageTypes   = settings.messagetypes;
 
 
@@ -129,6 +131,12 @@ const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) =
 const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
         console.log(`Failed to load: ${DB_HISTORY}: ${err}`);
+    }
+});
+
+const osmdb = new sqlite3.Database(DB_OSMOFFLINE, sqlite3.OPEN_READWRITE, (err) => {
+    if (err){
+        console.log(`Failed to load: ${DB_OSMOFFLINE}: ${err}`);
     }
 });
 
@@ -223,6 +231,10 @@ try {
     app.get("/tiles/tilesets", (req,res) => {
         handleTilesets(req, res);
     });    
+
+    app.get("/tiles/osmtile/*", (req, res) => {
+        handleTile(req, res, osmdb);
+    });
 
     app.get("/tiles/vfrsectile/*", (req, res) => {
         handleTile(req, res, vfrdb);
@@ -371,6 +383,9 @@ function handleTilesets(request, response) {
 
     let parms = url.parse(request.url,true).query
     switch (parms.layer) {
+        case "osm":
+            db = osmdb;
+            break;
         case "term":
             db = termdb;
             break;include
@@ -401,7 +416,7 @@ function handleTilesets(request, response) {
                 if (row.name === "maxzoom" && row.value != null && !found) {
                     let maxZoomInt = parseInt(row.value); 
                     sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
-                                `max(tile_column) as xmax, max(tile_row) as ymax ` +
+                                 `max(tile_column) as xmax, max(tile_row) as ymax ` +
                         `FROM tiles WHERE zoom_level=?`;
                     db.get(sql, [maxZoomInt], (err, row) => {
                         let xmin = row.xmin;

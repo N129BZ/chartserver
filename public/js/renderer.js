@@ -1,5 +1,6 @@
 'use strict';
 
+
 /**
  * Construct all of the application urls 
  */
@@ -14,6 +15,7 @@
  let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
  let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
  let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
+ let URL_GET_OSM_TILE        = `${URL_SERVER}/tiles/osmtile/{z}/{x}/{-y}.png`;
  let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
  let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
  let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
@@ -108,7 +110,6 @@ let metarVectorSource;
 let airportVectorSource;
 let tafVectorSource;
 let pirepVectorSource;
-let ownshipVectorSource;
 let animatedWxTileSource;
 
 /**
@@ -122,7 +123,8 @@ let pirepVectorLayer;
 /**
  * Tile layers
  */
-let osmTileLayer;
+let osmOnlineTileLayer;
+let osmOfflineTileLayer;
 let sectionalTileLayer;
 let terminalTileLayer;
 let helicopterTileLayer;
@@ -1418,10 +1420,24 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     });
 
     if (settings.useOSMonlinemap) {
-        osmTileLayer = new ol.layer.Tile({
-            title: "Open Street Maps",
+        osmOnlineTileLayer = new ol.layer.Tile({
+            title: "Open Street Maps (online)",
             type: "overlay",
             source: new ol.source.OSM(),
+            visible: true,
+            extent: extent,
+            zIndex: 9
+        });
+    }
+    else {
+        osmOfflineTileLayer = new ol.layer.Tile({
+            title: "Open Street Maps (offline)",
+            type: "overlay",
+            source: new ol.source.XYZ({
+                url: URL_GET_OSM_TILE,  
+                maxZoom: 7,
+                minZoom: 1
+            }),
             visible: true,
             extent: extent,
             zIndex: 9
@@ -1468,7 +1484,8 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         title: "Pireps",
         source: pirepVectorSource,
         visible: false,
-        extent: extent, zIndex: 14
+        extent: extent, 
+        zIndex: 14
     });
 
     map.addLayer(debugTileLayer);
@@ -1483,11 +1500,12 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     map.addLayer(helicopterTileLayer);
     map.addLayer(terminalTileLayer);
     map.addLayer(sectionalTileLayer);
-
     if (settings.useOSMonlinemap) {
-        map.addLayer(osmTileLayer);
+        map.addLayer(osmOnlineTileLayer);
     }
-
+    else {
+        map.addLayer(osmOfflineTileLayer);
+    }
     let layerSwitcher = new ol.control.LayerSwitcher({
         tipLabel: 'Layers', 
         groupSelectStyle: 'children'
