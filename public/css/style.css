@@ -240,6 +240,7 @@ html, body {
     font-size:larger;
     font-weight:bolder;
     text-align: center;
+    height:160px;
 }
 .rawdata {
     background-color:lightyellow;
@@ -266,6 +267,7 @@ html, body {
     bottom: 12px;
     left: -50px;
     min-width: 280px;
+    min-height: 100px;
     /*min-height: 310px;*/
 }
 .ol-popup:after, .ol-popup:before {
@@ -297,6 +299,16 @@ html, body {
     background-color: lightgray;
     color:darkslateblue;
     top: 90%;
+    left: 10px;
+}
+.ol-airport-closer {
+    text-decoration:none;
+    position: absolute;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bolder;
+    background-color: lightgray;
+    color:darkslateblue;
+    top: 72%;
     left: 10px;
 }
 .dot {

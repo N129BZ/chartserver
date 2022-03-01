@@ -401,18 +401,6 @@ const pirepStyle = new ol.style.Style({
 });
 
 /**
- * Async $get for list of airports
- */
-$.get({
-    async: true,
-    type: "GET",
-    url: URL_GET_AIRPORTS,
-    error: function (request, status, err) {
-        console.error(`ERROR GETTING AIRPORTS: ${err}`);
-    }
-});
-
-/**
  * Load airports into their feature collection 
  * @param {jsonobj} airport JSON object 
  */
@@ -1128,8 +1116,8 @@ function displayAirportPopup(feature) {
     let name = getFormattedAirportName(ident)
     let html = `<div id="#featurepopup"><pre><code><p>`;
         html += `<label class="airportpopuplabel">${name} - ${ident}</label><p></p>`;
-        html += `</p></code></pre>`;
-        html += `<p><button class="ol-popup-closer" onclick="closePopup()">close</button></p></div>`;
+        html += `</p></code></pre></div>`;
+        html += `<p><button class="ol-airport-closer" onclick="closePopup()">close</button></p>`;
     popupcontent.innerHTML = html; 
 }
 
