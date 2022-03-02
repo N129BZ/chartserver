@@ -69,7 +69,7 @@ let DB_OSMOFFLINE  = "";
     DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
     DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
     
-    rawdata = fs.readFileSync(`${DB_PATH}/airports.json`);
+    rawdata = fs.readFileSync(`${__dirname}/airports.json`);
     airports = JSON.parse(rawdata);
 
 })();
