@@ -1304,7 +1304,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
             minZoom: 5,
             attributionsCollapsible: false
         }),
-        visible: true,
+        visible: false,
         extent: extent,
         zIndex: 10
     });
