@@ -28,7 +28,9 @@
  let URL_GET_UPDATES         = `${URL_SERVER}/getupdates`;
  let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
 
-//Metar Object
+/**
+ * Classes used by the on-the-fly weather SVG in metar popups
+ */
 class METAR {
     /**
      * Extracted Metar data in a human readable format.
@@ -51,26 +53,24 @@ class METAR {
         }
     }
 }
-
 class Wind {
     direction = 0;
     speed = 0;
     unit = "";
     constructor() {}
 };
-
 class Variation {
     constructor() {
     }
 };
-
 class Cloud {
     constructor() {
     }
 };
+/**************** END OF SVG GENERATION CLASSES *****************/
 
 /**
- * global properties
+ * global variables
  */
 let settings = {};
 let last_longitude = 0;
@@ -79,6 +79,9 @@ let last_heading = 0;
 let currentZoom = 9;
 let lastcriteria = "allregions";
 
+/**
+ * Map objects used for various keyname lookups
+ */
 let airportNameKeymap = new Map();
 let tafFieldKeymap = new Map();
 let metarFieldKeymap = new Map();
@@ -86,7 +89,7 @@ let weatherAcronymKeymap = new Map();
 let icingCodeKeymap = new Map();
 let turbulenceCodeKeymap = new Map();
 let skyConditionKeymap = new Map();
-
+/*******keymap loading ******/
 loadTafFieldKeymap();
 loadMetarFieldKeymap();
 loadWeatherAcronymKeymap();
@@ -238,7 +241,7 @@ async function getUpdates() {
 }
 
 /**
- * JQuery method to immediately initialize the websocket connection
+ * Websocket connection and message handling
  */
  $(() => { 
     try {
@@ -536,17 +539,13 @@ function selectFeaturesByCriteria() {
 }
 
 /**
- * Heartbeat routine to keep websocket "hot"
+ * Websocket heartbeat
  */
 let timerId = 0;
-const kamessage = {
-    type: MessageTypes.keepalive.type,
-    payload: MessageTypes.keepalive.token
-}
 function keepAlive() { 
     var timeout = settings.keepaliveintervalmsec;  
     if (wsOpen) {  
-        websock.send(JSON.stringify(kamessage));  
+        websock.send(Date.now());  
     }  
     timerId = setTimeout(keepAlive, timeout);  
 }  
@@ -810,7 +809,7 @@ function displayTafPopup(feature) {
 }
 
 /**
- * 
+ * Parse forcast fields from metars or tafs
  * @param {string} rawfieldname - the object key before "cleaning" underscores, etc.
  * @param {object} fieldvalue json object corresponding to the key
  * @returns 
@@ -1161,7 +1160,7 @@ function displayAirportPopup(feature) {
 }
 
 /**
- * 
+ * Place metar features on the map. color-coded to the conditions
  * @param {object} metarsobject: JSON object with LOTS of metars
  */
 function processMetars(metarsobject) {
@@ -1216,7 +1215,7 @@ function processMetars(metarsobject) {
 }
 
 /**
- * 
+ * Place taf feature objects on the map
  * @param {object} tafsobject: JSON object with LOTS of tafs 
  */
 function processTafs(tafsobject) {
@@ -1247,7 +1246,7 @@ function processTafs(tafsobject) {
 }
 
 /**
- * 
+ * Place pirep features on the map
  * @param {object} pirepsobject: JSON object with LOTS of pireps 
  */
  function processPireps(pirepsobject) {
