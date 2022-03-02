@@ -9,8 +9,14 @@ const WebSocket = require('ws');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
 
+/**
+ * These objects are used by the XMLParser to convert XML to JSON.
+ * The alwaysArray object makes the parser translate sky_condition 
+ * XML attributes as an array of values... which is good.
+ */
 const alwaysArray = [
-    "response.data.METAR.sky_condition"
+    "response.data.METAR.sky_condition",
+    "response.data.PIREP.sky_condition"
 ];
 const xmlParseOptions = {
     ignoreAttributes : false,
@@ -21,7 +27,11 @@ const xmlParseOptions = {
         if( alwaysArray.indexOf(jpath) !== -1) return true;
     }
 };
+/**
+ * now the actual parser object is instantiated with the above options
+ */
 const xmlparser = new XMLParser(xmlParseOptions);
+
 
 let settings = {};
 let airports = {};
@@ -52,10 +62,11 @@ const DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
 
 const MessageTypes   = settings.messagetypes;
 
+
 /**
- * 
+ * Instantiate the websocket server
  */
- (() => {
+(() => {
     wss = new WebSocket.Server({ port: settings.wsport });
     try {
         wss.on('connection', (ws) => {
@@ -87,7 +98,7 @@ const MessageTypes   = settings.messagetypes;
 })();
 
 /**
- * THIS IS A TEMPORARY KLUDGE OF THE HIGHEST ORDER... 
+ * THESE DATABASES ARE A TEMPORARY KLUDGE OF THE HIGHEST ORDER... 
  */
 const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
@@ -95,48 +106,41 @@ const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) =>
         throw err;
     }
 });
-
 const termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_TERMINAL}: ${err}`);
         throw err;
     }
 });
-
 const helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_HELICOPTER}: ${err}`);
         throw err;
     }
 });
-
 const caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_CARIBBEAN}: ${err}`);
         throw err;
     }
 });
-
 const gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_GCANYONAO}: ${err}`);
         throw err;
     }
 });
-
 const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_GCANYONGA}: ${err}`);
         throw err;
     }
 });
-
 const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
         console.log(`Failed to load: ${DB_HISTORY}: ${err}`);
     }
 });
-
 const osmdb = new sqlite3.Database(DB_OSMOFFLINE, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
         console.log(`Failed to load: ${DB_OSMOFFLINE}: ${err}`);
@@ -238,6 +242,10 @@ catch (err) {
     console.log(err);
 }
 
+/**
+ * Get the last recorded ownship position from the position history database
+ * @param {response} http response 
+ */
 function getPositionHistory(response) {
     let sql = "SELECT * FROM position_history WHERE id IN ( SELECT max( id ) FROM position_history )";
     histdb.get(sql, (err, row) => {
@@ -261,6 +269,10 @@ function getPositionHistory(response) {
     });
 }
 
+/**
+ * Update the position history database with current position data
+ * @param {json object} data, contains date, longitude, latitude, heading, and altitude 
+ */
 function putPositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
@@ -273,6 +285,13 @@ function putPositionHistory(data) {
     });
 }
 
+/**
+ * Parse the z,x,y integers, validate, and pass along to loadTile
+ * @param {request} http request 
+ * @param {response} http response 
+ * @param {db} database 
+ * @returns the results of calling loadTile
+ */
 function handleTile(request, response, db) {
     let x = 0;
     let y = 0;
@@ -304,8 +323,16 @@ function handleTile(request, response, db) {
     loadTile(z, x, y, response, db); 
 }
 
+/**
+ * Get all tiles from the passed database that match the supplied 
+ * z,x,y indices and then send them back to the requesting client   
+ * @param {integer} z 
+ * @param {integer} x 
+ * @param {integer} y 
+ * @param {http response} http response object 
+ * @param {database} sqlite database
+ */
 function loadTile(z, x, y, response, db) {
-
     let sql = `SELECT tile_data FROM tiles WHERE zoom_level=${z} AND tile_column=${x} AND tile_row=${y}`;
     db.get(sql, (err, row) => {
         if (!err) {
@@ -330,6 +357,11 @@ function loadTile(z, x, y, response, db) {
     });
 }
 
+/**
+ * Get Z,X,Y tiles for the desired map from the associated mbtiles database
+ * @param {object} request 
+ * @param {object} response 
+ */
 function handleTilesets(request, response) {
     let sql = `SELECT name, value FROM metadata UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
               `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
@@ -403,6 +435,13 @@ function handleTilesets(request, response) {
     });
 }
 
+/**
+ * Get the longitude and latitude for a given pixel position on the map
+ * @param {integer} z - the zoom level 
+ * @param {integer} x - the horizontal index
+ * @param {integer} y - the vertical index
+ * @returns 2 element array - [longitude, latitude]
+ */
 function tileToDegree(z, x, y) {
 	y = (1 << z) - y - 1
     let n = Math.PI - 2.0*Math.PI*y/Math.pow(2, z);
@@ -411,6 +450,9 @@ function tileToDegree(z, x, y) {
     return [lon, lat]
 }
 
+/**
+ * Run time-delays for file downloads from the ADDS server for metars, tafs, and pireps
+ */
 async function runDownloads() {
     setTimeout(() => { 
         downloadXmlFile(settings.messagetypes.metars); 
@@ -425,6 +467,10 @@ async function runDownloads() {
     }, 1200);
 }
 
+/**
+ * Do the actual download of a file
+ * @param {string} the source message type 
+ */
 async function downloadXmlFile(source) {
     let xhr = new XMLHttpRequest();  
     let url = settings.addsurrentxmlurl.replace(source.token, source.type);
@@ -459,6 +505,10 @@ async function downloadXmlFile(source) {
     }
 }
 
+/**
+ * Process the received downloaded tafs data and send to client(s)
+ * @param {object} tafs json object 
+ */
 async function processTafJsonObjects(tafs) {
     let payload = JSON.stringify(tafs); 
     let message = {
@@ -469,6 +519,10 @@ async function processTafJsonObjects(tafs) {
     sendMessageToClients(json);
 }
 
+/**
+ * Process the received downloaded metars data and send to client(s)
+ * @param {object} metars json object 
+ */
 async function processMetarJsonObjects(metars) {
     let payload = JSON.stringify(metars);
     let message = {
@@ -479,6 +533,10 @@ async function processMetarJsonObjects(metars) {
     sendMessageToClients(json);
 }
 
+/**
+ * Process the received downloaded pireps data and send to client(s)
+ * @param {object} pireps json object 
+ */
 async function processPirepJsonObjects(pireps) {
     let payload = JSON.stringify(pireps);
     let message = {
@@ -489,6 +547,10 @@ async function processPirepJsonObjects(pireps) {
     sendMessageToClients(json);
 }
 
+/**
+ * Iterate through any/all connected clients and send data
+ * @param {string} stringified json message 
+ */
 async function sendMessageToClients(jsonmessage) {
     [...connections.keys()].forEach((client) => {
         client.send(jsonmessage);
