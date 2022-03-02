@@ -33,35 +33,46 @@ const xmlParseOptions = {
 const xmlparser = new XMLParser(xmlParseOptions);
 
 
+/**
+ * Global variables
+ */
 let settings = {};
 let airports = {};
+let MessageTypes = {}; 
+
 let wss;
 let connections = new Map();
+let DB_PATH        = `${__dirname}/public/data`;
+let DB_SECTIONAL   = ""; 
+let DB_TERMINAL    = ""; 
+let DB_HELICOPTER  = ""; 
+let DB_CARIBBEAN   = ""; 
+let DB_GCANYONAO   = ""; 
+let DB_GCANYONGA   = ""; 
+let DB_HISTORY     = ""; 
+let DB_OSMOFFLINE  = ""; 
 
-/**
+/*
  * First things first... load settings.json and airports.json 
  * for immediate sending to client later upon winsock connection
  */
 (() => {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
-    settings = JSON.parse(rawdata);
-
-    rawdata = fs.readFileSync(`${__dirname}/public/data/airports.json`);
+    settings       = JSON.parse(rawdata);
+    MessageTypes   = settings.messagetypes;
+    DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
+    DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
+    DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
+    DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
+    DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
+    DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
+    DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
+    DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
+    
+    rawdata = fs.readFileSync(`${DB_PATH}/airports.json`);
     airports = JSON.parse(rawdata);
+
 })();
-
-const DB_PATH        = `${__dirname}/public/data`;
-const DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
-const DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
-const DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
-const DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
-const DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
-const DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
-const DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
-const DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
-
-const MessageTypes   = settings.messagetypes;
-
 
 /**
  * Instantiate the websocket server
@@ -80,7 +91,7 @@ const MessageTypes   = settings.messagetypes;
                     payload: JSON.stringify(airports)
                 };
                 ws.send(JSON.stringify(msg));
-            }, 250);
+            }, 600);
 
             runDownloads();
             
@@ -224,12 +235,6 @@ try {
 
     app.get("/gethistory", (req,res) => {
         getPositionHistory(res);
-    });
-
-    app.get("/getupdates", (req,res) => {
-        runDownloads();
-        res.writeHead(200);
-        res.end();
     });
 
     app.post("/puthistory", (req, res) => {
@@ -451,25 +456,21 @@ function tileToDegree(z, x, y) {
 }
 
 /**
- * Run time-delays for file downloads from the ADDS server for metars, tafs, and pireps
+ * Recursively run the file downloads from the ADDS server for 
+ * metars, tafs, & pireps which will then be sent to client(s)
  */
 async function runDownloads() {
-    setTimeout(() => { 
-        downloadXmlFile(settings.messagetypes.metars); 
-    }, 400);
-
-    setTimeout(() => { 
-        downloadXmlFile(settings.messagetypes.tafs); 
-    }, 800);
-
-    setTimeout(() => { 
-        downloadXmlFile(settings.messagetypes.pireps); 
-    }, 1200);
+    downloadXmlFile(MessageTypes.metars); 
+    downloadXmlFile(MessageTypes.tafs); 
+    downloadXmlFile(MessageTypes.pireps); 
+    setTimeout(() => {
+        runDownloads();
+    }, 480000);
 }
 
 /**
- * Do the actual download of a file
- * @param {string} the source message type 
+ * Download an ADDS weather service file
+ * @param {source} the type of file to download (metar, taf, or pirep)
  */
 async function downloadXmlFile(source) {
     let xhr = new XMLHttpRequest();  
@@ -494,7 +495,7 @@ async function downloadXmlFile(source) {
                 case "pireps":
                     processPirepJsonObjects(messageJSON);
                     break;
-            }2
+            }
         }
     };
     try { 
