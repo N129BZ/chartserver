@@ -11,22 +11,21 @@
  if (parseInt(URL_PORT) > 0) {
      URL_HOST_BASE += `:${URL_PORT}`;
  }
- let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
- let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
- let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
- let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
- let URL_GET_OSM_TILE        = `${URL_SERVER}/tiles/osmtile/{z}/{x}/{-y}.png`;
- let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
- let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
- let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
- let URL_GET_CARIB_TILE      = `${URL_SERVER}/tiles/caribtile/{z}/{x}/{-y}.png`;
- let URL_GET_GCAO_TILE       = `${URL_SERVER}/tiles/gcaotile/{z}/{x}/{-y}.png`;
- let URL_GET_GCGA_TILE       = `${URL_SERVER}/tiles/gcgatile/{z}/{x}/{-y}.png`;
- let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
- let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
- let URL_PUT_HISTORY         = `${URL_SERVER}/puthistory`;
- //let URL_GET_UPDATES         = `${URL_SERVER}/getupdates`;
- let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
+let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
+let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
+let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
+let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
+let URL_GET_OSM_TILE        = `${URL_SERVER}/tiles/osmtile/{z}/{x}/{-y}.png`;
+let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
+let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
+let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
+let URL_GET_CARIB_TILE      = `${URL_SERVER}/tiles/caribtile/{z}/{x}/{-y}.png`;
+let URL_GET_GCAO_TILE       = `${URL_SERVER}/tiles/gcaotile/{z}/{x}/{-y}.png`;
+let URL_GET_GCGA_TILE       = `${URL_SERVER}/tiles/gcgatile/{z}/{x}/{-y}.png`;
+let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
+let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
+let URL_PUT_HISTORY         = `${URL_SERVER}/savehistory`;
+let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
 
 /**
  * Classes used by the on-the-fly weather SVG in metar popups
@@ -1516,8 +1515,8 @@ function selectStyle(feature) {
  * If saving position history is enabled,  
  * save it at a specified time interval
  */
-if (settings.putpositionhistory) {
-    setInterval(putPositionHistory, settings.histintervalmsec);
+if (settings.savepositionhistory) {
+    setInterval(savePositionHistory, settings.histintervalmsec);
 }
 
 /**
@@ -1673,7 +1672,7 @@ function getGpsData() {
 /**
  * Save the position history in positionhistory.db
  */
-function putPositionHistory() {
+function savePositionHistory() {
     if (last_longitude !== lng || last_latitude !== lat) {
         if (lng + lat + deg + alt > 0) {
             let postage = { longitude: lng, 
@@ -1945,6 +1944,7 @@ function loadWeatherAcronymKeymap() {
     weatherAcronymKeymap.set("FM", "From");
     weatherAcronymKeymap.set("TEMPO", "Temporary");
     weatherAcronymKeymap.set("BECMG", "Becoming");
+    weatherAcronymKeymap.set("PROB", "Probability");
     weatherAcronymKeymap.set("FU", "Smoke");
     weatherAcronymKeymap.set("VA", "Volcanic Ash");
     weatherAcronymKeymap.set("HZ", "Haze");
@@ -2034,6 +2034,7 @@ function getSkyConditionDescription(acronym) {
     skyConditionKeymap.set("FM", "From");
     skyConditionKeymap.set("TEMPO", "Temporary");
     skyConditionKeymap.set("BECMG", "Becoming");
+    skyConditionKeymap.set("PROB", "Probability");
     skyConditionKeymap.set("CB", "Cumulo-Nimbus");
     skyConditionKeymap.set("IMC", "Instrument meteorological conditions"),
     skyConditionKeymap.set("IMPR", "Improving");

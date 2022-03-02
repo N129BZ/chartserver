@@ -186,7 +186,7 @@ try {
 
     app.use(express.static(`${__dirname}/public`, appOptions));
     
-    app.get('/',(req, res) => {
+    app.get('/', (req, res) => {
         res.sendFile(`${__dirname}/public/index.html`);
     });
     
@@ -237,8 +237,8 @@ try {
         getPositionHistory(res);
     });
 
-    app.post("/puthistory", (req, res) => {
-        putPositionHistory(req.body);
+    app.post("/savehistory", (req, res) => {
+        savePositionHistory(req.body);
         res.writeHead(200);
         res.end();
     });
@@ -278,7 +278,7 @@ function getPositionHistory(response) {
  * Update the position history database with current position data
  * @param {json object} data, contains date, longitude, latitude, heading, and altitude 
  */
-function putPositionHistory(data) {
+function savePositionHistory(data) {
     let datetime = new Date().toISOString();
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
               `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
@@ -465,7 +465,7 @@ async function runDownloads() {
     downloadXmlFile(MessageTypes.pireps); 
     setTimeout(() => {
         runDownloads();
-    }, 480000);
+    }, settings.wxupdateintervalmsec);
 }
 
 /**
