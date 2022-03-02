@@ -5,7 +5,6 @@ const url = require('url');
 const sqlite3 = require("sqlite3");
 const Math = require("math");
 const fs = require("fs");
-const http = require('http');
 const WebSocket = require('ws');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
@@ -25,12 +24,20 @@ const xmlParseOptions = {
 const xmlparser = new XMLParser(xmlParseOptions);
 
 let settings = {};
+let airports = {};
 let wss;
 let connections = new Map();
 
+/**
+ * First things first... load settings.json and airports.json 
+ * for immediate sending to client later upon winsock connection
+ */
 (() => {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     settings = JSON.parse(rawdata);
+
+    rawdata = fs.readFileSync(`${__dirname}/public/data/airports.json`);
+    airports = JSON.parse(rawdata);
 })();
 
 const DB_PATH        = `${__dirname}/public/data`;
@@ -41,27 +48,14 @@ const DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
 const DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
 const DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
 const DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
-const DB_AIRPORTS    = `${DB_PATH}/${settings.airportsDb}`;
 const DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
 
 const MessageTypes   = settings.messagetypes;
-
 
 /**
  * 
  */
  (() => {
-    // http websocket server to forward weather data to page
-    // let server = http.createServer(function (request, response) { });
-    // try {
-    //     server.listen(settings.wsport, function () { });
-    //     wss = new WebSocketServer({ server });
-    //     console.log(`Websocket server enabled on port ${settings.wsport}`); 
-    // }
-    // catch (err) {
-    //     console.log(err);
-    // }
-
     wss = new WebSocket.Server({ port: settings.wsport });
     try {
         wss.on('connection', (ws) => {
@@ -69,16 +63,22 @@ const MessageTypes   = settings.messagetypes;
             connections.set(ws, id);
             console.log(`Websocket connected, id: ${id}`);
 
-            runDownloads(true);
+            setTimeout(() => {
+                let msg = {
+                    type: "airports",
+                    payload: JSON.stringify(airports)
+                };
+                ws.send(JSON.stringify(msg));
+            }, 250);
+
+            runDownloads();
             
             ws.on('close', function() {
                 connections.delete(ws);
                 console.log("connection closed");
             });
 
-            ws.on('message', function(data) {
-            });
-
+            ws.on('message', (data) => { });
         });
     }
     catch (err) {
@@ -86,6 +86,9 @@ const MessageTypes   = settings.messagetypes;
     }
 })();
 
+/**
+ * THIS IS A TEMPORARY KLUDGE OF THE HIGHEST ORDER... 
+ */
 const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.log(`Failed to load: ${DB_SECTIONAL}: ${err}`);
@@ -140,58 +143,9 @@ const osmdb = new sqlite3.Database(DB_OSMOFFLINE, sqlite3.OPEN_READWRITE, (err) 
     }
 });
 
-function loadAirportsJson() {
-    const db = new sqlite3.Database(DB_AIRPORTS, sqlite3.OPEN_READONLY, (err) => {
-        if (err) {
-            console.log(`Failed to load: ${DB_AIRPORTS}: ${err}`);
-            throw err;
-        }
-    });
-    let msgtype = MessageTypes.airports.type;
-        
-    sql = `SELECT ident, type, name, elevation_ft, longitude_deg, latitude_deg, iso_region, countryname ` + 
-          `FROM airports WHERE type != 'closed' ORDER BY iso_region ASC, name ASC;`;
-
-    let jsonout = {
-        "airports": []
-    };
-    
-    db.all(sql, (err, rows) => {
-        if (!err) {
-            rows.forEach(row => {
-                let thisrecord = {
-                    "ident": row.ident,
-                    "type": row.type,
-                    "name": row.name,
-                    "elev": row.elevation_ft,
-                    "lon": row.longitude_deg,
-                    "lat": row.latitude_deg,
-                    "isoregion": row.iso_region,
-                    "country": row.countryname
-                }
-                jsonout.airports.push(thisrecord);
-            });
-        }
-        else {
-            console.log(err);
-        }
-        let payload = JSON.stringify(jsonout);
-        let message = {
-            type: msgtype,
-            payload: payload
-        };
-        try {
-            let outstr = JSON.stringify(message);
-            sendMessageToClients(outstr);
-        }
-        catch(err) {
-            console.log(err);
-        }
-    });
-    db.close();
-}
-
-// express web server  
+/**
+ * Start the express web server
+ */
 let app = express();
 try {
     app.use(express.urlencoded({ extended: true }));
@@ -222,7 +176,11 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
+        /**
+         * To ensure client gets any edits to settings, re-read the file
+         */
         let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
+
         res.writeHead(200);
         res.write(rawdata);
         res.end();
@@ -265,7 +223,7 @@ try {
     });
 
     app.get("/getupdates", (req,res) => {
-        runDownloads(false);
+        runDownloads();
         res.writeHead(200);
         res.end();
     });
@@ -453,14 +411,7 @@ function tileToDegree(z, x, y) {
     return [lon, lat]
 }
 
-async function runDownloads(includeAirports) {
-    
-    if (includeAirports) {
-        setTimeout(() => {
-            loadAirportsJson();
-        }, 100);
-    }
-
+async function runDownloads() {
     setTimeout(() => { 
         downloadXmlFile(settings.messagetypes.metars); 
     }, 400);
