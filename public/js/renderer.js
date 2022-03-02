@@ -824,13 +824,16 @@ function parseForecastField(rawfieldname, fieldvalue) {
             if (settings.uselocaltime) {
                 thistime = getLocalTime(fieldvalue);
             }
-            html = `<label class="fcstlabel"><b>From: ${thistime}</b></label></b><br />`;
+            html = `<label class="fcstlabel"><b>${thistime}</b></label></b><br />`;
             break;
         case "fcst_time_to": // I'm going to ignore this field to save space on the popup
             //html = `&nbspto&nbsp<b>${fieldvalue}</b></label><br />`
             //html = `<label class="fcstlabel">${formattedvalue}</label><br />`;
             break;
         case "change_indicator":
+            let changevalue = getWeatherAcronymDescription(fieldvalue);
+            html = `<label class="taflabel">${fieldname}: <b>${changevalue}</b></label><br />`;
+            break;
         case "time_becoming":
         case "probability":
         case "wind_dir_degrees":
@@ -1058,7 +1061,7 @@ function parseConditionField(rawfieldname, fieldvalue) {
             image = getConditionImage(rawfieldname, fieldvalue);
             html += `<label class="pirepitem">${fieldname}</label>`;
             html += `<div class="conditionimage"><image src="${URL_SERVER}/img/${image}"><div><br />`;
-            break;
+            break;FROM
         case "turbulence_base_ft_msl":
         case "icing_base_ft_msl":
             html += `<label class="pirepitem">${fieldname}: <b>${fieldvalue}</b></label><br />`;
@@ -1918,6 +1921,7 @@ function loadTafFieldKeymap() {
  * Load normalized metar field names
  */
  function loadMetarFieldKeymap() {
+    metarFieldKeymap.set("change_indicator", "Change indicator");
     metarFieldKeymap.set("raw_text", "raw text");
     metarFieldKeymap.set("station_id", "station id"); 
     metarFieldKeymap.set("observation_time", "Observation Time");
@@ -1967,6 +1971,9 @@ function getWeatherAcronymDescription(acronym) {
  * Load the wxkeymap Map object with weather code descriptions
  */
 function loadWeatherAcronymKeymap() {
+    weatherAcronymKeymap.set("FM", "From");
+    weatherAcronymKeymap.set("TEMPO", "Temporary");
+    weatherAcronymKeymap.set("BECMG", "Becoming");
     weatherAcronymKeymap.set("FU", "Smoke");
     weatherAcronymKeymap.set("VA", "Volcanic Ash");
     weatherAcronymKeymap.set("HZ", "Haze");
@@ -2053,6 +2060,8 @@ function getSkyConditionDescription(acronym) {
  */
  function loadSkyConditionmKeymap() {
     skyConditionKeymap.set("BKN", "Broken");
+    skyConditionKeymap.set("FM", "From");
+    skyConditionKeymap.set("TEMPO", "Temporary");
     skyConditionKeymap.set("BECMG", "Becoming");
     skyConditionKeymap.set("CB", "Cumulo-Nimbus");
     skyConditionKeymap.set("IMC", "Instrument meteorological conditions"),
