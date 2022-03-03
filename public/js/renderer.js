@@ -3075,17 +3075,25 @@ function determineCoverage(metar) {
            ALT + "</text>\n                </g>\n            </svg>";
 }
 
-function getWindBarbSvg(width, height, winddir, windspeed, gustspeed) {
-    // fake a metar
-    let metar = { 
-                    "wind_direction": winddir,
-                    "wind_speed": windspeed,
-                    "gust_speed": gustspeed
-                };
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" ` + 
-                    `width="${width}" ` +
-                    `height="${height}" viewBox="0 0 500 500"> ` + (0, genWind)(metar) + 
-              `</svg>`;
+function getWindBarbSvg(width, height, metar) {
+    let catcolor = "";
+    switch (metar.category) {
+        case "IFR":
+            catcolor ="ff0000";
+            break;
+        case "LIFR":
+            catcolor = "ff00ff";
+            break;
+        case "MVFR": 
+            catcolor = "0000cd";
+            break;
+        case "VFR":
+        default:
+            catcolor = "12f23c";
+            break;
+    }
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 500 500"> ` + (0, genWind)(metar) + 
+              `<g id="clr"><circle cx="250" cy="250" r="30" fill="#${catcolor}"/></g></svg>`;
     return svg; 
 }
 /**
