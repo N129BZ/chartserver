@@ -1141,9 +1141,6 @@ function processMetars(metarsobject) {
     if (newmetars !== undefined) {
         metarFeatures.clear();
         try {
-            /**
-             * Add this metar feature to the metars feature collection
-             */
             newmetars.forEach((metar) => {  
                 let svg = "";
                 try { 
@@ -1197,9 +1194,6 @@ function processTafs(tafsobject) {
         tafFeatures.clear();
         try {
             newtafs.forEach((taf) => {
-                /**
-                 * Add this taf to the fafs feature collection
-                 */
                 let taffeature = new ol.Feature({
                     ident: taf.station_id,
                     taf: taf,
@@ -1228,11 +1222,11 @@ function processTafs(tafsobject) {
         pirepFeatures.clear();
         try {
             newpireps.forEach((pirep) => {
-                let pseudoheading = Math.random()*Math.PI*2;
-                
-                /**
-                 * Add this pirep to the pireps feature collection
-                 */
+                // generate a "pseudo-heading" to use if wind dir is absent
+                let heading = Math.random()*Math.PI*2;
+                if (pirep.wind_dir_degrees) {
+                    heading = (pirep.wind_dir_degrees * 0.0174533);
+                }
                 let pirepfeature = new ol.Feature({
                     ident: pirep.aircraft_ref,
                     pirep: pirep,
@@ -1249,7 +1243,7 @@ function processTafs(tafsobject) {
                                             offset: [0,0],
                                             opacity: 1,
                                             scale: .50,
-                                            rotation: pseudoheading
+                                            rotation: heading
                                         })
                                     })
                 );

@@ -453,18 +453,9 @@ function tileToDegree(z, x, y) {
  * metars, tafs, & pireps which will then be sent to client(s)
  */
 async function runDownloads() {
-    //setTimeout(() => {
-        downloadXmlFile(MessageTypes.metars);
-    //}, 100); 
-    
-    //setTimeout(() => {
-        downloadXmlFile(MessageTypes.tafs); 
-    //}, 300);
-    
-    //setTimeout(() => {
-        downloadXmlFile(MessageTypes.pireps);
-    //}, 500);
-
+    downloadXmlFile(MessageTypes.metars);
+    downloadXmlFile(MessageTypes.tafs); 
+    downloadXmlFile(MessageTypes.pireps);
     setTimeout(() => {
         runDownloads();
     }, settings.wxupdateintervalmsec);
