@@ -804,13 +804,12 @@ function parseForecastField(rawfieldname, fieldvalue) {
             let changevalue = getWeatherAcronymDescription(fieldvalue);
             html = `<label class="taflabel">${fieldname}: <b>${changevalue}</b></label><br />`;
             break;
+        case "temperature":
         case "time_becoming":
         case "probability":
-        case "wind_dir_degrees":
         case "wind_speed_kt":
         case "wind_gust_kt":
         case "wind_shear_hgt_ft_agl":
-        case "wind_shear_dir_degrees":
         case "wind_shear_speed_kt":
         case "altim_in_hg":
         case "vert_vis_ft":
@@ -832,7 +831,9 @@ function parseForecastField(rawfieldname, fieldvalue) {
             formattedvalue = decodeIcingCondition(fieldvalue);
             html = `<label class="tafskyheader">${fieldname}</label><br />${formattedvalue}`;
             break;
-        case "temperature":
+        case "wind_dir_degrees":
+        case "wind_shear_dir_degrees":
+            html = `<label class="taflabel">${fieldname}: <b>${fieldvalue} Degrees</b></label><br />`;
             break;
 
     }
@@ -890,14 +891,12 @@ function parseForecastField(rawfieldname, fieldvalue) {
             case "probability":
             case "wind_speed_kt":
             case "wind_gust_kt":
+            case "wind_dir_degrees":
+            case "wind_shear_dir_degrees":
             case "wind_shear_hgt_ft_agl":
             case "wind_shear_speed_kt":
             case "vert_vis_ft":
             case "visibility_statute_mi":
-                html += `<label class="pirepitem">${fieldname}: <b>${pirepvalue}</b></label><br />`;
-                break;
-            case "wind_shear_dir_degrees":
-            case "wind_dir_degrees":
                 html += `${pireplabel}${fieldname}: <b>${pirepvalue}°</b></label><br />`;
                 break;
             case "sky_condition":
@@ -2600,6 +2599,7 @@ function genWind(metar) {
     }
     return gust + wind;
 }
+
 /**
  * Generate first barb
  * @param speed wind or gust speed
@@ -3007,7 +3007,7 @@ function rawMetarToMetarPlot(rawMetar, metric) {
         gust_speed: metar.wind.gust,
         wx: wx,
         pressure: pressure,
-        coverage: determinCoverage(metar)
+        coverage: determineCoverage(metar)
     };
 }
 
@@ -3029,7 +3029,7 @@ function milePrettyPrint(meters) {
  * @param metar
  * @returns
  */
-function determinCoverage(metar) {
+function determineCoverage(metar) {
     var _a;
     var prevailingCoverage;
     metar.clouds.forEach(function (cloud) {
@@ -3075,6 +3075,19 @@ function determinCoverage(metar) {
            ALT + "</text>\n                </g>\n            </svg>";
 }
 
+function getWindBarbSvg(width, height, winddir, windspeed, gustspeed) {
+    // fake a metar
+    let metar = { 
+                    "wind_direction": winddir,
+                    "wind_speed": windspeed,
+                    "gust_speed": gustspeed
+                };
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" ` + 
+                    `width="${width}" ` +
+                    `height="${height}" viewBox="0 0 500 500"> ` + (0, genWind)(metar) + 
+              `</svg>`;
+    return svg; 
+}
 /**
  * Convert ºF to ºF
  * @param celsius
