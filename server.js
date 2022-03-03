@@ -72,12 +72,6 @@ let DB_OSMOFFLINE  = "";
     rawdata = fs.readFileSync(`${__dirname}/airports.json`);
     airports = JSON.parse(rawdata);
 
-})();
-
-/**
- * Instantiate the websocket server
- */
-(() => {
     wss = new WebSocket.Server({ port: settings.wsport });
     try {
         wss.on('connection', (ws) => {
@@ -91,10 +85,9 @@ let DB_OSMOFFLINE  = "";
                     payload: JSON.stringify(airports)
                 };
                 ws.send(JSON.stringify(msg));
-            }, 1000);
+                runDownloads();
+            }, 200);
 
-            runDownloads();
-            
             ws.on('close', function() {
                 connections.delete(ws);
                 console.log("connection closed");
@@ -460,9 +453,18 @@ function tileToDegree(z, x, y) {
  * metars, tafs, & pireps which will then be sent to client(s)
  */
 async function runDownloads() {
-    downloadXmlFile(MessageTypes.metars); 
-    downloadXmlFile(MessageTypes.tafs); 
-    downloadXmlFile(MessageTypes.pireps); 
+    //setTimeout(() => {
+        downloadXmlFile(MessageTypes.metars);
+    //}, 100); 
+    
+    //setTimeout(() => {
+        downloadXmlFile(MessageTypes.tafs); 
+    //}, 300);
+    
+    //setTimeout(() => {
+        downloadXmlFile(MessageTypes.pireps);
+    //}, 500);
+
     setTimeout(() => {
         runDownloads();
     }, settings.wxupdateintervalmsec);
