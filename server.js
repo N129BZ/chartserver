@@ -91,7 +91,7 @@ let DB_OSMOFFLINE  = "";
                     payload: JSON.stringify(airports)
                 };
                 ws.send(JSON.stringify(msg));
-            }, 600);
+            }, 1000);
 
             runDownloads();
             
