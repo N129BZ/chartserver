@@ -2863,7 +2863,7 @@ function parseWeather(metar) {
 }
 
 /**
- * Parse visability
+ * Parse visibility
  * @param metar raw metar
  * @returns
  */
@@ -3004,7 +3004,7 @@ function rawMetarToMetarPlot(rawMetar, metric) {
     }
     return {
         metric: metric !== null && metric !== void 0 ? metric : false,
-        visablity: vis,
+        visiblity: vis,
         temp: temp,
         dew_point: dp,
         station: metar.station,
@@ -3090,6 +3090,4 @@ function cToF(celsius) {
         return Math.round(celsius * 9 / 5 + 32);
     }
 }
-
-
 
