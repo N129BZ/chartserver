@@ -889,6 +889,7 @@ function parseForecastField(rawfieldname, fieldvalue) {
                 break;
             case "pirep_type":
             case "aircraft_ref":
+            case "raw_text":
                 break;
             default:
                 console.log(`${pirepkey} NOT FOUND!`);
@@ -1195,11 +1196,11 @@ function processTafs(tafsobject) {
                 pirepfeature.setStyle(new ol.style.Style({
                                         image: new ol.style.Icon({
                                             crossOrigin: 'anonymous',
-                                            src: `${URL_SERVER}/img/pirep.png`,
-                                            size:[85, 85],
+                                            src: `${URL_SERVER}/img/airplane.svg`,
+                                            //size:[85, 85],
                                             offset: [0,0],
                                             opacity: 1,
-                                            scale: .50,
+                                            scale: .05,
                                             rotation: heading
                                         })
                                     })
@@ -1226,7 +1227,7 @@ function resizeDots(newzoom) {
         for (let i = 0; i < metarMarkers.length; i++) {
             metarMarkers[i].setScale(newscale + .2);
         }
-        pirepMarker.setScale(newscale * .50);
+        //pirepMarker.setScale(newscale * .08);
         airportMarker.setScale(newscale * .30);
         heliportMarker.setScale(newscale * .50);
         tafMarker.setScale(newscale * .25);
