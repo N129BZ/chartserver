@@ -2597,7 +2597,6 @@ function genWind(metar) {
             `</g>`;
         wind =
             `<g id="windBarb" transform="rotate(${WDD}, 250, 250)">` + 
-            //`<line stroke-width="9" y1="225" x1="250" y2="50" x2="250" stroke="#000" fill="none"/>` +
             `<line stroke-width="5" y1="225" x1="250" y2="90" x2="250" stroke="#000" fill="none"/>` +
                 `${genBarb1((_f = WSP) !== null && _f !== void 0 ? _f : 0, false)} ` + 
                 `${genBarb2((_g = WSP) !== null && _g !== void 0 ? _g : 0, false)} ` + 
@@ -2625,7 +2624,7 @@ function genBarb1(speed, gust) {
         barb = `<line id="${tag}-barb-1-long" stroke-width="${width}" y1="90" x1="250" y2="90" x2="305" stroke="${fill}" transform="rotate(-35, 250, 90)"/>`;
     }
     else if (speed >= 50) {
-        barb = `<polygon id="${tag}-barb-1-flag" points="248,60 290,30 248,30" fill="${fill}" />`;
+        barb = `<polygon id="${tag}-barb-1-flag" points="248,98 290,68 248,68" fill="${fill}" />`;
     }
     return barb;
 }
