@@ -3127,7 +3127,7 @@ function getWindBarbSvg(width, height, metar) {
                   `viewBox="0 0 500 500">` + 
                   (0, genWind)(thismetar) + 
                   `<g id="clr">` + 
-                       `<circle cx="250" cy="250" r="30" stroke="#000000" stroke-width="3" fill="#${catcolor}"/>` +
+                       `<circle cx="250" cy="250" r="30" stroke="#000000" stroke-width="2" fill="#${catcolor}"/>` +
                   `</g>` + 
                `</svg>`;
     }
