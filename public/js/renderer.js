@@ -1,16 +1,16 @@
 'use strict';
 
 
-/**
+ /**
  * Construct all of the application urls 
  */
- let URL_LOCATION            =  location.hostname;
- let URL_PROTOCOL            =  location.protocol;
- let URL_PORT                =  location.port;          
- let URL_HOST_BASE           =  URL_LOCATION;
- if (parseInt(URL_PORT) > 0) {
-     URL_HOST_BASE += `:${URL_PORT}`;
- }
+let URL_LOCATION            =  location.hostname;
+let URL_PROTOCOL            =  location.protocol;
+let URL_PORT                =  location.port;
+let URL_HOST_BASE           =  URL_LOCATION;
+if (parseInt(URL_PORT) > 0) {
+    URL_HOST_BASE += `:${URL_PORT}`;
+}
 let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
@@ -26,6 +26,7 @@ let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/savehistory`;
 let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
+
 
 /**
  * Classes used by the on-the-fly weather SVG in metar popups
@@ -75,7 +76,7 @@ let settings = {};
 let last_longitude = 0;
 let last_latitude = 0;
 let last_heading = 0;
-let currentZoom = 9;
+let currentZoom = 9.0;
 let lastcriteria = "allregions";
 
 /**
@@ -101,6 +102,7 @@ loadSkyConditionmKeymap();
  * metars, tafs, airport info, etc.
  */
 let metarFeatures = new ol.Collection();
+let metarMarkers = [];
 let airportFeatures = new ol.Collection();
 let tafFeatures = new ol.Collection();
 let pirepFeatures = new ol.Collection();
@@ -262,7 +264,7 @@ let regionmap = new Map();
 /**
  * Icon markers for different METAR categories 
  */
- let ifrMarker = new ol.style.Icon({
+let ifrMarker = new ol.style.Icon({
     crossOrigin: 'anonymous',
     src: `${URL_SERVER}/img/ifr.png`,
     size: [55, 55],
@@ -296,45 +298,6 @@ let vfrMarker = new ol.style.Icon({
     offset: [0, 0],
     opacity: 1,
     scale: .30
-});
-
-/**
- * Icon markers for different PIREP weather categories
- */
-let ifrPirep = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/ifrpirep.png`,
-    size: [85, 85],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .50
-});
-/*--------------------------------------*/
-let lifrPirep = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/lifrpirep.png`,
-    size: [85, 85],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .50
-});
-/*--------------------------------------*/
-let mvfrPirep = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/mvfrpirep.png`,
-    size: [85, 85],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .50
-});
-/*--------------------------------------*/
-let vfrPirep = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/vfrpirep.png`,
-    size: [85, 85],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .50
 });
 
 /**
@@ -424,23 +387,23 @@ function processAirports(jsonobj) {
             else {
                 isoregions.set(country, country);
             }
-            let airportmarker = new ol.Feature({
+            let airportFeature = new ol.Feature({
                 ident: airport.ident,
                 type: airport.type,
                 isoregion: isoregion,
                 country: country,
                 geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
             });
-            airportmarker.setId(airport.ident);
+            airportFeature.setId(airport.ident);
             if (airport.type === "heliport") {
-                airportmarker.setStyle(heliportStyle);
+                airportFeature.setStyle(heliportStyle);
             }
             else {
-                airportmarker.setStyle(airportStyle);
+                airportFeature.setStyle(airportStyle);
             }
-            airportFeatures.push(airportmarker);
+            airportFeatures.push(airportFeature);
             airportNameKeymap.set(airport.ident, airport.name);
-            airportmarker.changed();
+            airportFeature.changed();
         }
 
         /**
@@ -586,7 +549,9 @@ const map = new ol.Map({
     view: new ol.View({
         center: viewposition,        
         zoom: settings.startupzoom,
-        enableRotation: false
+        enableRotation: false,
+        minZoom: 4,
+        maxZoom: 11
     }),
     controls: ol.control.defaults().extend([scaleLine]),
     overlays: [popupoverlay]
@@ -605,17 +570,16 @@ map.addOverlay(myairplane);
 /**
  * Event to handle scaling of feature images
  */
-map.on('pointermove', (evt) => {
-    //let hasfeature = false;
-    let someZoom = map.getView().getZoom();
+map.on('moveend', function(e) {
+    let newZoom = map.getView().getZoom();
     let inAnimation = false;
-    if (currentZoom !== someZoom) {
-        currentZoom = someZoom;
+    if (currentZoom != newZoom) {
         if (animationId !== null) {
             inAnimation = true;
             stopWeatherRadar();
         }
-        resizeDots();
+        resizeDots(newZoom);
+        currentZoom = newZoom;
         closePopup();
         if (inAnimation) {
             playWeatherRadar();
@@ -629,9 +593,7 @@ map.on('pointermove', (evt) => {
 map.on('click', (evt) => {
     let hasfeature = false;
     let coords = ol.proj.toLonLat(evt.coordinate);
-    console.log(coords);
-    currentZoom = map.getView().getZoom();
-    resizeDots();
+    
     map.forEachFeatureAtPixel(evt.pixel, (feature) => {
         if (feature) {
             hasfeature = true;
@@ -1135,46 +1097,42 @@ function displayAirportPopup(feature) {
  * Place metar features on the map. color-coded to the conditions
  * @param {object} metarsobject: JSON object with LOTS of metars
  */
-function processMetars(metarsobject) {
+ function processMetars(metarsobject) {
     let newmetars = metarsobject.response.data.METAR;
     if (newmetars !== undefined) {
         metarFeatures.clear();
+        metarMarkers = [];
+        let scale = getScaleSize();
         try {
-            newmetars.forEach((metar) => {  
+            newmetars.forEach((metar) => {
                 let svg = "";
+                let svg2 = "";
                 try { 
                     svg = rawMetarToSVG(metar.raw_text, 150, 150, settings.usemetricunits);
+                    svg2 = getWindBarbSvg(95, 95, metar); 
                 }
                 catch { }
-                let feature = new ol.Feature({
+                  
+                let metarmarker = new ol.style.Icon({
+                    crossOrigin: "anonymous",
+                    src: `data:image/svg+xml;utf8,${escape(svg2)}`,
+                    offset: [0,0],
+                    opacity: 1,
+                    scale: scale
+                });
+                let metarFeature = new ol.Feature({
                     metar: metar,
                     datatype: "metar",
                     geometry: new ol.geom.Point(ol.proj.fromLonLat([metar.longitude, metar.latitude])),
-                    svgimage: svg
+                    svgimage: svg 
                 });
-                feature.setId(metar.station_id);
-                try {
-                    switch (metar.flight_category) {
-                        case 'IFR':
-                            feature.setStyle(ifrStyle)
-                            break;
-                        case 'LIFR':
-                            feature.setStyle(lifrStyle);
-                            break;
-                        case 'MVFR':
-                            feature.setStyle(mvfrStyle);
-                            break;
-                        case 'VFR':
-                        default:
-                            feature.setStyle(vfrStyle);
-                            break;
-                    }
-                    metarFeatures.push(feature);
-                    feature.changed();
-                }
-                catch(error){
-                   console.log(error.message); 
-                }
+                metarFeature.setStyle(new ol.style.Style({
+                    image: metarmarker
+                }));
+                metarMarkers.push(metarmarker);
+                metarFeature.setId(metar.station_id);
+                metarFeatures.push(metarFeature);
+                metarFeature.changed();
             });
         }
         catch(error) {
@@ -1247,7 +1205,6 @@ function processTafs(tafsobject) {
                                     })
                 );
                 pirepFeatures.push(pirepfeature);
-                pirepfeature.changed();
             });
         }
         catch (error){
@@ -1260,15 +1217,52 @@ function processTafs(tafsobject) {
  * This routine adjusts feature "dot" image 
  * sizes, depending on current zoom level
  */
-function resizeDots() {
-    let rawnum = .045 * currentZoom;
-    let newscale = rawnum.toFixed(3)
-    vfrMarker.setScale(newscale);
-    mvfrMarker.setScale(newscale);
-    lifrMarker.setScale(newscale);
-    ifrMarker.setScale(newscale);
-    airportMarker.setScale(newscale);
-    heliportMarker.setScale(newscale);
+let resizing = false;
+function resizeDots(newzoom) {
+    if (!resizing) {
+        resizing = true;
+        currentZoom = parseInt(newzoom.toFixed(0));
+        let newscale = getScaleSize();
+        for (let i = 0; i < metarMarkers.length; i++) {
+            metarMarkers[i].setScale(newscale + .2);
+        }
+        pirepMarker.setScale(newscale * .50);
+        airportMarker.setScale(newscale * .30);
+        heliportMarker.setScale(newscale * .50);
+        tafMarker.setScale(newscale * .25);
+        resizing = false;
+    }
+}
+
+function getScaleSize() {
+    let scale = 1;
+    switch(currentZoom) {
+        case 4:
+            scale = .20;
+            break;
+        case 5:
+            scale = .40;
+            break;
+        case 6:
+            scale = .60;
+            break;
+        case 7:
+            scale = .80;
+            break;
+        case 8:
+            scale = 1;
+            break;
+        case 9:
+            scale = 1.2;
+            break;
+        case 10:
+            scale = 1.4;
+            break;
+        case 11:
+            scale = 1.6;
+            break;
+    }
+    return scale;
 }
 
 /**
@@ -2574,8 +2568,8 @@ let RECENT_WEATHER = {
     REVA: "Volcanic Ash",
 };
 
-var GUST_WIDTH = 2;
-var WS_WIDTH = 4;
+var GUST_WIDTH = 5;
+var WS_WIDTH = 5;
 /**
  * Creates a windbarb for the metar
  * @param metar
@@ -2585,17 +2579,32 @@ function genWind(metar) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     var WDD = metar.wind_direction ? metar.wind_direction : 0;
     var WSP = metar.wind_speed ? metar.wind_speed : 0;
+    var WGSP = metar.gust_speed ? metar.gust_speed : 0;
     var wind = "";
     var gust = "";
     if (WSP === 0) {
         wind =
-            "<g id=\"calm\">\n                <ellipse id=\"calm-marker\" stroke=\"#000\" fill=\"#00000000\" cx=\"250\" cy=\"250\" rx=\"35\" ry=\"35\"/>\n            </g>";
+            `<g id="calm"><ellipse id="calm-marker" stroke="#000" fill="#00000000" cx="250" cy="250" rx="35" ry="35"/></g>`;
     }
     else {
-        gust = metar.gust_speed == null ? "" :
-            "<g id=\"gustBarb\" transform=\"rotate(" + WDD + ", 250, 250)\">\n                " + genBarb1((_a = metar.gust_speed) !== null && _a !== void 0 ? _a : 0, true) + "\n                " + genBarb2((_b = metar.gust_speed) !== null && _b !== void 0 ? _b : 0, true) + "\n                " + genBarb3((_c = metar.gust_speed) !== null && _c !== void 0 ? _c : 0, true) + "\n                " + genBarb4((_d = metar.gust_speed) !== null && _d !== void 0 ? _d : 0, true) + "\n                " + genBarb5((_e = metar.gust_speed) !== null && _e !== void 0 ? _e : 0, true) + "\n            </g>";
+        gust = (metar.gust_speed === null || metar.gust_speed === undefined) ? "" :
+            `<g id="gustBarb" transform="rotate(${WDD}, 250, 250)"> ` +
+                `${genBarb1((_a = WGSP) !== null && _a !== void 0 ? _a : 0, true)} ` + 
+                `${genBarb2((_b = WGSP) !== null && _b !== void 0 ? _b : 0, true)} ` + 
+                `${genBarb3((_c = WGSP) !== null && _c !== void 0 ? _c : 0, true)} ` + 
+                `${genBarb4((_d = WGSP) !== null && _d !== void 0 ? _d : 0, true)} ` + 
+                `${genBarb5((_e = WGSP) !== null && _e !== void 0 ? _e : 0, true)} ` + 
+            `</g>`;
         wind =
-            "<g id=\"windBard\" transform=\"rotate(" + WDD + ", 250, 250)\">\n                <line stroke-width=\"3\" y1=\"225\" x1=\"250\" y2=\"50\" x2=\"250\"  stroke=\"#000\" fill=\"none\" />\n                " + genBarb1((_f = metar.wind_speed) !== null && _f !== void 0 ? _f : 0, false) + "\n                " + genBarb2((_g = metar.wind_speed) !== null && _g !== void 0 ? _g : 0, false) + "\n                " + genBarb3((_h = metar.wind_speed) !== null && _h !== void 0 ? _h : 0, false) + "\n                " + genBarb4((_j = metar.wind_speed) !== null && _j !== void 0 ? _j : 0, false) + "\n                " + genBarb5((_k = metar.wind_speed) !== null && _k !== void 0 ? _k : 0, false) + "\n            </g>";
+            `<g id="windBarb" transform="rotate(${WDD}, 250, 250)">` + 
+            //`<line stroke-width="9" y1="225" x1="250" y2="50" x2="250" stroke="#000" fill="none"/>` +
+            `<line stroke-width="5" y1="225" x1="250" y2="90" x2="250" stroke="#000" fill="none"/>` +
+                `${genBarb1((_f = WSP) !== null && _f !== void 0 ? _f : 0, false)} ` + 
+                `${genBarb2((_g = WSP) !== null && _g !== void 0 ? _g : 0, false)} ` + 
+                `${genBarb3((_h = WSP) !== null && _h !== void 0 ? _h : 0, false)} ` + 
+                `${genBarb4((_j = WSP) !== null && _j !== void 0 ? _j : 0, false)} ` + 
+                `${genBarb5((_k = WSP) !== null && _k !== void 0 ? _k : 0, false)} ` + 
+            `</g>`;
     }
     return gust + wind;
 }
@@ -2612,10 +2621,11 @@ function genBarb1(speed, gust) {
     var width = gust ? GUST_WIDTH : WS_WIDTH;
     var barb = "";
     if (speed >= 10 && speed < 50) {
-        barb = "<line id=\"" + tag + "-bard-1-long\" stroke-width=\"" + width + "\" y1=\"50\" x1=\"250\" y2=\"50\" x2=\"300\" stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 50)\"/>";
+        //barb = `<line id="${tag}-barb-1-long" stroke-width="${width}" y1="50" x1="250" y2="50" x2="300" stroke="${fill}" transform="rotate(-35, 250, 50)"/>`;
+        barb = `<line id="${tag}-barb-1-long" stroke-width="${width}" y1="90" x1="250" y2="90" x2="305" stroke="${fill}" transform="rotate(-35, 250, 90)"/>`;
     }
     else if (speed >= 50) {
-        barb = "<polygon id=\"" + tag + "-bard-1-flag\" points=\"248,60 290,30 248,30\" fill=\"" + fill + "\" />";
+        barb = `<polygon id="${tag}-barb-1-flag" points="248,60 290,30 248,30" fill="${fill}" />`;
     }
     return barb;
 }
@@ -2631,10 +2641,10 @@ function genBarb2(speed, gust) {
     var width = gust ? GUST_WIDTH : WS_WIDTH;
     var barb = "";
     if ((speed < 10) || (15 <= speed && speed < 20) || (55 <= speed && speed < 60)) {
-        barb = "<line id=\"" + tag + "-bard-2-short\" stroke-width=\"" + width + "\" y1=\"70\" x1=\"250\" y2=\"70\" x2=\"275\" stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 70)\"/>";
+        barb = `<line id="${tag}-barb-2-short" stroke-width="${width}" y1="110" x1="250" y2="110" x2="285" stroke="${fill}" transform="rotate(-35, 250, 110)"/>`;
     }
     else if ((15 < speed && speed < 50) || (speed >= 60)) {
-        barb = "<line id=\"" + tag + "-bard-2-long\" stroke-width=\"" + width + "\" y1=\"70\" x1=\"250\" y2=\"70\" x2=\"300\" stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 70)\"/>";
+        barb = `<line id="${tag}-barb-2-long" stroke-width="${width}" y1="110" x1="250" y2="110" x2="305" stroke="${fill}" transform="rotate(-35, 250, 110)"/>`;
     }
     return barb;
 }
@@ -2650,10 +2660,10 @@ function genBarb3(speed, gust) {
     var width = gust ? GUST_WIDTH : WS_WIDTH;
     var barb = "";
     if ((25 <= speed && speed < 30) || (65 <= speed && speed < 70)) {
-        barb = "<line id=\"" + tag + "-bard-3-short\" stroke-width=\"" + width + "\" y1=\"90\"  x1=\"250\" y2=\"90\" x2=\"275\" stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 90)\"/>";
+        barb = `<line id="${tag}-barb-3-short" stroke-width="${width}" y1="150"  x1="250" y2="150" x2="285" stroke="${fill}" transform="rotate(-35, 250, 150)"/>`;
     }
     else if ((25 < speed && speed < 50) || speed >= 70) {
-        barb = "<line id=\"" + tag + "-bard-3-long\" stroke-width=\"" + width + "\" y1=\"90\"  x1=\"250\" y2=\"90\" x2=\"300\" stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 90)\"/>";
+        barb = `<line id="${tag}-bard-3-long" stroke-width="${width}" y1="150"  x1="250" y2="150" x2="305" stroke="${fill}" transform="rotate(-35, 250, 150)"/>`;
     }
     return barb;
 }
@@ -2669,10 +2679,10 @@ function genBarb4(speed, gust) {
     var width = gust ? GUST_WIDTH : WS_WIDTH;
     var barb = "";
     if ((35 <= speed && speed < 40) || (75 <= speed && speed < 80)) {
-        barb = "<line id=\"" + tag + "-bard-4-short\" stroke-width=\"" + width + "\" y1=\"110\" x1=\"250\" y2=\"110\" x2=\"275\"  stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 110)\"/>";
+        barb = `<line id="${tag}-barb-4-short" stroke-width="${width}" y1="190" x1="250" y2="190" x2="285" stroke="${fill}" transform="rotate(-35, 250, 190)"/>`;
     }
     else if ((35 < speed && speed < 50) || speed >= 80) {
-        barb = "<line id=\"" + tag + "-bard-4-long\" stroke-width=\"" + width + "\" y1=\"110\" x1=\"250\" y2=\"110\" x2=\"300\"  stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 110)\"/>";
+        barb = `<line id="${tag}-barb-4-long" stroke-width="${width}" y1="190" x1="250" y2="190" x2="305"  stroke="${fill}" transform="rotate(-35, 250, 190)"/>`;
     }
     return barb;
 }
@@ -2686,11 +2696,11 @@ function genBarb5(speed, gust) {
     var fill = gust ? 'red' : '#000';
     var tag = gust ? 'gs' : 'ws';
     var width = gust ? GUST_WIDTH : WS_WIDTH;
-    var brab = "";
+    var barb = "";
     if ((45 <= speed && speed < 50) || (85 <= speed && speed < 90)) {
-        brab = "<line id=\"" + tag + "-bard-5-short\" stroke-width=\"" + width + "\" y1=\"130\" x1=\"250\" y2=\"130\" x2=\"275\"  stroke=\"" + fill + "\" transform=\"rotate(-35, 250, 130)\"/>";
+        barb = `<line id="${tag}-barb-5-short" stroke-width="${width}" y1="230" x1="250" y2="230" x2="285" stroke="${fill}" transform="rotate(-35, 250, 230)"/>`;
     }
-    return brab;
+    return barb;
 }
 
 //Meassage types
@@ -3063,37 +3073,65 @@ function determineCoverage(metar) {
     var DEW = (_c = metar.dew_point) !== null && _c !== void 0 ? _c : "";
     var STA = (_d = metar.station) !== null && _d !== void 0 ? _d : "";
     var ALT = (_e = metar.pressure) !== null && _e !== void 0 ? _e : "";
-    return "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" + width + "\" height=\"" + height + 
-           "\" viewBox=\"0 0 500 500\">\n                <style>\n                    .txt{ font-size: 47.5px; font-family: sans-serif; }\n                    .tmp{ fill: red }\n                    .sta{ fill: grey }\n                    .dew{ fill: blue }\n                    .vis{ fill: violet }\n                </style>\n                " + 
-           (0, genWind)(metar) + "\n                " + 
-           (0, getWeatherSVG)((_f = metar.wx) !== null && _f !== void 0 ? _f : "") + "\n                " + 
-           (0, genCoverage)(metar.coverage, metar.condition) + "\n                <g id=\"text\">\n                    <text class=\"vis txt\" fill=\"#000000\" stroke=\"#000\" stroke-width=\"0\" x=\"80\"   y=\"260\" text-anchor=\"middle\" xml:space=\"preserve\">" + 
-           VIS + "</text>\n                    <text class=\"tmp txt\" fill=\"#000000\" stroke=\"#000\" stroke-width=\"0\" x=\"160\"  y=\"220\" text-anchor=\"middle\" xml:space=\"preserve\" >" + 
-           TMP + "</text>\n                    <text class=\"dew txt\" fill=\"#000000\" stroke=\"#000\" stroke-width=\"0\" x=\"160\"  y=\"315\" text-anchor=\"middle\" xml:space=\"preserve\">" + 
-           DEW + "</text>\n                    <text class=\"sta txt\" fill=\"#000000\" stroke=\"#000\" stroke-width=\"0\" x=\"275\"  y=\"315\" text-anchor=\"start\" xml:space=\"preserve\">" + 
-           STA + "</text>\n                    <text class=\"sta txt\" fill=\"#000000\" stroke=\"#000\" stroke-width=\"0\" x=\"275\"  y=\"220\"  text-anchor=\"start\" xml:space=\"preserve\">" + 
-           ALT + "</text>\n                </g>\n            </svg>";
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 500 500"> ` +
+           `<style> ` + 
+                `.txt{ font-size: 47.5px; font-family: sans-serif; } ` +
+                `.tmp{ fill: red } ` + 
+                `.sta{ fill: grey } ` + 
+                `.dew{ fill: blue } ` +
+                `.vis{ fill: violet } ` +
+           `</style> ${(0, genWind)(metar)} ${(0, getWeatherSVG)((_f = metar.wx) !== null && _f !== void 0 ? _f : "")} ` +
+           `         ${(0, genCoverage)(metar.coverage, metar.condition)} ` + 
+           `<g id="text"><text class="vis txt" fill="#000000" stroke="#000" stroke-width="0" x="80" y="260" text-anchor="middle" ` +
+           `xml:space="preserve">${VIS}</text><text class="tmp txt" fill="#000000" stroke="#000" stroke-width="0" x="160" y="220" text-anchor="middle" ` +
+           `xml:space="preserve">${TMP}</text><text class="dew txt" fill="#000000" stroke="#000" stroke-width="0" x="160"  y="315" text-anchor="middle" ` +
+           `xml:space="preserve">${DEW}</text><text class="sta txt" fill="#000000" stroke="#000" stroke-width="0" x="275"  y="315" text-anchor="start" ` +
+           `xml:space="preserve">${STA}</text><text class="sta txt" fill="#000000" stroke="#000" stroke-width="0" x="275"  y="220" text-anchor="start" ` +
+           `xml:space="preserve">${ALT}</text></g></svg>`;
 }
 
+/**
+ * Generate a wind barb SVG image
+ * @param {int} width 
+ * @param {int} height 
+ * @param {object} metar 
+ * @returns 
+ */
 function getWindBarbSvg(width, height, metar) {
     let catcolor = "";
-    switch (metar.category) {
-        case "IFR":
-            catcolor ="ff0000";
-            break;
-        case "LIFR":
-            catcolor = "ff00ff";
-            break;
-        case "MVFR": 
-            catcolor = "0000cd";
-            break;
-        case "VFR":
-        default:
-            catcolor = "12f23c";
-            break;
+    let svg = "";
+    let thismetar = {
+        wind_direction: metar.wind_dir_degrees,
+        wind_speed: metar.wind_speed_kt,
+        gust_speed: metar.gust_speed_kt,
+        station: metar.station_id
+    };
+    try {
+        switch (metar.flight_category) {
+            case "IFR":
+                catcolor ="ff0000";
+                break;
+            case "LIFR":
+                catcolor = "ff00ff";
+                break;
+            case "MVFR": 
+                catcolor = "0000cd";
+                break;
+            case "VFR":
+            default:
+                catcolor = "12f23c";
+                break;
+        }
+        svg = `<svg xmlns="http://www.w3.org/2000/svg" ` +
+                  `width="${width}" height="${height}" ` + 
+                  `viewBox="0 0 500 500">` + 
+                  (0, genWind)(thismetar) + 
+                  `<g id="clr">` + 
+                       `<circle cx="250" cy="250" r="30" stroke="#000000" stroke-width="3" fill="#${catcolor}"/>` +
+                  `</g>` + 
+               `</svg>`;
     }
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 500 500"> ` + (0, genWind)(metar) + 
-              `<g id="clr"><circle cx="250" cy="250" r="30" fill="#${catcolor}"/></g></svg>`;
+    catch {}
     return svg; 
 }
 /**
