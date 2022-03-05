@@ -62,6 +62,10 @@ let XML_FILEPATH = `${__dirname}/xmldata`;
     settings       = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
 
+    if (!fs.existsSync(XML_FILEPATH)) {
+        fs.mkdirSync(XML_FILEPATH);
+    }
+
     runDownloads();
     
     DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
