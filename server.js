@@ -51,6 +51,7 @@ let DB_GCANYONAO   = "";
 let DB_GCANYONGA   = ""; 
 let DB_HISTORY     = ""; 
 let DB_OSMOFFLINE  = ""; 
+let XML_FILEPATH = `${__dirname}/xmldata`;
 
 /*
  * First things first... load settings.json and airports.json 
@@ -60,6 +61,9 @@ let DB_OSMOFFLINE  = "";
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     settings       = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
+
+    runDownloads();
+    
     DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
     DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
     DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
@@ -85,7 +89,7 @@ let DB_OSMOFFLINE  = "";
                     payload: JSON.stringify(airports)
                 };
                 ws.send(JSON.stringify(msg));
-                runDownloads();
+                //runDownloads();
             }, 200);
 
             ws.on('close', function() {
@@ -230,6 +234,12 @@ try {
         getPositionHistory(res);
     });
 
+    app.get("/getdatafiles", (req,res) => {
+        uploadDataFiles();
+        res.writeHead(200);
+        res.end();
+    });
+
     app.post("/savehistory", (req, res) => {
         savePositionHistory(req.body);
         res.writeHead(200);
@@ -238,6 +248,26 @@ try {
 }
 catch (err) {
     console.log(err);
+}
+
+/**
+ * Called by client via /getdatafiles route, this will
+ * send metars, tafs, and pireps back via websocket
+ */
+async function uploadDataFiles() {
+    let files = fs.readdirSync(XML_FILEPATH);
+    files.forEach((xmlfile) => {
+        let fileparts = xmlfile.split(".");
+        let xml = fs.readFileSync(`${XML_FILEPATH}/${xmlfile}`);
+        let messageJSON = xmlparser.parse(xml);
+        let payload = JSON.stringify(messageJSON);
+        let message = {
+            type: fileparts[0],
+            payload: payload
+        };
+        const json = JSON.stringify(message);
+        sendMessageToClients(json);
+    });
 }
 
 /**
@@ -449,8 +479,8 @@ function tileToDegree(z, x, y) {
 }
 
 /**
- * Recursively run the file downloads from the ADDS server for 
- * metars, tafs, & pireps which will then be sent to client(s)
+ * Recursively run the file downloads from the 
+ * ADDS server for metars, tafs, & pireps
  */
 async function runDownloads() {
     downloadXmlFile(MessageTypes.metars);
@@ -462,10 +492,15 @@ async function runDownloads() {
 }
 
 /**
- * Download an ADDS weather service file
+ * Download an ADDS weather service file and save in xmldata folder
  * @param {source} the type of file to download (metar, taf, or pirep)
  */
 async function downloadXmlFile(source) {
+    let datafile = `${XML_FILEPATH}/${source.type}.xml`; 
+    try {
+        fs.rmSync(datafile);
+    }
+    catch {}
     let xhr = new XMLHttpRequest();  
     let url = settings.addsurrentxmlurl.replace(source.token, source.type);
     xhr.open('GET', url, true);
@@ -477,18 +512,7 @@ async function downloadXmlFile(source) {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             let response = xhr.responseText;
-            let messageJSON = xmlparser.parse(response);
-            switch(source.type) {
-                case "tafs":
-                    processTafJsonObjects(messageJSON);
-                    break;
-                case "metars":
-                    processMetarJsonObjects(messageJSON);
-                    break;
-                case "pireps":
-                    processPirepJsonObjects(messageJSON);
-                    break;
-            }
+            fs.writeFileSync(`${__dirname}/xmldata/${source.type}.xml`, response);
         }
     };
     try { 
@@ -497,48 +521,6 @@ async function downloadXmlFile(source) {
     catch (err) {
         console.log(`Error getting message type ${xmlmessage.type}: ${err}`);
     }
-}
-
-/**
- * Process the received downloaded tafs data and send to client(s)
- * @param {object} tafs json object 
- */
-async function processTafJsonObjects(tafs) {
-    let payload = JSON.stringify(tafs); 
-    let message = {
-        type: MessageTypes.tafs.type,
-        payload: payload
-    };
-    const json = JSON.stringify(message);
-    sendMessageToClients(json);
-}
-
-/**
- * Process the received downloaded metars data and send to client(s)
- * @param {object} metars json object 
- */
-async function processMetarJsonObjects(metars) {
-    let payload = JSON.stringify(metars);
-    let message = {
-        type: MessageTypes.metars.type,
-        payload: payload
-    };
-    const json = JSON.stringify(message);
-    sendMessageToClients(json);
-}
-
-/**
- * Process the received downloaded pireps data and send to client(s)
- * @param {object} pireps json object 
- */
-async function processPirepJsonObjects(pireps) {
-    let payload = JSON.stringify(pireps);
-    let message = {
-        type: MessageTypes.pireps.type,
-        payload: payload
-    }
-    const json = JSON.stringify(message);
-    sendMessageToClients(json);
 }
 
 /**

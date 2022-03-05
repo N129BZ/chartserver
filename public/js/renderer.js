@@ -26,6 +26,7 @@ let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/savehistory`;
 let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
+let URL_GET_DATAFILES       = `${URL_SERVER}/getdatafiles`;
 
 
 /**
@@ -220,6 +221,9 @@ let regionmap = new Map();
         let wsurl = `${URL_WINSOCK}${settings.wsport}`;
         console.log(`OPENING: ${wsurl}`);
         websock = new WebSocket(wsurl);
+        
+        
+
         websock.onmessage = (evt) => {
             let message = JSON.parse(evt.data);
             let payload = JSON.parse(message.payload);
@@ -239,7 +243,7 @@ let regionmap = new Map();
                     break;
             }
         }
-
+        
         websock.onerror = function(evt){
             console.log("Websocket ERROR: " + evt.data);
         }
@@ -255,11 +259,30 @@ let regionmap = new Map();
             wsOpen = false;
             console.log("Websocket CLOSED.");
         }
+
+        runTimedDataRequest();
     }
     catch (error) {
         console.log(error);
     }
 });
+
+async function runTimedDataRequest() {
+    setTimeout(() => {
+        $.get({
+            async: true,
+            type: "GET",
+            url: URL_GET_DATAFILES,
+            error: (xhr, ajaxOptions, thrownError) => {
+                console.error(xhr.status, thrownError);
+            }
+        });
+    }, 100);
+
+    setTimeout(() => {
+        runTimedDataRequest();
+    }, settings.wxupdateintervalmsec);
+}
 
 /**
  * Icon markers for different METAR categories 
