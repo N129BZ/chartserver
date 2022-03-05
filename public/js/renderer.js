@@ -1408,7 +1408,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         features: metarFeatures
     });
     metarVectorLayer = new ol.layer.Vector({
-        title: "Metars",
+        title: "Metars and Winds",
         source: metarVectorSource,
         visible: false,
         extent: extent,
@@ -2197,7 +2197,6 @@ function getSkyConditionDescription(acronym) {
  function decodeWxDescriptions(codevalue) {
     let outstr = "";
     let vals = codevalue.split(" ");
-    
     for (let i = 0; i < vals.length; i++) {
         if (i === 0) {
             outstr = weatherAcronymKeymap.get(vals[i]);
