@@ -574,7 +574,7 @@ const map = new ol.Map({
         zoom: settings.startupzoom,
         enableRotation: false,
         minZoom: 4,
-        maxZoom: 11
+        maxZoom: 12
     }),
     controls: ol.control.defaults().extend([scaleLine]),
     overlays: [popupoverlay]
@@ -813,7 +813,7 @@ function parseForecastField(rawfieldname, fieldvalue) {
             break;
         case "turbulence_condition":
         case "icing_condition":
-            formattedvalue = decodeIcingCondition(fieldvalue);
+            formattedvalue = decodeIcingOrTurbulenceCondition(fieldvalue);
             html = `<label class="tafskyheader">${fieldname}</label><br />${formattedvalue}`;
             break;
         case "wind_dir_degrees":
