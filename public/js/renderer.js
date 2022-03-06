@@ -1129,17 +1129,17 @@ function displayAirportPopup(feature) {
         let scale = getScaleSize();
         try {
             newmetars.forEach((metar) => {
-                let svg = "";
-                let svg2 = "";
+                let popupsvg = "";
+                let windbarbsvg = "";
                 try { 
-                    svg = rawMetarToSVG(metar.raw_text, 150, 150, settings.usemetricunits);
-                    svg2 = getWindBarbSvg(95, 95, metar); 
+                    popupsvg = rawMetarToSVG(metar.raw_text, 150, 150, settings.usemetricunits);
+                    windbarbsvg = getWindBarbSvg(95, 95, metar); 
                 }
                 catch { }
                   
                 let metarmarker = new ol.style.Icon({
                     crossOrigin: "anonymous",
-                    src: `data:image/svg+xml;utf8,${escape(svg2)}`,
+                    src: `data:image/svg+xml;utf8,${encodeURIComponent(windbarbsvg)}`,
                     offset: [0,0],
                     opacity: 1,
                     scale: scale
@@ -1148,7 +1148,7 @@ function displayAirportPopup(feature) {
                     metar: metar,
                     datatype: "metar",
                     geometry: new ol.geom.Point(ol.proj.fromLonLat([metar.longitude, metar.latitude])),
-                    svgimage: svg 
+                    svgimage: popupsvg 
                 });
                 metarFeature.setStyle(new ol.style.Style({
                     image: metarmarker
