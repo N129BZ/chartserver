@@ -1401,7 +1401,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         zIndex: 11
     });
 
-    if (settings.useOSMonlinemap) {
+    if (navigator.onLine) {
         osmOnlineTileLayer = new ol.layer.Tile({
             title: "Open Street Maps (online)",
             type: "overlay",
@@ -1483,7 +1483,8 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     map.addLayer(helicopterTileLayer);
     map.addLayer(terminalTileLayer);
     map.addLayer(sectionalTileLayer);
-    if (settings.useOSMonlinemap) {
+
+    if (navigator.onLine) {
         map.addLayer(osmOnlineTileLayer);
     }
     else {
