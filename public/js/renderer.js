@@ -285,45 +285,6 @@ async function runTimedDataRequest() {
 }
 
 /**
- * Icon markers for different METAR categories 
- */
-let ifrMarker = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/ifr.png`,
-    size: [55, 55],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .30
-});
-/*--------------------------------------*/
-let lifrMarker = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/lifr.png`,
-    size: [55, 55],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .30
-});
-/*--------------------------------------*/
-let mvfrMarker = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/mvfr.png`,
-    size: [55, 55],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .30
-});
-/*--------------------------------------*/
-let vfrMarker = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/vfr.png`,
-    size: [55, 55],
-    offset: [0, 0],
-    opacity: 1,
-    scale: .30
-});
-
-/**
  * Icon markers for airports, TAFs, heliports, etc.
  */
 let tafMarker = new ol.style.Icon({
@@ -352,31 +313,7 @@ let heliportMarker = new ol.style.Icon({
     opacity: 1,
     scale: .50
 });
-/*--------------------------------------*/
-let pirepMarker = new ol.style.Icon({
-    crossOrigin: 'anonymous',
-    src: `${URL_SERVER}/img/pirep.png`,
-    size:[85, 85],
-    offset: [0,0],
-    opacity: 1,
-    scale: .50
-});
 
-/**
- * ol.Style objects 
- */
-const vfrStyle = new ol.style.Style({
-    image: vfrMarker
-});
-const mvfrStyle = new ol.style.Style({
-    image: mvfrMarker
-});
-const ifrStyle = new ol.style.Style({
-    image: ifrMarker
-});
-const lifrStyle = new ol.style.Style({
-    image: lifrMarker
-});
 const tafStyle = new ol.style.Style({
     image: tafMarker
 })
@@ -385,9 +322,6 @@ const airportStyle = new ol.style.Style({
 });
 const heliportStyle = new ol.style.Style({
     image: heliportMarker
-});
-const pirepStyle = new ol.style.Style({
-    image: pirepMarker
 });
 
 /**
@@ -1256,7 +1190,6 @@ function resizeDots(newzoom) {
         for (let i = 0; i < metarMarkers.length; i++) {
             metarMarkers[i].setScale(newscale + .2);
         }
-        //pirepMarker.setScale(newscale * .08);
         airportMarker.setScale(newscale * .30);
         heliportMarker.setScale(newscale * .50);
         tafMarker.setScale(newscale * .25);
