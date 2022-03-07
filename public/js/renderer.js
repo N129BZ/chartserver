@@ -667,7 +667,13 @@ map.on('click', (evt) => {
     let winspd = metar.wind_speed_kt + "";
     let wingst = metar.wind_gust_kt + ""; 
     let altim = getAltimeterSetting(metar.altim_in_hg);
-    let vis = getDistanceUnits(metar.visibility_statute_mi);
+    let vis = "";
+    if (metar.visibility_statute_mi === undefined || metar.visibility_statute_mi === "undefined") {
+        vis = "Not reported"
+    }
+    else {
+        vis = getDistanceUnits(metar.visibility_statute_mi);
+    }
     let wxcode = metar.wx_string !== undefined ? decodeWxDescriptions(metar.wx_string) : "";
     let taflabelcssClass = "taflabel"
     let skycondition = metar.sky_condition;
@@ -1609,7 +1615,10 @@ updateInfo();
  * @param {*} miles: statute miles
  * @returns statute miles, kilometers or nautical miles   
  */
- function getDistanceUnits(miles) {
+function getDistanceUnits(miles) {
+    if (miles === undefined || miles === "undefined") {
+        return 0;
+    } 
     let num = parseFloat(miles);
     let label = "mi";
     switch (distanceunit) {
