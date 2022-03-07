@@ -597,7 +597,13 @@ map.on('click', (evt) => {
     let dewpC = metar.dewpoint_c;
     let temp = convertCtoF(metar.temp_c);
     let dewp = convertCtoF(metar.dewpoint_c);
-    let windir = metar.wind_dir_degrees;
+    let windir = ""; 
+    if (metar.wind_dir_degrees === undefined || metar.wind_dir_degrees === "undefined") {
+        windir = "Not reported";
+    }
+    else {
+        windir = `${metar.wind_dir_degrees}°`;
+    }
     let winspd = metar.wind_speed_kt + "";
     let wingst = metar.wind_gust_kt + ""; 
     let altim = getAltimeterSetting(metar.altim_in_hg);
@@ -644,7 +650,7 @@ map.on('click', (evt) => {
         html +=   (time != "" && time != "undefined") ? `Time:&nbsp<b>${time}</b><br/>` : "";
         html +=   (temp != "" && temp != "undefined") ? `Temp:&nbsp<b>${tempC} °C</b> (${temp})<br/>` : "";
         html +=   (dewp != "" && dewp != "undefined") ?`Dewpoint:&nbsp<b>${dewpC} °C</b> (${dewp})<br/>` : "";
-        html += (windir != "" && windir != "undefined") ? `Wind Direction:&nbsp<b>${windir}°</b><br/>` : "";
+        html += (windir != "" && windir != "undefined") ? `Wind Direction:&nbsp<b>${windir}</b><br/>` : "";
         html += (winspd != "" && winspd != "undefined") ? `Wind Speed:&nbsp<b>${winspd}&nbspkt</b><br/>` : "";
         html += (wingst != "" && wingst != "undefined") ? `Wind Gust:&nbsp<b>${wingst}&nbspkt</b><br/>` : "";
         html +=  (altim != "" && altim != "undefined") ? `Altimeter:&nbsp<b>${altim}&nbsphg</b><br/>` : "";
