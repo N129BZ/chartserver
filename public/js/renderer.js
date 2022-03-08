@@ -550,7 +550,7 @@ map.on('moveend', function(e) {
 map.on('click', (evt) => {
     let hasfeature = false;
     let coords = ol.proj.toLonLat(evt.coordinate);
-    
+    console.log(`Long=${coords[0]}, Lat=${coords[1]}`);
     map.forEachFeatureAtPixel(evt.pixel, (feature) => {
         if (feature) {
             hasfeature = true;
@@ -822,14 +822,17 @@ function parseForecastField(rawfieldname, fieldvalue) {
             case "probability":
             case "wind_speed_kt":
             case "wind_gust_kt":
-            case "wind_dir_degrees":
-            case "wind_shear_dir_degrees":
             case "wind_shear_hgt_ft_agl":
             case "wind_shear_speed_kt":
             case "vert_vis_ft":
             case "visibility_statute_mi":
+                html += `${pireplabel}${fieldname}: <b>${pirepvalue}</b></label><br />`;
+                break;
+            case "wind_dir_degrees":
+            case "wind_shear_dir_degrees":
                 html += `${pireplabel}${fieldname}: <b>${pirepvalue}°</b></label><br />`;
                 break;
+
             case "sky_condition":
                 html += `<label class="pirepskyheader">${fieldname}</label><br />`;
                 html += decodeSkyCondition(pirepvalue, "pirepitem");
