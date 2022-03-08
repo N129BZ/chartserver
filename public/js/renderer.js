@@ -550,7 +550,7 @@ map.on('moveend', function(e) {
 map.on('click', (evt) => {
     let hasfeature = false;
     let coords = ol.proj.toLonLat(evt.coordinate);
-    console.log(`Long=${coords[0]}, Lat=${coords[1]}`);
+    //console.log(`Long=${coords[0]}, Lat=${coords[1]}`);
     map.forEachFeatureAtPixel(evt.pixel, (feature) => {
         if (feature) {
             hasfeature = true;
