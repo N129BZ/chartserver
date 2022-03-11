@@ -508,7 +508,7 @@ const map = new ol.Map({
         zoom: settings.startupzoom,
         enableRotation: false,
         minZoom: 4,
-        maxZoom: 12
+        maxZoom: 22
     }),
     controls: ol.control.defaults().extend([scaleLine]),
     overlays: [popupoverlay]
