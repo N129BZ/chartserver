@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const favicon = require('serve-favicon');
 const cors = require('cors');
@@ -42,15 +44,11 @@ let MessageTypes = {};
 
 let wss;
 let connections = new Map();
+let metadataTables = new Map();
 let DB_PATH        = `${__dirname}/public/data`;
-let DB_SECTIONAL   = ""; 
-let DB_TERMINAL    = ""; 
-let DB_HELICOPTER  = ""; 
-let DB_CARIBBEAN   = ""; 
-let DB_GCANYONAO   = ""; 
-let DB_GCANYONGA   = ""; 
-let DB_HISTORY     = ""; 
-let DB_OSMOFFLINE  = ""; 
+let DB_HISTORY     = `${__dirname}/positionhistory.db`;
+let dbmap = new Map();
+
 let XML_FILEPATH = `${__dirname}/xmldata`;
 
 /*
@@ -67,16 +65,22 @@ let XML_FILEPATH = `${__dirname}/xmldata`;
     }
 
     runDownloads();
-    
-    DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
-    DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
-    DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
-    DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
-    DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
-    DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
-    DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
-    DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
-    
+
+    let dbfiles = fs.readdirSync(DB_PATH);
+    dbfiles.forEach((dbfile) => { 
+        let dbname = `${DB_PATH}/${dbfile}`;
+        let dbkey = dbfile.slice(0, dbfile.indexOf("."));
+        let db = new sqlite3.Database(dbname, sqlite3.OPEN_READONLY, (err) => {
+            if (err) {
+                console.log(`Failed to load: ${dbname}: ${err}`);
+                throw err;
+            }
+        });
+        dbmap.set(dbkey, db);
+    });
+
+    buildDatabaseMetadataMap();
+
     rawdata = fs.readFileSync(`${__dirname}/airports.json`);
     airports = JSON.parse(rawdata);
 
@@ -93,7 +97,6 @@ let XML_FILEPATH = `${__dirname}/xmldata`;
                     payload: JSON.stringify(airports)
                 };
                 ws.send(JSON.stringify(msg));
-                //runDownloads();
             }, 200);
 
             ws.on('close', function() {
@@ -109,53 +112,9 @@ let XML_FILEPATH = `${__dirname}/xmldata`;
     }
 })();
 
-/**
- * THESE DATABASES ARE A TEMPORARY KLUDGE OF THE HIGHEST ORDER... 
- */
-const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_SECTIONAL}: ${err}`);
-        throw err;
-    }
-});
-const termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_TERMINAL}: ${err}`);
-        throw err;
-    }
-});
-const helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_HELICOPTER}: ${err}`);
-        throw err;
-    }
-});
-const caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_CARIBBEAN}: ${err}`);
-        throw err;
-    }
-});
-const gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_GCANYONAO}: ${err}`);
-        throw err;
-    }
-});
-const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_GCANYONGA}: ${err}`);
-        throw err;
-    }
-});
 const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
         console.log(`Failed to load: ${DB_HISTORY}: ${err}`);
-    }
-});
-const osmdb = new sqlite3.Database(DB_OSMOFFLINE, sqlite3.OPEN_READWRITE, (err) => {
-    if (err){
-        console.log(`Failed to load: ${DB_OSMOFFLINE}: ${err}`);
     }
 });
 
@@ -192,11 +151,7 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
-        /**
-         * To ensure client gets any edits to settings, re-read the file
-         */
         let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
-
         res.writeHead(200);
         res.write(rawdata);
         res.end();
@@ -206,32 +161,8 @@ try {
         handleTilesets(req, res);
     });    
 
-    app.get("/tiles/osmtile/*", (req, res) => {
-        handleTile(req, res, osmdb);
-    });
-
-    app.get("/tiles/vfrsectile/*", (req, res) => {
-        handleTile(req, res, vfrdb);
-    });
-
-    app.get("/tiles/termtile/*", (req, res) => {
-        handleTile(req, res, termdb);
-    });
-
-    app.get("/tiles/helitile/*", (req, res) => {
-        handleTile(req, res, helidb);
-    });
-
-    app.get("/tiles/caribtile/*", (req, res) => {
-        handleTile(req, res, caribdb);
-    });
-
-    app.get("/tiles/gcaotile/*", (req, res) => {
-        handleTile(req, res, gcaodb);
-    });
-
-    app.get("/tiles/gcgatile/*", (req, res) => {
-        handleTile(req, res, gcgadb);
+    app.get("/tiles/tile/*", (req, res) => {
+        handleTile(req, res);
     });
 
     app.get("/gethistory", (req,res) => {
@@ -324,17 +255,17 @@ function savePositionHistory(data) {
  * @param {db} database 
  * @returns the results of calling loadTile
  */
-function handleTile(request, response, db) {
+function handleTile(request, response) {
     let x = 0;
     let y = 0;
     let z = 0;
     let idx = -1;
 
     let parts = request.url.split("/"); 
-	if (parts.length < 4) {
+	if (parts.length < 5) {
 		return
 	}
-
+    let db = dbmap.get(parts[3]);
 	try {
         idx = parts.length - 1;
         let yparts = parts[idx].split(".");
@@ -394,77 +325,77 @@ function loadTile(z, x, y, response, db) {
  * @param {object} request 
  * @param {object} response 
  */
-function handleTilesets(request, response) {
-    let sql = `SELECT name, value FROM metadata UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
-              `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
-              `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
-    let found = false;
-    let meta = {};
-    let db;
-    meta["bounds"] = "";
+function buildDatabaseMetadataMap() {
+    let sql = `SELECT name, value FROM metadata ` + 
+                `UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
+                    `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') ` +
+                `UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
+                    `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
+    
+    for (let [key, value] of dbmap) {
+        let db = value;
+        let maxfound = false;
+        let minfound = false;
+        let minzoomint = 0;
+        let maxzoomint = 0;
+        let llmin = [];
+        let llmax = [];
+        let xmin = 0;
+        let ymin = 0; 
+        let xmax = 0; 
+        let ymax = 0; 
+        
+        db.all(sql, [], (err, rows) => {
+            let record = {}
+            if (!err) {
+                rows.forEach((row) => {
+                    if (row.name == "minzoom" && row.value != null && !minfound) {
+                        minzoomint = parseInt(row.value);
+                        record["minzoom"] = minzoomint;
+                        minfound = true;
+                    }
+                    if (row.name == "maxzoom" && row.value != null && !maxfound) {
+                        maxzoomint = parseInt(row.value);
+                        record["maxzoom"] = maxzoomint;
+                        maxfound = true; 
+                        let subsql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
+                                     `max(tile_column) as xmax, max(tile_row) as ymax ` +
+                                     `FROM tiles WHERE zoom_level=?`;
+                        db.get(subsql, [maxzoomint], (err, row) => {
+                            xmin = row.xmin;
+                            ymin = row.ymin; 
+                            xmax = row.xmax; 
+                            ymax = row.ymax;  
+                            
+                            llmin = tileToDegree(maxzoomint, xmin, ymin);
+                            llmax = tileToDegree(maxzoomint, xmax+1, ymax+1);
+                            record["extent"] = [llmin[0], llmin[1], llmax[0], llmax[1]];
+                        });
+                    }
 
-    let parms = url.parse(request.url,true).query
-    switch (parms.layer) {
-        case "osm":
-            db = osmdb;
-            break;
-        case "term":
-            db = termdb;
-            break;include
-        case "heli":
-            db = helidb;
-            break;
-        case "carib":
-            db = caribdb;
-            break;
-        case "gcao":
-            db = gcaodb;
-            break;
-        case "gcga":
-            db = gcgadb;
-            break;
-        case "vfr":
-        default:
-            db = vfrdb;
-            break;
+                    if (minfound && maxfound) {
+                        metadataTables.set(key, record);
+                    }
+                });
+            }
+            else {
+                console.log(err);
+            }
+        });
     }
+}
 
-    db.all(sql, [], (err, rows) => {
-        if (!err) {
-            rows.forEach((row) => {
-                if (row.value != null) {
-                    meta[row.name] = row.value;
-                }
-                if (row.name === "maxzoom" && row.value != null && !found) {
-                    let maxZoomInt = parseInt(row.value); 
-                    sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
-                                 `max(tile_column) as xmax, max(tile_row) as ymax ` +
-                        `FROM tiles WHERE zoom_level=?`;
-                    db.get(sql, [maxZoomInt], (err, row) => {
-                        let xmin = row.xmin;
-                        let ymin = row.ymin; 
-                        let xmax = row.xmax; 
-                        let ymax = row.ymax;  
-                        
-                        llmin = tileToDegree(maxZoomInt, xmin, ymin);
-                        llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
-                        
-                        retarray = `${llmin[0]}, ${llmin[1]}, ${llmax[0]}, ${llmax[1]}`;
-                        meta["bounds"] = retarray;
-                        let output = JSON.stringify(meta);
-                        found = true;
-                        response.writeHead(200);
-                        response.write(output);
-                        response.end();
-                        return;
-                    });
-                }
-            });
-        }
-        else {
-            console.log(err);
-        }
-    });
+/**
+ * Return tileset metadata
+ * @param {object} request 
+ * @param {object} response 
+ */
+function handleTilesets(request, response) {
+    let obj = Object.fromEntries(metadataTables);
+    let output = JSON.stringify(obj);
+    response.writeHead(200);
+    response.write(output);
+    response.end();
 }
 
 /**
@@ -477,8 +408,8 @@ function handleTilesets(request, response) {
 function tileToDegree(z, x, y) {
 	y = (1 << z) - y - 1
     let n = Math.PI - 2.0*Math.PI*y/Math.pow(2, z);
-    lat = 180.0 / Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));
-    lon = x/Math.pow(2, z)*360.0 - 180.0;
+    let lat = 180.0 / Math.PI * Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));
+    let lon = x/Math.pow(2, z)*360.0 - 180.0;
     return [lon, lat]
 }
 
@@ -516,7 +447,7 @@ async function downloadXmlFile(source) {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             let response = xhr.responseText;
-            fs.writeFileSync(`${__dirname}/xmldata/${source.type}.xml`, response);
+            fs.writeFileSync(datafile, response);
         }
     };
     try { 
