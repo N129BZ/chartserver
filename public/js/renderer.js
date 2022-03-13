@@ -16,12 +16,6 @@ let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
 let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
 let URL_GET_TILE            = `${URL_SERVER}/tiles/tile/###/{z}/{x}/{-y}.png`;
-// let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
-// let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
-// let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
-// let URL_GET_CARIB_TILE      = `${URL_SERVER}/tiles/caribtile/{z}/{x}/{-y}.png`;
-// let URL_GET_GCAO_TILE       = `${URL_SERVER}/tiles/gcaotile/{z}/{x}/{-y}.png`;
-// let URL_GET_GCGA_TILE       = `${URL_SERVER}/tiles/gcgatile/{z}/{x}/{-y}.png`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/savehistory`;
@@ -129,13 +123,6 @@ let pirepVectorLayer;
  * Tile layers
  */
 let osmOnlineTileLayer;
-let osmOfflineTileLayer;
-let sectionalTileLayer;
-let terminalTileLayer;
-let helicopterTileLayer;
-let caribbeanTileLayer;
-let grandcanyonAoTileLayer;
-let grandcanyonGaTileLayer;
 let animatedWxTileLayer;
 let openAipLayer;
 let debugTileLayer;  
@@ -1273,85 +1260,6 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         tilelayers.push(layer);
     })
 
-    // sectionalTileLayer = new ol.layer.Tile({
-    //     title: "VFR Sectional Chart",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_VFRSEC_TILE,
-    //         maxZoom: 11,
-    //         minZoom: 5,
-    //         attributionsCollapsible: false
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-    
-    // terminalTileLayer = new ol.layer.Tile({
-    //     title: "Terminal Area Charts",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_TERM_TILE,
-    //         maxZoom: 14,
-    //         minZoom: 8
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-    
-    // helicopterTileLayer = new ol.layer.Tile({
-    //     title: "Helicopter Charts",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_HELI_TILE,
-    //         maxZoom: 13,
-    //         minZoom: 8
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-
-    // caribbeanTileLayer = new ol.layer.Tile({
-    //     title: "Caribbean Charts",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_CARIB_TILE,
-    //         maxZoom: 11,
-    //         minZoom: 5
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-
-    // grandcanyonAoTileLayer = new ol.layer.Tile({
-    //     title: "Grand Canyon Air Ops",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_GCAO_TILE,
-    //         maxZoom: 12,
-    //         minZoom: 8
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-
-    // grandcanyonGaTileLayer = new ol.layer.Tile({
-    //     title: "Grand Canyon GA",
-    //     type: "overlay", 
-    //     source: new ol.source.XYZ({
-    //         url: URL_GET_GCGA_TILE,  
-    //         maxZoom: 12,
-    //         minZoom: 8
-    //     }),
-    //     visible: false,
-    //     extent: extent,
-    //     zIndex: 10
-    // });
-
     let extent = ol.proj.transformExtent(viewextent, 'EPSG:4326', 'EPSG:3857')
 
     debugTileLayer = new ol.layer.Tile({
@@ -1371,41 +1279,24 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         zIndex: 11
     });
 
-    //if (navigator.onLine) {
-        openAipLayer = new ol.layer.Tile({
-            title: '[online] OpenAIP',
-            type: 'overlay',
-            visible: false,
-            source: new ol.source.XYZ({
-                url: 'http://{1-2}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{-y}.png'
-            }),
-            zIndex: 11
-        });
-        osmOnlineTileLayer = new ol.layer.Tile({
-            title: "Open Street Maps (online)",
-            type: "overlay",
-            source: new ol.source.OSM(),
-            visible: true,
-            extent: extent,
-            zIndex: 9
-        });
-    //}
-    // else {
-    //     osmOfflineTileLayer = new ol.layer.Tile({
-    //         title: "Open Street Maps (offline)",
-    //         type: "overlay",
-    //         source: new ol.source.XYZ({
-    //             url: URL_GET_TILE,  
-    //             maxZoom: 7,
-    //             minZoom: 1,
-    //             attributions: [ol.source.OSM.ATTRIBUTION],
-    //         }),
-    //         visible: true,
-    //         extent: extent,
-    //         zIndex: 9
-    //     });
-    // }
-    
+    openAipLayer = new ol.layer.Tile({
+        title: '[online] OpenAIP',
+        type: 'overlay',
+        visible: false,
+        source: new ol.source.XYZ({
+            url: 'http://{1-2}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{-y}.png'
+        }),
+        zIndex: 11
+    });
+    osmOnlineTileLayer = new ol.layer.Tile({
+        title: "Open Street Maps (online)",
+        type: "overlay",
+        source: new ol.source.OSM(),
+        visible: true,
+        extent: extent,
+        zIndex: 9
+    });
+
     metarVectorSource = new ol.source.Vector({
         features: metarFeatures
     });
@@ -1459,14 +1350,6 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     tilelayers.forEach((layer) => {
         map.addLayer(layer);
     })
-    /*
-    map.addLayer(caribbeanTileLayer);
-    map.addLayer(grandcanyonAoTileLayer);
-    map.addLayer(grandcanyonGaTileLayer);
-    map.addLayer(helicopterTileLayer);
-    map.addLayer(terminalTileLayer);
-    map.addLayer(sectionalTileLayer);
-    */
 
     if (navigator.onLine) {
         map.addLayer(openAipLayer);
