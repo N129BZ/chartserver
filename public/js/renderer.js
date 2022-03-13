@@ -1243,20 +1243,27 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
     let tilelayers = [];
     Object.keys(meta).forEach((key) => {
         let bounds = meta[key]["extent"];
+        let minzoom = meta[key]["minzoom"];
+        let maxzoom = meta[key]["maxzoom"];
         let extent = ol.proj.transformExtent(bounds, 'EPSG:4326', 'EPSG:3857')
         let url = URL_GET_TILE.replace("###", key)
         let layer = new ol.layer.Tile({
             title: key,
             type: "overlay",
             source: new ol.source.XYZ({
-                url: url, 
-                minZoom: meta["minzoom"],
-                maxZoom: meta["maxzoom"],
+                url: url
             }),
             visible: false,
             extent: extent,
-            zIndex: 10
+            minZoom: minzoom,
+            maxZoom: maxzoom,
+            zIndex: 11
         })
+        //layer.on('change:visible', () => { 
+        //    if (currentZoom > layer.get("maxzoom")) {
+        //        console.log(`currentZoom is > ${maxzoom} for layer ${key}`);
+        //    }
+        //});
         tilelayers.push(layer);
     })
 
@@ -1355,9 +1362,7 @@ $.get(`${URL_GET_TILESETS}`, (data) => {
         map.addLayer(openAipLayer);
         map.addLayer(osmOnlineTileLayer);
     }
-    else {
-        map.addLayer(osmOfflineTileLayer);
-    }
+    
     let layerSwitcher = new ol.control.LayerSwitcher({
         tipLabel: 'Layers', 
         groupSelectStyle: 'children'
