@@ -1,13 +1,13 @@
 {
-    "savepositionhistory": false,
+    "savepositionhistory": true,
     "histintervalmsec": 15000,
-    "getgpsfromstratux": false,
     "gpsintervalmsec": 1000,
     "wxupdateintervalmsec": 480000,
     "keepaliveintervalmsec": 30000,
     "httpport": 5000,
     "wsport": 5050,
     "startupzoom": 8,
+    "useOSMonlinemap": true,
     "debug": false,
     "osmofflineDb": "osm.mbtiles",
     "sectionalDb": "Sectional.mbtiles",
@@ -19,12 +19,16 @@
     "historyDb": "positionhistory.db",
     "uselocaltime": true,
     "distanceunit": "sm", 
-    "stratuxurl": "http://192.168.10.1/getSituation",
+    "usestratux": true,
+    "stratuxip": "192.168.1.187",
+    "stratuxsituationws": "ws://[stratuxip]/situation",
+    "stratuxtrafficws": "ws://[stratuxip]/traffic",
     "animatedwxurl": "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
     "addswxurl": "https://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=###&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=",
     "addsurrentxmlurl": "https://aviationweather.gov/adds/dataserver_current/current/###.cache.xml",
     "lockownshiptocenter": true,
-    "ownshipimage": "blueplane.png",
+    "ownshipimage": "airplane.png",
+    "trafficimage": "red-yellow-traffic.png",
     "usemetricunits": false,
     "distanceunits": {
         "kilometers": "km",
@@ -50,7 +54,7 @@
         },
         "keepalive": {
             "type": "keepalive",
-            "token": "💜"
+            "token": "((💜))"
         }
     }
 }
