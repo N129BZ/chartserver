@@ -1,6 +1,5 @@
-node_modules
-out
-public/data
-.vscode
-xmldata/*.xml
+**/node_modules
+**/out
+**/public/data
+**/xmldata/*.xml
 

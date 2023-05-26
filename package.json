@@ -2,7 +2,7 @@
   "name": "aviationmaps",
   "version": "1.0.0",
   "description": "Aviation and Weather Maps",
-  "main": "main.js",
+  "main": "server.js",
   "author": "Brian A. Manlove",
   "license": "BSD 3-Clause",
   "dependencies": {
@@ -13,7 +13,7 @@
     "math": "0.0.3",
     "ol": "^6.14.1",
     "serve-favicon": "^2.5.0",
-    "sqlite3": "^5.0.2",
+    "sqlite3": "^5.1.6",
     "url": "^0.11.0",
     "ws": "^8.5.0",
     "xmlhttprequest": "^1.8.0"
