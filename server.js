@@ -43,14 +43,9 @@ let MessageTypes = {};
 let wss;
 let connections = new Map();
 let DB_PATH        = `${__dirname}/public/data`;
-let DB_SECTIONAL   = ""; 
-let DB_TERMINAL    = ""; 
-let DB_HELICOPTER  = ""; 
-let DB_CARIBBEAN   = ""; 
-let DB_GCANYONAO   = ""; 
-let DB_GCANYONGA   = ""; 
-let DB_HISTORY     = ""; 
-let DB_OSMOFFLINE  = ""; 
+
+const databaselist = new Map();
+const databases    = new Map();
 
 /*
  * First things first... load settings.json and airports.json 
@@ -60,15 +55,14 @@ let DB_OSMOFFLINE  = "";
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     settings       = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
-    DB_SECTIONAL   = `${DB_PATH}/${settings.sectionalDb}`;
-    DB_TERMINAL    = `${DB_PATH}/${settings.terminalDb}`;
-    DB_HELICOPTER  = `${DB_PATH}/${settings.helicopterDb}`;
-    DB_CARIBBEAN   = `${DB_PATH}/${settings.caribbeanDb}`;
-    DB_GCANYONAO   = `${DB_PATH}/${settings.gcanyonAoDb}`;
-    DB_GCANYONGA   = `${DB_PATH}/${settings.gcanyonGaDb}`;
-    DB_HISTORY     = `${DB_PATH}/${settings.historyDb}`;
-    DB_OSMOFFLINE  = `${DB_PATH}/${settings.osmofflineDb}`;
     
+    let dbfiles    = fs.readdirSync(DB_PATH);
+    dbfiles.forEach((dbname) => {
+        var tilingname = dbname.toLowerCase().split(".")[0];
+        var dbfile = `${DB_PATH}/${dbname}`;
+        databaselist.set(tilingname, dbfile);
+    });
+
     rawdata = fs.readFileSync(`${__dirname}/airports.json`);
     airports = JSON.parse(rawdata);
 
@@ -101,54 +95,19 @@ let DB_OSMOFFLINE  = "";
     }
 })();
 
-/**
- * THESE DATABASES ARE A TEMPORARY KLUDGE OF THE HIGHEST ORDER... 
- */
-const vfrdb = new sqlite3.Database(DB_SECTIONAL, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_SECTIONAL}: ${err}`);
-        throw err;
-    }
-});
-const termdb = new sqlite3.Database(DB_TERMINAL, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_TERMINAL}: ${err}`);
-        throw err;
-    }
-});
-const helidb = new sqlite3.Database(DB_HELICOPTER, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_HELICOPTER}: ${err}`);
-        throw err;
-    }
-});
-const caribdb = new sqlite3.Database(DB_CARIBBEAN, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_CARIBBEAN}: ${err}`);
-        throw err;
-    }
-});
-const gcaodb = new sqlite3.Database(DB_GCANYONAO, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_GCANYONAO}: ${err}`);
-        throw err;
-    }
-});
-const gcgadb = new sqlite3.Database(DB_GCANYONGA, sqlite3.OPEN_READONLY, (err) => {
-    if (err) {
-        console.log(`Failed to load: ${DB_GCANYONGA}: ${err}`);
-        throw err;
-    }
-});
-const histdb = new sqlite3.Database(DB_HISTORY, sqlite3.OPEN_READWRITE, (err) => {
+const histdb = new sqlite3.Database(`${__dirname}/${settings.historyDb}`, sqlite3.OPEN_READWRITE, (err) => {
     if (err){
-        console.log(`Failed to load: ${DB_HISTORY}: ${err}`);
+        console.log(`Failed to load: ${settings.historyDb}: ${err}`);
     }
 });
-const osmdb = new sqlite3.Database(DB_OSMOFFLINE, sqlite3.OPEN_READWRITE, (err) => {
-    if (err){
-        console.log(`Failed to load: ${DB_OSMOFFLINE}: ${err}`);
-    }
+
+databaselist.forEach((value, key) => {
+    databases.set(key, new sqlite3.Database(value, sqlite3.OPEN_READONLY, (err) => {
+        if (err) {
+            console.log(`Failed to load: ${key}: ${err}`);
+            throw err;
+        }
+    }));
 });
 
 /**
@@ -195,36 +154,25 @@ try {
         res.end();
     });
 
+    app.get("/databaselist", (req, res) => {
+        let obj = [];
+        databaselist.forEach((value, key) => {
+            obj.push(key);
+        });
+        let rawdata = JSON.stringify(obj);
+        res.writeHead(200);
+        res.write(rawdata);
+        res.end();
+    });
+
     app.get("/tiles/tilesets", (req,res) => {
         handleTilesets(req, res);
     });    
 
-    app.get("/tiles/osmtile/*", (req, res) => {
-        handleTile(req, res, osmdb);
-    });
-
-    app.get("/tiles/vfrsectile/*", (req, res) => {
-        handleTile(req, res, vfrdb);
-    });
-
-    app.get("/tiles/termtile/*", (req, res) => {
-        handleTile(req, res, termdb);
-    });
-
-    app.get("/tiles/helitile/*", (req, res) => {
-        handleTile(req, res, helidb);
-    });
-
-    app.get("/tiles/caribtile/*", (req, res) => {
-        handleTile(req, res, caribdb);
-    });
-
-    app.get("/tiles/gcaotile/*", (req, res) => {
-        handleTile(req, res, gcaodb);
-    });
-
-    app.get("/tiles/gcgatile/*", (req, res) => {
-        handleTile(req, res, gcgadb);
+    app.get("/tiles/*", (req, res) => {
+        let parts = req.url.split("/");
+        let db = databases.get(parts[2]);
+        handleTile(req, res, db);
     });
 
     app.get("/gethistory", (req,res) => {
@@ -298,7 +246,7 @@ function handleTile(request, response, db) {
     let idx = -1;
 
     let parts = request.url.split("/"); 
-	if (parts.length < 4) {
+	if (parts.length < 5) {
 		return
 	}
 
@@ -373,26 +321,26 @@ function handleTilesets(request, response) {
     let parms = url.parse(request.url,true).query
     switch (parms.layer) {
         case "osm":
-            db = osmdb;
+            //db = osmdb;
             break;
         case "term":
-            db = termdb;
+            //db = termdb;
             break;include
         case "heli":
-            db = helidb;
+            //db = helidb;
             break;
         case "carib":
-            db = caribdb;
+            //db = caribdb;
             break;
         case "gcao":
-            db = gcaodb;
+            //db = gcaodb;
             break;
         case "gcga":
-            db = gcgadb;
+            //db = gcgadb;
             break;
         case "vfr":
         default:
-            db = vfrdb;
+            //db = vfrdb;
             break;
     }
 

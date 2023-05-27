@@ -15,18 +15,17 @@ let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
 let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
-let URL_GET_OSM_TILE        = `${URL_SERVER}/tiles/osmtile/{z}/{x}/{-y}.png`;
-let URL_GET_VFRSEC_TILE     = `${URL_SERVER}/tiles/vfrsectile/{z}/{x}/{-y}.png`;
-let URL_GET_TERM_TILE       = `${URL_SERVER}/tiles/termtile/{z}/{x}/{-y}.png`;
-let URL_GET_HELI_TILE       = `${URL_SERVER}/tiles/helitile/{z}/{x}/{-y}.png`;
-let URL_GET_CARIB_TILE      = `${URL_SERVER}/tiles/caribtile/{z}/{x}/{-y}.png`;
-let URL_GET_GCAO_TILE       = `${URL_SERVER}/tiles/gcaotile/{z}/{x}/{-y}.png`;
-let URL_GET_GCGA_TILE       = `${URL_SERVER}/tiles/gcgatile/{z}/{x}/{-y}.png`;
+let URL_GET_DBLIST          = `${URL_SERVER}/databaselist`;
+let URL_GET_TILE            = `${URL_SERVER}/tiles/{dbname}/{z}/{x}/{-y}`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
 let URL_GET_SETTINGS        = `${URL_SERVER}/getsettings`;
 let URL_PUT_HISTORY         = `${URL_SERVER}/savehistory`;
 let URL_GET_HELIPORTS       = `${URL_SERVER}/getheliports`;
 
+let deg = 0;
+let alt = 0;
+let lng = 0;
+let lat = 0;
 
 /**
  * Classes used by the on-the-fly weather SVG in metar popups
@@ -73,6 +72,7 @@ class Cloud {
  * global variables
  */
 let settings = {};
+let dblist = {};
 let last_longitude = 0;
 let last_latitude = 0;
 let last_heading = 0;
@@ -131,14 +131,14 @@ let trafficVectorLayer;
 /**
  * Tile layers
  */
-let osmOnlineTileLayer;
-let osmOfflineTileLayer;
-let sectionalTileLayer;
-let terminalTileLayer;
-let helicopterTileLayer;
-let caribbeanTileLayer;
-let grandcanyonAoTileLayer;
-let grandcanyonGaTileLayer;
+// let osmOnlineTileLayer;
+// let osmOfflineTileLayer;
+// let sectionalTileLayer;
+// let terminalTileLayer;
+// let helicopterTileLayer;
+// let caribbeanTileLayer;
+// let grandcanyonAoTileLayer;
+// let grandcanyonGaTileLayer;
 let animatedWxTileLayer;
 let debugTileLayer;  
 
@@ -183,6 +183,23 @@ let regionmap = new Map();
             DistanceUnits = settings.distanceunits;
             distanceunit = settings.distanceunit;
             currentZoom = settings.startupzoom;
+        }
+        catch(err) {
+            console.log(err);
+        }
+    },
+    error: (xhr, ajaxOptions, thrownError) => {
+        console.error(xhr.status, thrownError);
+    }
+});
+
+$.get({
+    async: false,
+    type: "GET",
+    url: URL_GET_DBLIST,
+    success: (data) => {
+        try {
+            dblist = JSON.parse(data);
         }
         catch(err) {
             console.log(err);
@@ -1397,230 +1414,156 @@ animatedWxTileSource = new ol.source.TileWMS({
 
 
 /**
- * jQuery $get all layer tile data
+ * Add tile data for all layers
  */
-$.get(`${URL_GET_TILESETS}`, (data) => {
-    let extent = ol.proj.transformExtent(viewextent, 'EPSG:4326', 'EPSG:3857')
-    
-    sectionalTileLayer = new ol.layer.Tile({
-        title: "VFR Sectional Chart",
-        type: "overlay", 
+let extent = ol.proj.transformExtent(viewextent, 'EPSG:4326', 'EPSG:3857')
+Object.entries(dblist).forEach((db) => {
+    let dburl = URL_GET_TILE.replace("{dbname}", db[1]);
+    let thislayer = new ol.layer.Tile({
+        title: db,
+        type: "overlay",
         source: new ol.source.XYZ({
-            url: URL_GET_VFRSEC_TILE,
-            maxZoom: 11,
-            minZoom: 5,
+            url: dburl,
+            maxzoom: 11,
+            minzoom: 5,
             attributionsCollapsible: false
         }),
-        visible: false,
+        visible: true,
         extent: extent,
-        zIndex: 10
+        zindex: 10
     });
-    
-    terminalTileLayer = new ol.layer.Tile({
-        title: "Terminal Area Charts",
-        type: "overlay", 
-        source: new ol.source.XYZ({
-            url: URL_GET_TERM_TILE,
-            maxZoom: 12,
-            minZoom: 8
-        }),
-        visible: false,
-        extent: extent,
-        zIndex: 10
-    });
-    
-    helicopterTileLayer = new ol.layer.Tile({
-        title: "Helicopter Charts",
-        type: "overlay", 
-        source: new ol.source.XYZ({
-            url: URL_GET_HELI_TILE,
-            maxZoom: 13,
-            minZoom: 8
-        }),
-        visible: false,
-        extent: extent,
-        zIndex: 10
-    });
+    map.addLayer(thislayer); 
+});
 
-    caribbeanTileLayer = new ol.layer.Tile({
-        title: "Caribbean Charts",
-        type: "overlay", 
-        source: new ol.source.XYZ({
-            url: URL_GET_CARIB_TILE,
-            maxZoom: 11,
-            minZoom: 5
-        }),
-        visible: false,
-        extent: extent,
-        zIndex: 10
-    });
+debugTileLayer = new ol.layer.Tile({
+    title: "Debug",
+    type: "overlay",
+    source: new ol.source.TileDebug(),
+    visible: false,
+    extent: extent,
+    zIndex: 12
+});
 
-    grandcanyonAoTileLayer = new ol.layer.Tile({
-        title: "Grand Canyon Air Ops",
-        type: "overlay", 
-        source: new ol.source.XYZ({
-            url: URL_GET_GCAO_TILE,
-            maxZoom: 12,
-            minZoom: 8
-        }),
-        visible: false,
-        extent: extent,
-        zIndex: 10
-    });
+animatedWxTileLayer = new ol.layer.Tile({
+    title: "Animated Weather",
+    extent: extent,
+    source: animatedWxTileSource,
+    visible: false,
+    zIndex: 11
+});
 
-    grandcanyonGaTileLayer = new ol.layer.Tile({
-        title: "Grand Canyon GA",
-        type: "overlay", 
-        source: new ol.source.XYZ({
-            url: URL_GET_GCGA_TILE,  
-            maxZoom: 12,
-            minZoom: 8
-        }),
-        visible: false,
-        extent: extent,
-        zIndex: 10
-    });
+// if (settings.useOSMonlinemap) {
+//     osmOnlineTileLayer = new ol.layer.Tile({
+//         title: "Open Street Maps (online)",
+//         type: "overlay",
+//         source: new ol.source.OSM(),
+//         visible: true,
+//         extent: extent,
+//         zIndex: 9
+//     });
+//     //map.addLayer(osmOnlineTileLayer);
+// }
+// else {
+//     osmOfflineTileLayer = new ol.layer.Tile({
+//         title: "Open Street Maps (offline)",
+//         type: "overlay",
+//         source: new ol.source.XYZ({
+//             url: URL_GET_TILE.replace("dbname", "osm"),  
+//             maxZoom: 7,
+//             minZoom: 1,
+//             attributions: [ol.source.OSM.ATTRIBUTION],
+//         }),
+//         visible: true,
+//         extent: extent,
+//         zIndex: 9
+//     });
+//     //map.addLayer(osmOfflineTileLayer);
+// }
 
-    debugTileLayer = new ol.layer.Tile({
-        title: "Debug",
-        type: "overlay",
-        source: new ol.source.TileDebug(),
-        visible: false,
-        extent: extent,
-        zIndex: 12
-    });
+metarVectorSource = new ol.source.Vector({
+    features: metarFeatures
+});
+metarVectorLayer = new ol.layer.Vector({
+    title: "Metars",
+    source: metarVectorSource,
+    visible: false,
+    extent: extent,
+    zIndex: 12
+}); 
 
-    animatedWxTileLayer = new ol.layer.Tile({
-        title: "Animated Weather",
-        extent: extent,
-        source: animatedWxTileSource,
-        visible: false,
-        zIndex: 11
-    });
+airportVectorSource = new ol.source.Vector({
+    features: airportFeatures
+});
+airportVectorLayer = new ol.layer.Vector({
+    title: "All Airports",
+    source: airportVectorSource,
+    visible: false,
+    extent: extent,
+    zIndex: 11
+}); 
 
-    if (settings.useOSMonlinemap) {
-        osmOnlineTileLayer = new ol.layer.Tile({
-            title: "Open Street Maps (online)",
-            type: "overlay",
-            source: new ol.source.OSM(),
-            visible: true,
-            extent: extent,
-            zIndex: 9
-        });
+tafVectorSource = new ol.source.Vector({
+    features: tafFeatures
+});
+tafVectorLayer = new ol.layer.Vector({
+    title: "TAFs",
+    source: tafVectorSource,
+    visible: false,
+    extent: extent,
+    zIndex: 13
+});
+
+pirepVectorSource = new ol.source.Vector({
+    features: pirepFeatures
+});
+pirepVectorLayer = new ol.layer.Vector({
+    title: "Pireps",
+    source: pirepVectorSource,
+    visible: false,
+    extent: extent, 
+    zIndex: 14
+});
+
+trafficVectorSource = new ol.source.Vector({
+    features: trafficFeatures
+});
+trafficVectorLayer = new ol.layer.Vector({
+    title: "Traffic",
+    source: trafficVectorSource,
+    visible: false,
+    extent: extent,
+    zIndex: 14
+});
+
+map.addLayer(debugTileLayer);
+map.addLayer(airportVectorLayer);
+map.addLayer(metarVectorLayer); 
+map.addLayer(tafVectorLayer);
+map.addLayer(pirepVectorLayer);
+map.addLayer(trafficVectorLayer);
+map.addLayer(animatedWxTileLayer);
+
+const layerSwitcher = new ol.control.LayerSwitcher({
+    tipLabel: 'Layers', 
+    groupSelectStyle: 'children'
+});
+map.addControl(layerSwitcher);
+
+airportVectorLayer.on('change:visible', () => {
+    let visible = airportVectorLayer.get('visible');
+    regioncontrol.style.visibility = visible ? 'visible' : 'hidden';
+    if (visible) {
+        regionselect.options[0].selected = true;
+        regionselect.value = lastcriteria; 
+        selectFeaturesByCriteria()
+        closePopup();
     }
-    else {
-        osmOfflineTileLayer = new ol.layer.Tile({
-            title: "Open Street Maps (offline)",
-            type: "overlay",
-            source: new ol.source.XYZ({
-                url: URL_GET_OSM_TILE,  
-                maxZoom: 7,
-                minZoom: 1,
-                attributions: [ol.source.OSM.ATTRIBUTION],
-            }),
-            visible: true,
-            extent: extent,
-            zIndex: 9
-        });
-    }
+});
 
-    metarVectorSource = new ol.source.Vector({
-        features: metarFeatures
-    });
-    metarVectorLayer = new ol.layer.Vector({
-        title: "Metars",
-        source: metarVectorSource,
-        visible: false,
-        extent: extent,
-        zIndex: 12
-    }); 
-
-    airportVectorSource = new ol.source.Vector({
-        features: airportFeatures
-    });
-    airportVectorLayer = new ol.layer.Vector({
-        title: "All Airports",
-        source: airportVectorSource,
-        visible: false,
-        extent: extent,
-        zIndex: 11
-    }); 
-    
-    tafVectorSource = new ol.source.Vector({
-        features: tafFeatures
-    });
-    tafVectorLayer = new ol.layer.Vector({
-        title: "TAFs",
-        source: tafVectorSource,
-        visible: false,
-        extent: extent,
-        zIndex: 13
-    });
-    
-    pirepVectorSource = new ol.source.Vector({
-        features: pirepFeatures
-    });
-    pirepVectorLayer = new ol.layer.Vector({
-        title: "Pireps",
-        source: pirepVectorSource,
-        visible: false,
-        extent: extent, 
-        zIndex: 14
-    });
-
-    trafficVectorSource = new ol.source.Vector({
-        features: trafficFeatures
-    });
-    trafficVectorLayer = new ol.layer.Vector({
-        title: "Traffic",
-        source: trafficVectorSource,
-        visible: false,
-        extent: extent,
-        zIndex: 14
-    });
-
-    map.addLayer(debugTileLayer);
-    map.addLayer(airportVectorLayer);
-    map.addLayer(metarVectorLayer); 
-    map.addLayer(tafVectorLayer);
-    map.addLayer(pirepVectorLayer);
-    map.addLayer(trafficVectorLayer);
-    map.addLayer(animatedWxTileLayer);
-    map.addLayer(caribbeanTileLayer);
-    map.addLayer(grandcanyonAoTileLayer);
-    map.addLayer(grandcanyonGaTileLayer);
-    map.addLayer(helicopterTileLayer);
-    map.addLayer(terminalTileLayer);
-    map.addLayer(sectionalTileLayer);
-
-    if (settings.useOSMonlinemap) {
-        map.addLayer(osmOnlineTileLayer);
-    }
-    else {
-        map.addLayer(osmOfflineTileLayer);
-    }
-    let layerSwitcher = new ol.control.LayerSwitcher({
-        tipLabel: 'Layers', 
-        groupSelectStyle: 'children'
-    });
-    map.addControl(layerSwitcher);
-
-    airportVectorLayer.on('change:visible', () => {
-        let visible = airportVectorLayer.get('visible');
-        regioncontrol.style.visibility = visible ? 'visible' : 'hidden';
-        if (visible) {
-            regionselect.options[0].selected = true;
-            regionselect.value = lastcriteria; 
-            selectFeaturesByCriteria()
-            closePopup();
-        }
-    });
-
-    animatedWxTileLayer.on('change:visible', () => {
-        let visible = animatedWxTileLayer.get('visible');
-        animatecontrol.style.visibility = visible ? 'visible' : 'hidden';
-        visible ? playWeatherRadar() : stopWeatherRadar()
-    });
+animatedWxTileLayer.on('change:visible', () => {
+    let visible = animatedWxTileLayer.get('visible');
+    animatecontrol.style.visibility = visible ? 'visible' : 'hidden';
+    visible ? playWeatherRadar() : stopWeatherRadar()
 });
 
 /**
@@ -1737,11 +1680,6 @@ const convertCtoF = ((temp) => {
     if (num === NaN || num === undefined) return "";
     else return `${num.toFixed(1)} F°`;
 });
-
-let deg = 0;
-let alt = 0;
-let lng = 0;
-let lat = 0;
 
 /**
  * Set ownship orientation from Stratux situation, updates airplane image current position
