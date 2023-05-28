@@ -11,7 +11,6 @@
     "fast-xml-parser": "^4.0.3",
     "fs": "^0.0.1-security",
     "math": "0.0.3",
-    "ol": "^6.14.1",
     "serve-favicon": "^2.5.0",
     "sqlite3": "^5.1.6",
     "url": "^0.11.0",
