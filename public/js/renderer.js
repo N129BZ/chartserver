@@ -131,14 +131,6 @@ let trafficVectorLayer;
 /**
  * Tile layers
  */
-// let osmOnlineTileLayer;
-// let osmOfflineTileLayer;
-// let sectionalTileLayer;
-// let terminalTileLayer;
-// let helicopterTileLayer;
-// let caribbeanTileLayer;
-// let grandcanyonAoTileLayer;
-// let grandcanyonGaTileLayer;
 let animatedWxTileLayer;
 let debugTileLayer;  
 
@@ -1417,24 +1409,6 @@ animatedWxTileSource = new ol.source.TileWMS({
  * Add tile data for all layers
  */
 let extent = ol.proj.transformExtent(viewextent, 'EPSG:4326', 'EPSG:3857')
-Object.entries(dblist).forEach((db) => {
-    let dburl = URL_GET_TILE.replace("{dbname}", db[1]);
-    let thislayer = new ol.layer.Tile({
-        title: db,
-        type: "overlay",
-        source: new ol.source.XYZ({
-            url: dburl,
-            maxzoom: 11,
-            minzoom: 5,
-            attributionsCollapsible: false
-        }),
-        visible: true,
-        extent: extent,
-        zindex: 10
-    });
-    map.addLayer(thislayer); 
-});
-
 debugTileLayer = new ol.layer.Tile({
     title: "Debug",
     type: "overlay",
@@ -1451,34 +1425,6 @@ animatedWxTileLayer = new ol.layer.Tile({
     visible: false,
     zIndex: 11
 });
-
-// if (settings.useOSMonlinemap) {
-//     osmOnlineTileLayer = new ol.layer.Tile({
-//         title: "Open Street Maps (online)",
-//         type: "overlay",
-//         source: new ol.source.OSM(),
-//         visible: true,
-//         extent: extent,
-//         zIndex: 9
-//     });
-//     //map.addLayer(osmOnlineTileLayer);
-// }
-// else {
-//     osmOfflineTileLayer = new ol.layer.Tile({
-//         title: "Open Street Maps (offline)",
-//         type: "overlay",
-//         source: new ol.source.XYZ({
-//             url: URL_GET_TILE.replace("dbname", "osm"),  
-//             maxZoom: 7,
-//             minZoom: 1,
-//             attributions: [ol.source.OSM.ATTRIBUTION],
-//         }),
-//         visible: true,
-//         extent: extent,
-//         zIndex: 9
-//     });
-//     //map.addLayer(osmOfflineTileLayer);
-// }
 
 metarVectorSource = new ol.source.Vector({
     features: metarFeatures
@@ -1543,7 +1489,55 @@ map.addLayer(pirepVectorLayer);
 map.addLayer(trafficVectorLayer);
 map.addLayer(animatedWxTileLayer);
 
-const layerSwitcher = new ol.control.LayerSwitcher({
+dblist.reverse();
+Object.entries(dblist).forEach((db) => {
+    let dbname = db[1];
+    let dburl = URL_GET_TILE.replace("{dbname}", dbname);
+    var layer = new ol.layer.Tile({
+        title: dbname,
+        type: "overlay",
+        source: new ol.source.XYZ({
+            url: dburl,
+            maxzoom: 11,
+            minzoom: 0,
+            attributionsCollapsible: false
+        }),
+        visible: false,
+        extent: extent,
+        zindex: 10
+    });
+    map.addLayer(layer); 
+});
+
+if (settings.useOSMonlinemap) {
+    const osmOnlineTileLayer = new ol.layer.Tile({
+        title: "Open Street Maps (online)",
+        type: "overlay",
+        source: new ol.source.OSM(),
+        visible: true,
+        extent: extent,
+        zIndex: 8
+    });
+    map.addLayer(osmOnlineTileLayer);
+}
+else {
+    const osmOfflineTileLayer = new ol.layer.Tile({
+        title: "Open Street Maps (offline)",
+        type: "overlay",
+        source: new ol.source.XYZ({
+            url: URL_GET_TILE.replace("dbname", "osm"),  
+            maxZoom: 7,
+            minZoom: 1,
+            attributions: [ol.source.OSM.ATTRIBUTION],
+        }),
+        visible: true,
+        extent: extent,
+        zIndex: 8
+    });
+    map.addLayer(osmOfflineTileLayer);
+}
+
+const layerSwitcher = new LayerSwitcher({
     tipLabel: 'Layers', 
     groupSelectStyle: 'children'
 });
