@@ -1510,7 +1510,14 @@ map.addLayer(animatedWxTileLayer);
 dblist.reverse();
 Object.entries(dblist).forEach((db) => {
     let dbname = db[1];
-    let metadata = []; 
+    let metadata = {};
+    for (var i = 0; i < metadatasets.length; i++) {
+        if (metadatasets[i]["key"] === dbname) {
+            metadata = metadatasets[i]["value"];
+            break;
+        } 
+    }
+
     if (JSON.stringify(metadata) != "{}") {
         let dburl = URL_GET_TILE.replace("{dbname}", dbname);
         var layer = new ol.layer.Tile({

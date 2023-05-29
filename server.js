@@ -181,7 +181,14 @@ try {
     });
 
     app.get("/metadatasets", (req, res) => {
-        let rawdata = JSON.stringify(metadatasets);
+        let dbs = [];
+        metadatasets.forEach((item, key) => {
+            let lineitem = {};
+            lineitem["key"] = key;
+            lineitem["value"] = item;
+            dbs.push(lineitem);
+        });
+        let rawdata = JSON.stringify(dbs);
         res.writeHead(200);
         res.write(rawdata);
         res.end();
@@ -335,7 +342,7 @@ function loadMetadatasets() {
         item["bounds"] = "";
         item["attribution"] = "";
         let found = false;
-        db.
+        
         db.all(sql, [], (err, rows) => {
             if (!err) {
                 rows.forEach((row) => {
