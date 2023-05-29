@@ -1517,7 +1517,7 @@ Object.entries(dblist).forEach((db) => {
                 url: dburl,
                 maxzoom: metadata.maxzoom,
                 minzoom: metadata.minzoom,
-                attributions: metadata.attribution,
+                attributions: settings.showattribution == true ? metadata.attribution : "",
                 attributionsCollapsible: false
             }),
             visible: false,
