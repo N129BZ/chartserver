@@ -43,6 +43,7 @@ let MessageTypes = {};
 let wss;
 let connections = new Map();
 let DB_PATH        = `${__dirname}/public/data`;
+let osmoffline     = `${__dirname}/osmofflinedb/osm.db`;
 
 const databaselist = new Map();
 const databases    = new Map();
@@ -165,8 +166,8 @@ try {
         res.end();
     });
 
-    app.get("/tiles/tilesets", (req,res) => {
-        handleTilesets(req, res);
+    app.get("/tiles/metadata/*", (req,res) => {
+        handleTilesetMetadata(req, res);
     });    
 
     app.get("/tiles/*", (req, res) => {
@@ -309,41 +310,16 @@ function loadTile(z, x, y, response, db) {
  * @param {object} request 
  * @param {object} response 
  */
-function handleTilesets(request, response) {
+function handleTilesetMetadata(request, response) {
     let sql = `SELECT name, value FROM metadata UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
               `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
               `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
     let found = false;
     let meta = {};
-    let db;
     meta["bounds"] = "";
-
-    let parms = url.parse(request.url,true).query
-    switch (parms.layer) {
-        case "osm":
-            //db = osmdb;
-            break;
-        case "term":
-            //db = termdb;
-            break;include
-        case "heli":
-            //db = helidb;
-            break;
-        case "carib":
-            //db = caribdb;
-            break;
-        case "gcao":
-            //db = gcaodb;
-            break;
-        case "gcga":
-            //db = gcgadb;
-            break;
-        case "vfr":
-        default:
-            //db = vfrdb;
-            break;
-    }
-
+    let parms = request.url.split("/");
+    let db = databases.get(parms[3]);
+    
     db.all(sql, [], (err, rows) => {
         if (!err) {
             rows.forEach((row) => {

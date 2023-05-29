@@ -14,7 +14,7 @@ if (parseInt(URL_PORT) > 0) {
 let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
-let URL_GET_TILESETS        = `${URL_SERVER}/tiles/tilesets`;
+let URL_GET_METADATA        = `${URL_SERVER}/tiles/metadata/{dbname}`;
 let URL_GET_DBLIST          = `${URL_SERVER}/databaselist`;
 let URL_GET_TILE            = `${URL_SERVER}/tiles/{dbname}/{z}/{x}/{-y}`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
@@ -1489,24 +1489,43 @@ map.addLayer(pirepVectorLayer);
 map.addLayer(trafficVectorLayer);
 map.addLayer(animatedWxTileLayer);
 
+function getTilesMetadata(dbname) {
+    let dburl = URL_GET_METADATA.replace("{dbname}", dbname);
+    let request = new XMLHttpRequest();
+    request.open("GET", dburl, false);
+
+    request.send(null);
+
+    if (request.status === 200) {
+        return JSON.parse(request.responseText);
+    }
+    else {
+        return {};
+    }
+}
+
 dblist.reverse();
 Object.entries(dblist).forEach((db) => {
     let dbname = db[1];
-    let dburl = URL_GET_TILE.replace("{dbname}", dbname);
-    var layer = new ol.layer.Tile({
-        title: dbname,
-        type: "overlay",
-        source: new ol.source.XYZ({
-            url: dburl,
-            maxzoom: 11,
-            minzoom: 0,
-            attributionsCollapsible: false
-        }),
-        visible: false,
-        extent: extent,
-        zindex: 10
-    });
-    map.addLayer(layer); 
+    let metadata = getTilesMetadata(dbname);
+    if (JSON.stringify(metadata) != "{}") {
+        let dburl = URL_GET_TILE.replace("{dbname}", dbname);
+        var layer = new ol.layer.Tile({
+            title: metadata.description,
+            type: metadata.type,
+            source: new ol.source.XYZ({
+                url: dburl,
+                maxzoom: metadata.maxzoom,
+                minzoom: metadata.minzoom,
+                attributions: metadata.attribution,
+                attributionsCollapsible: false
+            }),
+            visible: false,
+            extent: extent,
+            zindex: 10
+        });
+        map.addLayer(layer);
+    } 
 });
 
 if (settings.useOSMonlinemap) {
@@ -1774,40 +1793,40 @@ function formatZuluDate(zuludate) {
     let time = timex[1];
 
     if (time.search("Eastern Standard") > -1) {
-        tzone = "(EST)"; //time.replace("Eastern Standard Time", "EST");
+        tzone = "(EST)"; 
     }
     if (time.search("Eastern Daylignt") > -1) {
-        tzone = "(EDT)"; //time.replace("Eastern Standard Time", "EDT");
+        tzone = "(EDT)"; 
     }
     if (time.search("Central Standard") > -1) {
-        tzone = "(CST)"; //time.replace("Central Standard Time", "CST");
+        tzone = "(CST)"; 
     }
     if (time.search("Central Daylight") > -1) {
-        tzone = "(CDT)"; //time.replace("Eastern Standard Time", "CDT");
+        tzone = "(CDT)"; 
     }
     if (time.search("Mountain Standard") > -1) {
-        tzone = "(MST)"; //time.replace("Mountain Standard Time", "MST");
+        tzone = "(MST)"; 
     }
     if (time.search("Mountain Daylight") > -1) {
-        tzone = "(MDT)"; //time.replace("Eastern Standard Time", "MDT");
+        tzone = "(MDT)"; 
     }
     if (time.search("Pacific Standard") > -1) {
-        tzone = "(PST)"; //time.replace("Pacific Standard Time", "PST");
+        tzone = "(PST)"; 
     }
     if (time.search("Pacific Daylight") > -1) {
-        tzone = "(PDT)"; //time.replace("Pacific Daylight Time", "PDT");
+        tzone = "(PDT)"; 
     }
     if (time.search("Alaska Standard") > -1) {
-        tzone = "(AKST)"; //time.replace("Alaska Standard Time", "AKST");
+        tzone = "(AKST)"; 
     }
     if (time.search("Alaska Daylight") > -1) {
-        tzone = "(AKDT)"; //time.replace("Alaska Daylight Time", "AKDT");
+        tzone = "(AKDT)"; 
     }
     if (time.search("Atlantic Standard") > -1) {
-        tzone = "(AST)"; //time.replace("Atlantic Standard Time", "AST");
+        tzone = "(AST)"; 
     }
     if (time.search("Atlantic Daylight") > -1) {
-        tzone = "(ADT)"; //time.replace("Atlantic Daylight Time", "ADT");
+        tzone = "(ADT)";
     }
     return `${month}-${day}-${year} ${hours}:${minutes} ${ampm} ${tzone}`;
 }
