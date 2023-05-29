@@ -38,7 +38,7 @@ const xmlparser = new XMLParser(xmlParseOptions);
  */
 let settings = {};
 let airports = {};
-let MessageTypes = {}; 
+let MessageTypes = {};
 
 let wss;
 let connections = new Map();
@@ -47,6 +47,7 @@ let osmoffline     = `${__dirname}/osmofflinedb/osm.db`;
 
 const databaselist = new Map();
 const databases    = new Map();
+const metadatasets = new Map();
 
 /*
  * First things first... load settings.json and airports.json 
@@ -56,12 +57,16 @@ const databases    = new Map();
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     settings       = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
-    
+
+    // make sure offline osm database is available
+    let workosm = `${DB_PATH}/osm.db`;
+    fs.copyFileSync(osmoffline, workosm); 
+
     let dbfiles    = fs.readdirSync(DB_PATH);
     dbfiles.forEach((dbname) => {
-        var tilingname = dbname.toLowerCase().split(".")[0];
+        var key = dbname.toLowerCase().split(".")[0];
         var dbfile = `${DB_PATH}/${dbname}`;
-        databaselist.set(tilingname, dbfile);
+        databaselist.set(key, dbfile);
     });
 
     rawdata = fs.readFileSync(`${__dirname}/airports.json`);
@@ -102,14 +107,27 @@ const histdb = new sqlite3.Database(`${__dirname}/${settings.historyDb}`, sqlite
     }
 });
 
-databaselist.forEach((value, key) => {
-    databases.set(key, new sqlite3.Database(value, sqlite3.OPEN_READONLY, (err) => {
-        if (err) {
-            console.log(`Failed to load: ${key}: ${err}`);
-            throw err;
-        }
-    }));
-});
+loadDatabases();
+
+loadMetadatasets();
+console.log("metadatasets entries = ", metadatasets.keys.length);
+
+function loadDatabases() {
+    try {
+        databaselist.forEach((dbfile, key) => {
+            var db = new sqlite3.Database(dbfile, sqlite3.OPEN_READONLY, (err) => {
+                if (err) {
+                    console.log(`Failed to load: ${key}: ${err}`);
+                    throw err;
+                }
+            });
+            databases.set(key, db);
+        });
+    }
+    catch(err) {
+        console.log(err.message);
+    }
+}
 
 /**
  * Start the express web server
@@ -145,11 +163,7 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
-        /**
-         * To ensure client gets any edits to settings, re-read the file
-         */
         let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
-
         res.writeHead(200);
         res.write(rawdata);
         res.end();
@@ -166,8 +180,11 @@ try {
         res.end();
     });
 
-    app.get("/tiles/metadata/*", (req,res) => {
-        handleTilesetMetadata(req, res);
+    app.get("/metadatasets", (req, res) => {
+        let rawdata = JSON.stringify(metadatasets);
+        res.writeHead(200);
+        res.write(rawdata);
+        res.end();
     });    
 
     app.get("/tiles/*", (req, res) => {
@@ -306,55 +323,51 @@ function loadTile(z, x, y, response, db) {
 }
 
 /**
- * Get Z,X,Y tiles for the desired map from the associated mbtiles database
- * @param {object} request 
- * @param {object} response 
+ * Get Map object filled with metadata sets for all mbtiles databases
  */
-function handleTilesetMetadata(request, response) {
+function loadMetadatasets() {
     let sql = `SELECT name, value FROM metadata UNION SELECT 'minzoom', min(zoom_level) FROM tiles ` + 
               `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='minzoom') UNION SELECT 'maxzoom', max(zoom_level) FROM tiles ` +
               `WHERE NOT EXISTS (SELECT * FROM metadata WHERE name='maxzoom')`;
-    let found = false;
-    let meta = {};
-    meta["bounds"] = "";
-    let parms = request.url.split("/");
-    let db = databases.get(parms[3]);
     
-    db.all(sql, [], (err, rows) => {
-        if (!err) {
-            rows.forEach((row) => {
-                if (row.value != null) {
-                    meta[row.name] = row.value;
-                }
-                if (row.name === "maxzoom" && row.value != null && !found) {
-                    let maxZoomInt = parseInt(row.value); 
-                    sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
-                                 `max(tile_column) as xmax, max(tile_row) as ymax ` +
-                        `FROM tiles WHERE zoom_level=?`;
-                    db.get(sql, [maxZoomInt], (err, row) => {
-                        let xmin = row.xmin;
-                        let ymin = row.ymin; 
-                        let xmax = row.xmax; 
-                        let ymax = row.ymax;  
-                        
-                        llmin = tileToDegree(maxZoomInt, xmin, ymin);
-                        llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
-                        
-                        retarray = `${llmin[0]}, ${llmin[1]}, ${llmax[0]}, ${llmax[1]}`;
-                        meta["bounds"] = retarray;
-                        let output = JSON.stringify(meta);
-                        found = true;
-                        response.writeHead(200);
-                        response.write(output);
-                        response.end();
-                        return;
-                    });
-                }
-            });
-        }
-        else {
-            console.log(err);
-        }
+    databases.forEach((db, key) => {
+        let item = {};
+        item["bounds"] = "";
+        item["attribution"] = "";
+        let found = false;
+        db.
+        db.all(sql, [], (err, rows) => {
+            if (!err) {
+                rows.forEach((row) => {
+                    if (row.value != null) {
+                        item[row.name] = row.value;
+                    }
+                    if (row.name === "maxzoom" && row.value != null) { // && !found) {
+                        let maxZoomInt = parseInt(row.value); 
+                        sql = `SELECT min(tile_column) as xmin, min(tile_row) as ymin, ` + 
+                                    `max(tile_column) as xmax, max(tile_row) as ymax ` +
+                            `FROM tiles WHERE zoom_level=?`;
+                        db.get(sql, [maxZoomInt], (err, row) => {
+                            let xmin = row.xmin;
+                            let ymin = row.ymin; 
+                            let xmax = row.xmax; 
+                            let ymax = row.ymax;  
+                            
+                            llmin = tileToDegree(maxZoomInt, xmin, ymin);
+                            llmax = tileToDegree(maxZoomInt, xmax+1, ymax+1);
+                            
+                            retarray = `${llmin[0]}, ${llmin[1]}, ${llmax[0]}, ${llmax[1]}`;
+                            item["bounds"] = retarray;
+                            found = true;
+                        });
+                    }
+                });
+                metadatasets.set(key, item);
+            }
+            else {
+                console.log(err);
+            }
+        });
     });
 }
 

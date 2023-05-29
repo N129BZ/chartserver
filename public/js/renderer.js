@@ -14,7 +14,7 @@ if (parseInt(URL_PORT) > 0) {
 let URL_HOST_PROTOCOL       = `${URL_PROTOCOL}//`;
 let URL_SERVER              = `${URL_HOST_PROTOCOL}${URL_HOST_BASE}`;
 let URL_WINSOCK             = `ws://${URL_LOCATION}:`;
-let URL_GET_METADATA        = `${URL_SERVER}/tiles/metadata/{dbname}`;
+let URL_GET_METADATASETS    = `${URL_SERVER}/metadatasets`;
 let URL_GET_DBLIST          = `${URL_SERVER}/databaselist`;
 let URL_GET_TILE            = `${URL_SERVER}/tiles/{dbname}/{z}/{x}/{-y}`;
 let URL_GET_HISTORY         = `${URL_SERVER}/gethistory`;
@@ -73,6 +73,7 @@ class Cloud {
  */
 let settings = {};
 let dblist = {};
+let metadatasets = {};
 let last_longitude = 0;
 let last_latitude = 0;
 let last_heading = 0;
@@ -182,6 +183,23 @@ let regionmap = new Map();
     },
     error: (xhr, ajaxOptions, thrownError) => {
         console.error(xhr.status, thrownError);
+    }
+});
+
+$.get({
+    async: false,
+    type: "GET",
+    url: URL_GET_METADATASETS,
+    success: (data) => {
+        try {
+            metadatasets = JSON.parse(data);
+        }
+        catch(err){
+            console.log(err);
+        }
+    }, 
+    error: (xhr, ajaxOptions, thrownError) => {
+        console.error(xhr.status, thrownError)
     }
 });
 
@@ -1489,25 +1507,10 @@ map.addLayer(pirepVectorLayer);
 map.addLayer(trafficVectorLayer);
 map.addLayer(animatedWxTileLayer);
 
-function getTilesMetadata(dbname) {
-    let dburl = URL_GET_METADATA.replace("{dbname}", dbname);
-    let request = new XMLHttpRequest();
-    request.open("GET", dburl, false);
-
-    request.send(null);
-
-    if (request.status === 200) {
-        return JSON.parse(request.responseText);
-    }
-    else {
-        return {};
-    }
-}
-
 dblist.reverse();
 Object.entries(dblist).forEach((db) => {
     let dbname = db[1];
-    let metadata = getTilesMetadata(dbname);
+    let metadata = []; 
     if (JSON.stringify(metadata) != "{}") {
         let dburl = URL_GET_TILE.replace("{dbname}", dbname);
         var layer = new ol.layer.Tile({
