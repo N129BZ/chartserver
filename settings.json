@@ -19,7 +19,6 @@
     "animatedwxurl": "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
     "addswxurl": "https://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=###&requestType=retrieve&format=xml&hoursBeforeNow=1.5&mostRecentForEachStation=true&stationString=",
     "addsurrentxmlurl": "https://aviationweather.gov/adds/dataserver_current/current/###.cache.xml",
-    "attribution": "Aviation chart processing https://github.com/N129BZ",
     "showattribution": false,
     "lockownshiptocenter": true,
     "ownshipimage": "airplane.png",
