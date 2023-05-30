@@ -1499,6 +1499,34 @@ trafficVectorLayer = new ol.layer.Vector({
     zIndex: 14
 });
 
+if (settings.useOSMonlinemap) {
+    const osmOnlineTileLayer = new ol.layer.Tile({
+        title: "Open Street Maps (online)",
+        type: "overlay",
+        source: new ol.source.OSM(),
+        visible: true,
+        extent: extent //,
+        //zIndex: 8
+    });
+    map.addLayer(osmOnlineTileLayer);
+}
+else {
+    const osmOfflineTileLayer = new ol.layer.Tile({
+        title: "Open Street Maps (offline)",
+        type: "overlay",
+        source: new ol.source.XYZ({
+            url: URL_GET_TILE.replace("dbname", "osm"),  
+            maxZoom: 7,
+            minZoom: 1,
+            attributions: [ol.source.OSM.ATTRIBUTION],
+        }),
+        visible: true,
+        extent: extent //,
+        //zIndex: 8
+    });
+    map.addLayer(osmOfflineTileLayer);
+}
+
 map.addLayer(debugTileLayer);
 map.addLayer(airportVectorLayer);
 map.addLayer(metarVectorLayer); 
@@ -1538,33 +1566,7 @@ Object.entries(dblist).forEach((db) => {
     } 
 });
 
-if (settings.useOSMonlinemap) {
-    const osmOnlineTileLayer = new ol.layer.Tile({
-        title: "Open Street Maps (online)",
-        type: "overlay",
-        source: new ol.source.OSM(),
-        visible: true,
-        extent: extent,
-        zIndex: 8
-    });
-    map.addLayer(osmOnlineTileLayer);
-}
-else {
-    const osmOfflineTileLayer = new ol.layer.Tile({
-        title: "Open Street Maps (offline)",
-        type: "overlay",
-        source: new ol.source.XYZ({
-            url: URL_GET_TILE.replace("dbname", "osm"),  
-            maxZoom: 7,
-            minZoom: 1,
-            attributions: [ol.source.OSM.ATTRIBUTION],
-        }),
-        visible: true,
-        extent: extent,
-        zIndex: 8
-    });
-    map.addLayer(osmOfflineTileLayer);
-}
+
 
 const layerSwitcher = new LayerSwitcher({
     tipLabel: 'Layers', 
