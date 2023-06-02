@@ -1,10 +1,10 @@
-## Aviation and Weather Maps displays FAA charts, OpenStreetMaps, animated weather, METARS, TAFS, and much more, using electron, node, and express with the OpenLayers map API.  
+## Aviation and Weather Maps displays FAA charts, OpenStreetMaps, animated weather, METARS, TAFS, and much more, using node express web server with the OpenLayers map API.  
 
-### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, and both versions of Grand Canyon charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
+### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, and IFR Enroute-Low charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
 
 **See https://github.com/N129BZ/chartmaker for an automated FAA chart mbtiles processor**
 
-**Instructions:** Requires node.js. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "npm start" in the terminal. 
+**Instructions:** Requires node.js. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "npm start" in the terminal. Any mbtiles databases found in the ./public/data folder will be picked up and tiles rendered.
 
 ###
 **User-editable values in settings.json:**
@@ -64,11 +64,12 @@
     }
 }
 ```
-**NOTE**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center. You could also use a sqlite database tool to enter a position history record with your preferred latitude and longitude to be used as a center point when the maps are loaded.      
+**NOTE for Stratux integration**: As the position history database is empty at first run of the app, the setting ***"lockownshiptocenter"*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, you can change that setting to false so that you can pan around the map without it automatically re-centering ownship to the center. You could also use a sqlite database tool to enter a position history record with your preferred latitude and longitude to be used as a center point when the maps are loaded.      
 
 ###
 **References:**
-
+https://github.com/n129bz/chartmaker
+https://github.com/b3nn0/stratux
 https://github.com/cyoung/stratux/    
 https://openlayers.org/     
 
