@@ -24,7 +24,7 @@
     "uselocaltime": true,
     "distanceunit": "sm", 
     "usestratux": false,
-    "stratuxip": "192.168.1.188",
+    "stratuxip": "192.168.10.1",
     "stratuxsituationws": "ws://[stratuxip]/situation",
     "stratuxtrafficws": "ws://[stratuxip]/traffic",
     "animatedwxurl": "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
