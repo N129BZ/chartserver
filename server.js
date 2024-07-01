@@ -8,6 +8,7 @@ const fs = require("fs");
 const WebSocket = require('ws');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
+const { unzip, unzipSync } = require('zlib');
 
 /**
  * These objects are used by the XMLParser to convert XML to JSON.
@@ -412,7 +413,7 @@ async function runDownloads() {
  */
 async function downloadXmlFile(source) {
     let xhr = new XMLHttpRequest();  
-    let url = settings.addsurrentxmlurl.replace(source.token, source.type);
+    let url = settings.addscurrentxmlurl.replace(source.token, source.type);
     xhr.open('GET', url, true);
     xhr.setRequestHeader('Content-Type', 'text/csv');
     xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
@@ -422,6 +423,7 @@ async function downloadXmlFile(source) {
     xhr.onload = () => {
         if (xhr.readyState == 4 && xhr.status == 200) {
             let response = xhr.responseText;
+            //var mxml = unzipSync(new Buffer.From(response).toString('base64'));
             let messageJSON = xmlparser.parse(response);
             switch(source.type) {
                 case "tafs":
@@ -430,7 +432,7 @@ async function downloadXmlFile(source) {
                 case "metars":
                     processMetarJsonObjects(messageJSON);
                     break;
-                case "pireps":
+                case "aircraftreports":
                     processPirepJsonObjects(messageJSON);
                     break;
             }
