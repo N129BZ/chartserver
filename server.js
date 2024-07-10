@@ -59,10 +59,6 @@ const metadatasets = new Map();
     settings       = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
 
-    // make sure offline osm database is available
-    let workosm = `${DB_PATH}/osm.db`;
-    fs.copyFileSync(osmoffline, workosm); 
-
     let dbfiles    = fs.readdirSync(DB_PATH);
     dbfiles.forEach((dbname) => {
         var key = dbname.toLowerCase().split(".")[0];
