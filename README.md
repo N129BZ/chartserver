@@ -1,6 +1,6 @@
 ## Map Server displays FAA charts, OpenStreetMaps, animated weather, METARS, TAFS, Pireps, and much more - using node express web server with the OpenLayers map API.  
 
-### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, and IFR Enroute-Low charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
+### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, IFR Enroute-High, and IFR Enroute-Low charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
 
 **See https://github.com/N129BZ/chartmaker for an automated FAA chart mbtiles processor**
 
