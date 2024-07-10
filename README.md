@@ -1,4 +1,4 @@
-## Aviation and Weather Maps displays FAA charts, OpenStreetMaps, animated weather, METARS, TAFS, and much more, using node express web server with the OpenLayers map API.  
+## Map Server displays FAA charts, OpenStreetMaps, animated weather, METARS, TAFS, and much more, using node express web server with the OpenLayers map API.  
 
 ### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, and IFR Enroute-Low charts served from mbtiles databases. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over the map, giving basic "moving map" functionality. It can also save position data in a separate history database at user-defined intervals.   
 
