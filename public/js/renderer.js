@@ -884,10 +884,10 @@ function parseForecastField(rawfieldname, fieldvalue) {
  * @param {object} feature: the pirep the user clicked on
  */
  function displayPirepPopup(feature) {
-    let pirep = feature.get("pirep");
-    let rawpirep = pirep["raw_text"];
+    let aircraftreport = feature.get("pirep");
+    let rawaircraftreport = aircraftreport["raw_text"];
     let outerhtml = `<div class="taftitle">` + 
-                        `<label class="taftitlelabel">${pirep.pirep_type} FROM AIRCRAFT: ${pirep.aircraft_ref}</label><p></p>` +
+                        `<label class="taftitlelabel">${aircraftreport.pirep_type} FROM AIRCRAFT: ${aircraftreport.aircraft_ref}</label><p></p>` +
                     `</div>` +
                     `<div class="taf">` + 
                         `<pre><code>` +
@@ -903,8 +903,8 @@ function parseForecastField(rawfieldname, fieldvalue) {
     let html = "<div>";
     let pireplabel = `<label class="pirepitem">`
     let thistime = "";
-    for (const pirepkey in pirep) {
-        let pirepvalue = pirep[pirepkey];
+    for (const pirepkey in aircraftreport) {
+        let pirepvalue = aircraftreport[pirepkey];
         let fieldname = getFieldDescription(pirepkey);
         switch (pirepkey) {
             case "receipt_time":
@@ -973,7 +973,7 @@ function parseForecastField(rawfieldname, fieldvalue) {
                 break;
         }
     }
-    html += `</p></div><textarea class="rawdata">${rawpirep}</textarea>`;
+    html += `</p></div><textarea class="rawdata">${rawaircraftreport}</textarea>`;
     html += `<p><button class="ol-popup-closer" onclick="closePopup()">close</button></p></div>`;
     let innerhtml = outerhtml.replace("###", html);
     popupcontent.innerHTML = innerhtml;
@@ -1322,7 +1322,7 @@ function processTafs(tafsobject) {
  * @param {object} pirepsobject: JSON object with LOTS of pireps 
  */
  function processPireps(pirepsobject) {
-    let newpireps = pirepsobject.response.data.PIREP;
+    let newpireps = pirepsobject.response.data.AircraftReport;
     if (newpireps !== undefined) {
         pirepFeatures.clear();
         try {
