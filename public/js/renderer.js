@@ -887,7 +887,7 @@ function parseForecastField(rawfieldname, fieldvalue) {
     let aircraftreport = feature.get("pirep");
     let rawaircraftreport = aircraftreport["raw_text"];
     let outerhtml = `<div class="taftitle">` + 
-                        `<label class="taftitlelabel">${aircraftreport.pirep_type} FROM AIRCRAFT: ${aircraftreport.aircraft_ref}</label><p></p>` +
+                        `<label class="taftitlelabel">${aircraftreport.report_type} FROM AIRCRAFT: ${aircraftreport.aircraft_ref}</label><p></p>` +
                     `</div>` +
                     `<div class="taf">` + 
                         `<pre><code>` +
