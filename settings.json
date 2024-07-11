@@ -1,5 +1,5 @@
 {
-    "savepositionhistory": true,
+    "savepositionhistory": false,
     "histintervalmsec": 15000,
     "gpsintervalmsec": 1000,
     "wxupdateintervalmsec": 480000,
@@ -12,8 +12,8 @@
     "historyDb": "positionhistory.db",
     "uselocaltime": true,
     "distanceunit": "sm", 
-    "usestratux": true,
-    "stratuxip": "192.168.7.219",
+    "usestratux": false,
+    "stratuxip": "192.168.10.1",
     "stratuxsituationws": "ws://[stratuxip]/situation",
     "stratuxtrafficws": "ws://[stratuxip]/traffic",
     "animatedwxurl": "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",

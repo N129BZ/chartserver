@@ -46,6 +46,7 @@ let connections = new Map();
 let DB_PATH        = `${__dirname}/public/data`;
 let osmoffline     = `${__dirname}/osmofflinedb/osm.db`;
 
+let histdb;
 const databaselist = new Map();
 const databases    = new Map();
 const metadatasets = new Map();
@@ -98,12 +99,6 @@ const metadatasets = new Map();
     }
 })();
 
-const histdb = new sqlite3.Database(`${__dirname}/${settings.historyDb}`, sqlite3.OPEN_READWRITE, (err) => {
-    if (err){
-        console.log(`Failed to load: ${settings.historyDb}: ${err}`);
-    }
-});
-
 loadDatabases();
 
 loadMetadatasets();
@@ -123,6 +118,12 @@ function loadDatabases() {
     catch(err) {
         console.log(err.message);
     }
+
+    histdb = new sqlite3.Database(`${__dirname}/${settings.historyDb}`, sqlite3.OPEN_READWRITE, (err) => {
+        if (err){
+            console.log(`Failed to load: ${settings.historyDb}: ${err}`);
+        }
+    });
 }
 
 /**
@@ -244,12 +245,16 @@ function getPositionHistory(response) {
  */
 function savePositionHistory(data) {
     let datetime = new Date().toISOString();
+    let position = `'${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude}`;
     let sql = `INSERT INTO position_history (datetime, longitude, latitude, heading, gpsaltitude) ` +
-              `VALUES ('${datetime}', ${data.longitude}, ${data.latitude}, ${data.heading}, ${data.altitude})`;
+              `VALUES (${position})`;
         
     histdb.run(sql, function(err) {
         if (err) {
             console.log(err);
+        }
+        else {
+            console.log(`position: ${position}`);
         }
     });
 }
