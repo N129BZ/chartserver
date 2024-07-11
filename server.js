@@ -107,7 +107,6 @@ const histdb = new sqlite3.Database(`${__dirname}/${settings.historyDb}`, sqlite
 loadDatabases();
 
 loadMetadatasets();
-console.log("metadatasets entries = ", metadatasets.keys.length);
 
 function loadDatabases() {
     try {
@@ -179,6 +178,7 @@ try {
 
     app.get("/metadatasets", (req, res) => {
         let dbs = [];
+        console.log("metadatasets entries = ", metadatasets.keys.length);
         metadatasets.forEach((item, key) => {
             let lineitem = {};
             lineitem["key"] = key;
