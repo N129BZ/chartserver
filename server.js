@@ -178,7 +178,7 @@ try {
 
     app.get("/metadatasets", (req, res) => {
         let dbs = [];
-        console.log("metadatasets entries = ", metadatasets.keys.length);
+        console.log("metadatasets count = ", metadatasets.size);
         metadatasets.forEach((item, key) => {
             let lineitem = {};
             lineitem["key"] = key;
