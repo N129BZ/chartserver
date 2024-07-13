@@ -76,8 +76,10 @@ https://openlayers.org/
 ###
 **Animated weather radar layer over the Sectional chart, ownship image displayed via Stratux integration**
 ![ANIMWX](./images/SectWithWx.png)
-**OpenStreetMap with airport status colored markers and METAR popup**
+**OpenStreetMap with airport status colored markers and METAR popup**   
 ![OSMWMETAR](./images/OsmWithMetars.png)
+**Enroute High IFR chart**   
+![enroutehigh](https://github.com/user-attachments/assets/caf0df83-44b2-47bb-9f9c-bab816fa5acc)
 **Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
 ![MULTI](./images/MultiLayer.png)
 **Caribbean chart with color-coded airport features, showing a METAR when hovering mouse over an airport**
