@@ -4,7 +4,7 @@
 
 **See https://github.com/N129BZ/chartmaker for an automated FAA chart mbtiles processor**
 
-**Instructions:** Requires node.js. Clone this project, open a terminal in the folder you cloned it to, and enter "npm install". You can then either run the application directly from Visual Studio Code, or enter "node server" in the terminal. Any mbtiles databases found in the ./public/data folder will be picked up and a tile layer for it rendered on the map.
+**Installation: See wiki at https://github.com/n129bz/chartserver/wiki** 
 
 ###
 **User-editable values in settings.json:**
