@@ -64,7 +64,7 @@
     }
 }
 ```
-**NOTE for Stratux integration**: The server requests position data via winsock connection to the Stratux API. Because the position history database is empty at first run of the app, the setting ***lockownshiptocenter*** has been set to ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, change ***lockownshiptocenter*** to ***false*** so that you can pan around the map without it re-centering ownship to the center. This will give you basic real-time position of your aircraft on the map.      
+**NOTE for Stratux integration**: The server requests position data via winsock connection to the Stratux API. Because the position history database is empty at first run of the app, the setting ***lockownshiptocenter*** is ***true*** by default. This will allow the application to generate and save some position data so that there will be "last known" longitude and latitude coordinates saved in the database. Once there is at least one position history record, change ***lockownshiptocenter*** to ***false*** so that you can pan around the map without it re-centering ownship to the center. This will give you basic real-time position of your aircraft on the map.      
 
 ###
 **References:**   
