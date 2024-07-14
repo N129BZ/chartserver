@@ -1,6 +1,6 @@
-## Aviation Chart Server displays FAA charts and OpenStreetMaps with animated weather, geo-referenced METARS, TAFS, Pireps, and much more - using node express web server with the OpenLayers map API.  
+## Aviation Chart Server displays FAA charts and OpenStreetMaps with animated weather, geo-referenced METARS, TAFS, Pireps, and much more - using node express web server with the OpenLayers map API.   
 
-### Offline FAA charts include Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, IFR Enroute-High, and IFR Enroute-Low charts served from mbtiles databases. It can also display geo-referenced markers for all global airports by US state or international country. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over a map, giving basic "moving map" functionality. It can also save ownship position data in a separate history database at user-defined intervals.   
+### See *https://github.com/n129bz/chartmaker* for a chart database processing utility that produces FAA charts including Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, IFR Enroute-High, and IFR Enroute-Low charts mbtiles databases. Chartserver can display any mbtiles database that is copied into the /public/data folder. Chartserver also displays geo-referenced markers for all global airports by US state or international country. It can also poll Stratux GPS/AHRS data to plot ownship position and heading over a map, giving basic "moving map" functionality. It can also save ownship position data in a separate history database at user-defined intervals.   
 
 **See https://github.com/N129BZ/chartmaker for an automated FAA chart mbtiles processor**
 
