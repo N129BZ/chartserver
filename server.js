@@ -9,6 +9,7 @@ const WebSocket = require('ws');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
 const { unzip, unzipSync } = require('zlib');
+const { ping, probe } = require('tcp-ping-sync');
 
 /**
  * These objects are used by the XMLParser to convert XML to JSON.
@@ -44,7 +45,6 @@ let MessageTypes = {};
 let wss;
 let connections = new Map();
 let DB_PATH        = `${__dirname}/public/data`;
-let osmoffline     = `${__dirname}/osmofflinedb/osm.db`;
 
 let histdb;
 const databaselist = new Map();
@@ -57,9 +57,12 @@ const metadatasets = new Map();
  */
 (() => {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
-    settings       = JSON.parse(rawdata);
+    settings = JSON.parse(rawdata);
     MessageTypes   = settings.messagetypes;
 
+    // check for internet access to see if OSM online maps can be used
+    settings.useOSMonlinemap = probe('google.com');
+    
     let dbfiles    = fs.readdirSync(DB_PATH);
     dbfiles.forEach((dbname) => {
         var key = dbname.toLowerCase().split(".")[0];
@@ -160,7 +163,7 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
-        let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
+        let rawdata = JSON.stringify(settings); // fs.readFileSync(`${__dirname}/settings.json`);
         res.writeHead(200);
         res.write(rawdata);
         res.end();

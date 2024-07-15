@@ -7,7 +7,7 @@
     "httpport": 8500,
     "wsport": 8550,
     "startupzoom": 8,
-    "useOSMonlinemap": true,
+    "useOSMonlinemap": false,
     "debug": false,
     "historyDb": "positionhistory.db",
     "uselocaltime": true,

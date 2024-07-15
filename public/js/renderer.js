@@ -186,6 +186,10 @@ let regionmap = new Map();
     }
 });
 
+/**
+ * Get the json file containing the metadata from all 
+ * available mbtiles databases on the server
+ */
 $.get({
     async: false,
     type: "GET",
@@ -203,6 +207,9 @@ $.get({
     }
 });
 
+/**
+ * Get the list of available mbtiles databases from the server
+ */
 $.get({
     async: false,
     type: "GET",
@@ -1498,10 +1505,10 @@ trafficVectorLayer = new ol.layer.Vector({
     extent: extent,
     zIndex: 14
 });
-
+    
 if (settings.useOSMonlinemap) {
     const osmOnlineTileLayer = new ol.layer.Tile({
-        title: "Open Street Maps (online)",
+        title: "Open Street Maps",
         type: "overlay",
         source: new ol.source.OSM(),
         visible: true,
@@ -1510,24 +1517,11 @@ if (settings.useOSMonlinemap) {
     });
     map.addLayer(osmOnlineTileLayer);
 }
-else {
-    const osmOfflineTileLayer = new ol.layer.Tile({
-        title: "Open Street Maps (offline)",
-        type: "overlay",
-        source: new ol.source.XYZ({
-            url: URL_GET_TILE.replace("dbname", "osm"),  
-            maxZoom: 7,
-            minZoom: 1,
-            attributions: [ol.source.OSM.ATTRIBUTION],
-        }),
-        visible: true,
-        extent: extent //,
-        //zIndex: 8
-    });
-    map.addLayer(osmOfflineTileLayer);
+
+if (settings.debug) {
+    map.addLayer(debugTileLayer);
 }
 
-map.addLayer(debugTileLayer);
 map.addLayer(airportVectorLayer);
 map.addLayer(metarVectorLayer); 
 map.addLayer(tafVectorLayer);
