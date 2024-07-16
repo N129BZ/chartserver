@@ -4,6 +4,8 @@
 ### Chartserver menu options control the display of all geo-referenced markers, including all airports globally by US state or international country.   
 ### Chartserver can poll Stratux GPS/AHRS data to plot ownship position and heading over a map, giving basic "moving map" functionality and can also optionally save ownship position data to a separate position history database at user-defined intervals.   
 
+### Docker image: ***docker pull n129bz/chartserver:v1.20***
+
 **Installation: See wiki at https://github.com/n129bz/chartserver/wiki** 
 
 ###
