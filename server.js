@@ -62,7 +62,7 @@ const metadatasets = new Map();
     // check for internet access to see if OSM online maps can be used
     if (!settings.useOSMonlinemap) {
         settings.useOSMonlinemap = probe('google.com');
-        fs.writeFileSync(JSON.stringify(settings));
+        fs.writeFileSync(`${__dirname}/settings.json`, JSON.stringify(settings));
     } 
 
     MessageTypes   = settings.messagetypes;
