@@ -142,10 +142,13 @@ let debugTileLayer;
 let wsSituation;
 let wsTraffic;
 let wsServer;
+let wssurl;
+let myairplane;
 let wsServerOpen = false;
 let MessageTypes = {};
 let DistanceUnits = {};
 let distanceunit = "";
+let airplaneElement = document.getElementById('airplane');
 
 /**
  * Animation variables 
@@ -306,20 +309,20 @@ $.get({
 });
 
 function setupStratuxWebsockets() {
-    let sip = settings.stratuxip;
-    
-    let wsturl = settings.stratuxtrafficws.replace("[stratuxip]", sip);
+    let wsturl = settings.stratuxtrafficws.replace("[stratuxip]", settings.stratuxip);
     wsTraffic = new WebSocket(wsturl);
     wsTraffic.onmessage = function(evt){
         let tdata = JSON.parse(evt.data);
         addTrafficItem(tdata);
     }
 
-    let wssurl = settings.stratuxsituationws.replace("[stratuxip]", sip);
+    let wssurl = settings.stratuxsituationws.replace("[stratuxip]", settings.stratuxip);
     wsSituation = new WebSocket(wssurl);
     wsSituation.onmessage = function(evt){
-        let sdata = JSON.parse(evt.data);
-        setOwnshipOrientation(sdata);
+        if (myairplane !== null) {
+            let sdata = JSON.parse(evt.data);
+            setOwnshipOrientation(sdata);
+        }
     }
 }
 
@@ -593,12 +596,16 @@ function closePopup() {
 /**
  * Ownship image 
  */
-let airplaneElement = document.getElementById('airplane');
-airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
-airplaneElement.src = `img/${settings.ownshipimage}`;
-airplaneElement.addEventListener("mouseover", (event) => {
-    console.log("MY AIRPLANE!!")
-});
+if (settings.usestratux) {
+    airplaneElement.style.transform = "rotate(" + last_heading + "deg)";
+    airplaneElement.src = `img/${settings.ownshipimage}`;
+    airplaneElement.addEventListener("mouseover", (event) => {
+        console.log("MY AIRPLANE!!")
+    });
+}
+else {
+    airplaneElement.setAttribute('style', 'visibility:hidden');
+}
 
 /**
  * set the global view position from last saved history 
@@ -640,8 +647,9 @@ const map = new ol.Map({
 /**
  * Positioning of the ownship image feature
  */
-if (settings.savepositionhistory) {
-    const myairplane = new ol.Overlay({
+if (settings.usestratux) {
+    console.log("SETTING UP MYAIRPLANE!!");
+    myairplane = new ol.Overlay({
         element: airplaneElement
     });
     myairplane.setOffset(offset);
@@ -1497,17 +1505,19 @@ pirepVectorLayer = new ol.layer.Vector({
     zIndex: 14
 });
 
-trafficVectorSource = new ol.source.Vector({
-    features: trafficFeatures
-});
-trafficVectorLayer = new ol.layer.Vector({
-    title: "Traffic",
-    source: trafficVectorSource,
-    visible: false,
-    extent: extent,
-    zIndex: 14
-});
-    
+if (settings.usestratux) {
+    trafficVectorSource = new ol.source.Vector({
+        features: trafficFeatures
+    });
+    trafficVectorLayer = new ol.layer.Vector({
+        title: "Traffic",
+        source: trafficVectorSource,
+        visible: false,
+        extent: extent,
+        zIndex: 14
+    });
+}
+
 if (settings.useOSMonlinemap) {
     const osmOnlineTileLayer = new ol.layer.Tile({
         title: "Open Street Maps",
@@ -1528,7 +1538,9 @@ map.addLayer(airportVectorLayer);
 map.addLayer(metarVectorLayer); 
 map.addLayer(tafVectorLayer);
 map.addLayer(pirepVectorLayer);
-map.addLayer(trafficVectorLayer);
+if (settings.usestratux) {
+    map.addLayer(trafficVectorLayer);
+}
 map.addLayer(animatedWxTileLayer);
 
 dblist.reverse();

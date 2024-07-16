@@ -168,7 +168,7 @@ try {
     });
     
     app.get("/getsettings", (req, res) => {
-        let rawdata = JSON.stringify(settings); // fs.readFileSync(`${__dirname}/settings.json`);
+        let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
         res.writeHead(200);
         res.write(rawdata);
         res.end();
