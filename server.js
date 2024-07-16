@@ -66,9 +66,11 @@ const metadatasets = new Map();
     try {
         let dbfiles    = fs.readdirSync(DB_PATH);
         dbfiles.forEach((dbname) => {
-            var key = dbname.toLowerCase().split(".")[0];
-            var dbfile = `${DB_PATH}/${dbname}`;
-            databaselist.set(key, dbfile);
+            if (dbname.endsWith(".db")) {
+                var key = dbname.toLowerCase().split(".")[0];
+                var dbfile = `${DB_PATH}/${dbname}`;
+                databaselist.set(key, dbfile);
+            }
         });
     }
     catch(err) {
