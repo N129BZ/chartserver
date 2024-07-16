@@ -63,12 +63,17 @@ const metadatasets = new Map();
     // check for internet access to see if OSM online maps can be used
     settings.useOSMonlinemap = probe('google.com');
     
-    let dbfiles    = fs.readdirSync(DB_PATH);
-    dbfiles.forEach((dbname) => {
-        var key = dbname.toLowerCase().split(".")[0];
-        var dbfile = `${DB_PATH}/${dbname}`;
-        databaselist.set(key, dbfile);
-    });
+    try {
+        let dbfiles    = fs.readdirSync(DB_PATH);
+        dbfiles.forEach((dbname) => {
+            var key = dbname.toLowerCase().split(".")[0];
+            var dbfile = `${DB_PATH}/${dbname}`;
+            databaselist.set(key, dbfile);
+        });
+    }
+    catch(err) {
+        console.log("NO CHART DATABASES FOUND!!");
+    }
 
     rawdata = fs.readFileSync(`${__dirname}/airports.json`);
     airports = JSON.parse(rawdata);
