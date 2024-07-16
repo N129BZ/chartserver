@@ -58,11 +58,14 @@ const metadatasets = new Map();
 (() => {
     let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
     settings = JSON.parse(rawdata);
-    MessageTypes   = settings.messagetypes;
-
-    // check for internet access to see if OSM online maps can be used
-    settings.useOSMonlinemap = probe('google.com');
     
+    // check for internet access to see if OSM online maps can be used
+    if (!settings.useOSMonlinemap) {
+        settings.useOSMonlinemap = probe('google.com');
+        fs.writeFileSync(JSON.stringify(settings));
+    } 
+
+    MessageTypes   = settings.messagetypes;
     try {
         let dbfiles    = fs.readdirSync(DB_PATH);
         dbfiles.forEach((dbname) => {
