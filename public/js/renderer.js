@@ -638,14 +638,16 @@ const map = new ol.Map({
 });
 
 /**
- * The actual positioning of the ownship image feature
+ * Positioning of the ownship image feature
  */
-const myairplane = new ol.Overlay({
-    element: airplaneElement
-});
-myairplane.setOffset(offset);
-myairplane.setPosition(viewposition);
-map.addOverlay(myairplane);
+if (settings.savepositionhistory) {
+    const myairplane = new ol.Overlay({
+        element: airplaneElement
+    });
+    myairplane.setOffset(offset);
+    myairplane.setPosition(viewposition);
+    map.addOverlay(myairplane);
+}
 
 /**
  * Event to handle scaling of feature images
