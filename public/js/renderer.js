@@ -232,7 +232,7 @@ $.get({
  * Data is stored in the sqlite positionhistory.db file.
  * This will also center the viewport on that position.
  */
- $.get({
+$.get({
     async: false,
     type: "GET",
     url: URL_GET_HISTORY,
