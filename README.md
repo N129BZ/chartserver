@@ -5,6 +5,20 @@
 ### Chartserver can poll Stratux GPS/AHRS data to plot ownship position and heading over a map, giving basic "moving map" functionality and can also optionally save ownship position data to a separate position history database at user-defined intervals.   
 
 ### Docker image: ***docker pull n129bz/chartserver:v1.25***
+**To run the image:**
+```
+docker run -it -p 8500:8500 -p 8550:8550 n129bz/chartserver:v1.25
+```
+**At the container command prompt, enter:**
+```
+./runserver.sh
+```
+**To copy a mbtiles <yourchartname>.db file to the container, ***the container must be running -*** open a second terminal and enter the docker cp command:**
+```
+Press Ctrl-c on the running container to stop the web server
+on the second terminal, the command is docker cp <local path to your db file>.db <containerid>:/chartserver/public/data/
+on the running container, enter ./runserver.sh to restart the web server after successful filecopy
+```
 
 **Installation: See wiki at https://github.com/n129bz/chartserver/wiki** 
 
