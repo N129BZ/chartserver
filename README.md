@@ -13,14 +13,13 @@ docker run -it -p 8500:8500 -p 8550:8550 n129bz/chartserver:v1.25
 ```
 ./runserver.sh
 ```
-**To copy a mbtiles <yourchartname>.db file to the container, ***the container must be running -*** open a second terminal and enter the docker cp command:**
+**To copy a mbtiles <yourchartname>.db file to the container, ***the container must be running -*** press Ctrl-c to stop the web server, then open a second terminal and enter the docker cp command:**
 ```
-Press Ctrl-c on the running container to stop the web server
-on the second terminal, the command is docker cp <local path to your db file>.db <containerid>:/chartserver/public/data/
-on the running container, enter ./runserver.sh to restart the web server after successful filecopy
+docker cp <local path to your db file>.db <containerid>:/chartserver/public/data/
+after successful filecopy, in the terminal on the running container, enter ./runserver.sh to restart the web server 
 ```
 
-**Installation: See wiki at https://github.com/n129bz/chartserver/wiki** 
+**Normal Installation: See wiki at https://github.com/n129bz/chartserver/wiki** 
 
 ###
 **User-editable values in settings.json:**
