@@ -172,6 +172,25 @@ li.layer-switcher-base-group > label {
   border-right: 0;
 }
 
+.layer-switcher {
+  position: absolute;
+  top: 3.5em;
+  right: 0.5em;
+  text-align: left;
+  bottom: 2.5em;
+  
+  }
+  
+  .layer-switcher .panel {
+  padding-right: 50px;
+  border: 1px solid #cccccc;
+  background-color: white;
+  margin: 0;
+  display: none;
+  position: relative;
+  max-height: 100%;
+  overflow: scroll;
+ }
 /*layerswitcher on the left*/
 /*
 .layer-switcher.shown.layer-switcher-activation-mode-click {
