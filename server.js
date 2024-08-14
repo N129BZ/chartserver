@@ -44,7 +44,16 @@ let MessageTypes = {};
 
 let wss;
 let connections = new Map();
-let DB_PATH        = `${__dirname}/public/data`;
+let DB_PATH = `${__dirname}/public/data`;
+
+/****************************************************** 
+   if running in a docker container, check to see if an
+   external volume for the database folder exists, if so,
+   use it
+*******************************************************/
+if (fs.existsSync(`${__dirname}/externaldata`)) {
+    DB_PATH = `${__dirname}/externaldata`;
+}
 
 let histdb;
 const databaselist = new Map();
