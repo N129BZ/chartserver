@@ -51,8 +51,8 @@ let DB_PATH = `${__dirname}/public/data`;
    external volume for the database folder exists, if so,
    use it
 *******************************************************/
-if (fs.existsSync(`${__dirname}/externaldata`)) {
-    DB_PATH = `${__dirname}/externaldata`;
+if (fs.existsSync(`${__dirname}/data`)) {
+    DB_PATH = `${__dirname}/data`;
 }
 
 let histdb;
