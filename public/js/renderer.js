@@ -1556,7 +1556,7 @@ Object.entries(dblist).forEach((db) => {
 
     let zOrder = 10;
     if (dbname === "terminal") {
-        zOrder = 20;
+        zOrder = 12;
     }
 
     if (JSON.stringify(metadata) != "{}") {
@@ -1573,7 +1573,7 @@ Object.entries(dblist).forEach((db) => {
             }),
             visible: false,
             extent: extent,
-            zindex: zOrder
+            zIndex: zOrder
         });
         map.addLayer(layer);
     } 
