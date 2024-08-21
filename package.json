@@ -6,6 +6,7 @@
   "author": "Brian A. Manlove",
   "license": "BSD 3-Clause",
   "dependencies": {
+    "child_process": "^1.0.2",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "fast-xml-parser": "^4.0.3",

@@ -10,6 +10,7 @@ const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { XMLParser } = require('fast-xml-parser');
 const { unzip, unzipSync } = require('zlib');
 const { ping, probe } = require('tcp-ping-sync');
+const { execSync, exec } = require('child_process');
 
 /**
  * These objects are used by the XMLParser to convert XML to JSON.
