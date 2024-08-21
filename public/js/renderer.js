@@ -1554,6 +1554,11 @@ Object.entries(dblist).forEach((db) => {
         } 
     }
 
+    let zOrder = 10;
+    if (dbname === "terminal") {
+        zOrder = 20;
+    }
+
     if (JSON.stringify(metadata) != "{}") {
         let dburl = URL_GET_TILE.replace("{dbname}", dbname);
         var layer = new ol.layer.Tile({
@@ -1568,7 +1573,7 @@ Object.entries(dblist).forEach((db) => {
             }),
             visible: false,
             extent: extent,
-            zindex: 10
+            zindex: zOrder
         });
         map.addLayer(layer);
     } 
