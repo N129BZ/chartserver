@@ -61,12 +61,14 @@ function isRunningInDocker() {
     let txtresult = fs.readFileSync(dkresults, { encoding: 'utf8', flag: 'r' });
     let isdocker = (txtresult.toString().search("/docker/") > -1)
     fs.rmSync(dkresults);
-
+    
+    if (isdocker) {
+        console.log("Running in docker!");
+    }
     return isdocker;
 }
 
 if (isRunningInDocker()) {
-    console.log("Running in docker!");
     if (fs.existsSync(`${__dirname}/data`)) {
         DB_PATH = `${__dirname}/data`;
     }
