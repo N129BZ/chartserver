@@ -46,13 +46,29 @@ let wss;
 let connections = new Map();
 let DB_PATH = `${__dirname}/public/data`;
 
-/****************************************************** 
+/******************************************************
    if running in a docker container, check to see if an
    external volume for the database folder exists, if so,
    use it
 *******************************************************/
-if (fs.existsSync(`${__dirname}/data`)) {
-    DB_PATH = `${__dirname}/data`;
+function isRunningInDocker() {
+    let dkresults = `${__dirname}/isdocker.txt`;
+    let dcmd = `cat /proc/1/cgroup > ${dkresults}`;
+
+    execSync(dcmd);
+
+    let txtresult = fs.readFileSync(dkresults, { encoding: 'utf8', flag: 'r' });
+    let isdocker = (txtresult.toString().search("/docker/") > -1)
+    fs.rmSync(dkresults);
+
+    return isdocker;
+}
+
+if (isRunningInDocker()) {
+    console.log("Running in docker!");
+    if (fs.existsSync(`${__dirname}/data`)) {
+        DB_PATH = `${__dirname}/data`;
+    }
 }
 
 let histdb;
