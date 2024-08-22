@@ -1,1 +1,0 @@
-This file is just a placeholder so that when the chartserver repository is cloned, git will create an "empty" data directory
