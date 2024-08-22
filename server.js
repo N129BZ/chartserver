@@ -39,13 +39,18 @@ const xmlparser = new XMLParser(xmlParseOptions);
 /**
  * Global variables
  */
-let settings = {};
 let airports = {};
 let MessageTypes = {};
 
 let wss;
 let connections = new Map();
-let DB_PATH = `${__dirname}/public/data`;
+let DB_PATH = `${__dirname}/data`;
+
+/**
+ * Get the global settings JSON object
+ */
+let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
+let settings = JSON.parse(rawdata);
 
 /******************************************************
    if running in a docker container, check to see if an
@@ -69,8 +74,15 @@ function isRunningInDocker() {
 }
 
 if (isRunningInDocker()) {
-    if (fs.existsSync(`${__dirname}/data`)) {
-        DB_PATH = `${__dirname}/data`;
+    if (fs.existsSync(`${__dirname}/externaldata`)) {
+        DB_PATH = `${__dirname}/externaldata`;
+    }
+}
+else {
+    if (settings.alternatedatafolder.length > 0) {
+        if (fs.existsSync(settings.alternatedatafolder)) {
+            DB_PATH = settings.alternatedatafolder;
+        }
     }
 }
 
@@ -80,13 +92,9 @@ const databases    = new Map();
 const metadatasets = new Map();
 
 /*
- * First things first... load settings.json and airports.json 
- * for immediate sending to client later upon winsock connection
+ * Load airports.json for immediate sending to client later upon winsock connection
  */
 (() => {
-    let rawdata = fs.readFileSync(`${__dirname}/settings.json`);
-    settings = JSON.parse(rawdata);
-    
     // check for internet access to see if OSM online maps can be used
     if (!settings.useOSMonlinemap) {
         settings.useOSMonlinemap = probe('google.com');
