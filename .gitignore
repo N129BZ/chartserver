@@ -2,3 +2,4 @@
 **/out
 **/xmldata/*.xml
 **/*.db
+**/*.mbtiles
