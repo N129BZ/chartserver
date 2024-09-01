@@ -105,7 +105,7 @@ const metadatasets = new Map();
     try {
         let dbfiles    = fs.readdirSync(DB_PATH);
         dbfiles.forEach((dbname) => {
-            if (dbname.endsWith(".db")) {
+            if (dbname.endsWith(".db") || dbname.endsWith(".mbtiles")) {
                 var key = dbname.toLowerCase().split(".")[0];
                 var dbfile = `${DB_PATH}/${dbname}`;
                 databaselist.set(key, dbfile);
