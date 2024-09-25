@@ -1402,6 +1402,15 @@ function resizeDots(newzoom) {
 function getScaleSize() {
     let scale = 1;
     switch(currentZoom) {
+        case 0:
+            scale = .01;
+            break;
+        case 1:
+            scale = .05;
+            break;
+        case 2:
+            scale = .10;
+            break;
         case 4:
             scale = .20;
             break;
