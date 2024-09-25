@@ -2,7 +2,7 @@
     "wxupdateintervalmsec": 480000,
     "keepaliveintervalmsec": 30000,
     "httpport": 8080,
-    "wsport": 8080,
+    "wsport": 8090,
     "startupzoom": 5,
     "useOSMonlinemap": true,
     "debug": false,
