@@ -186,7 +186,7 @@ try {
     app.use(favicon(`${__dirname }/images/favicon.png`));
     app.use(express.static('public'))
     console.log(`Server listening on port ${settings.httpport}`);
-    app.listen(settings.httpport); 
+    app.listen(settings.httpport, '0.0.0.0'); 
 
     let appOptions = {
         dotfiles: 'ignore',
