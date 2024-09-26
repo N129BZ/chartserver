@@ -44,7 +44,7 @@ let MessageTypes = {};
 
 let wss;
 let connections = new Map();
-let DB_PATH = `${__dirname}/data`;
+let DB_PATH = `${__dirname}/charts`;
 
 /**
  * Get the global settings JSON object
@@ -74,14 +74,14 @@ function isRunningInDocker() {
 }
 
 if (isRunningInDocker()) {
-    if (fs.existsSync(`${__dirname}/externaldata`)) {
-        DB_PATH = `${__dirname}/externaldata`;
+    if (fs.existsSync(`${__dirname}/externalcharts`)) {
+        DB_PATH = `${__dirname}/externalcharts`;
     }
 }
 else {
     if (settings.alternatedatafolder.length > 0) {
-        if (fs.existsSync(settings.alternatedatafolder)) {
-            DB_PATH = settings.alternatedatafolder;
+        if (fs.existsSync(settings.externalcharts)) {
+            DB_PATH = settings.externalcharts;
         }
     }
 }

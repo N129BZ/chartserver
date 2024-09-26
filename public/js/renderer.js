@@ -1267,7 +1267,7 @@ function processTraffic(jsondata) {
     if (newmetars !== undefined) {
         metarFeatures.clear();
         metarMarkers = [];
-        let scale = getScaleSize();
+        let scaleSize = getScaleSize();
         try {
             newmetars.forEach((metar) => {
                 let svg = "";
@@ -1283,7 +1283,7 @@ function processTraffic(jsondata) {
                     src: `data:image/svg+xml;utf8,${escape(svg2)}`,
                     offset: [0,0],
                     opacity: 1,
-                    scale: scale
+                    scale: scaleSize
                 });
                 let metarFeature = new ol.Feature({
                     metar: metar,
@@ -1389,12 +1389,12 @@ function resizeDots(newzoom) {
         currentZoom = parseInt(newzoom.toFixed(0));
         let newscale = getScaleSize();
         for (let i = 0; i < metarMarkers.length; i++) {
-            metarMarkers[i].setScale(newscale + .2);
+            metarMarkers[i].setScale(1/Math.pow(newscale, 1/3)); //(newscale); // * .2);
         }
         //pirepMarker.setScale(newscale * .08);
-        airportMarker.setScale(newscale * .30);
-        heliportMarker.setScale(newscale * .50);
-        tafMarker.setScale(newscale * .25);
+        airportMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .30);
+        heliportMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .50);
+        tafMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .25);
         resizing = false;
     }
 }
