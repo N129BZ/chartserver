@@ -79,7 +79,7 @@ if (isRunningInDocker()) {
     }
 }
 else {
-    if (settings.alternatedatafolder.length > 0) {
+    if (settings.externalcharts.length > 0) {
         if (fs.existsSync(settings.externalcharts)) {
             DB_PATH = settings.externalcharts;
         }
