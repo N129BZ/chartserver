@@ -1389,50 +1389,53 @@ function resizeDots(newzoom) {
         currentZoom = parseInt(newzoom.toFixed(0));
         let newscale = getScaleSize();
         for (let i = 0; i < metarMarkers.length; i++) {
-            metarMarkers[i].setScale(1/Math.pow(newscale, 1/3)); //(newscale); // * .2);
+            metarMarkers[i].setScale(newscale);
         }
         //pirepMarker.setScale(newscale * .08);
-        airportMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .30);
-        heliportMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .50);
-        tafMarker.setScale(1/Math.pow(newscale, 1/3)); //(newscale * .25);
+        airportMarker.setScale(newscale * .30);
+        heliportMarker.setScale(newscale * .50);
+        tafMarker.setScale(newscale * .25);
         resizing = false;
     }
 }
 
 function getScaleSize() {
     let scale = 1;
-    switch(currentZoom) {
-        case 0:
-            scale = .01;
-            break;
-        case 1:
+    switch(true) {
+        case currentZoom >= 0 && currentZoom < 1:
             scale = .05;
             break;
-        case 2:
+        case currentZoom >= 1 && currentZoom < 2:
+            scale = .075;
+            break;
+        case currentZoom >=2 && currentZoom < 3:
             scale = .10;
             break;
-        case 4:
-            scale = .20;
+        case currentZoom >= 3 && currentZoom < 4:
+            scale = .15;
             break;
-        case 5:
+        case currentZoom >= 4 && currentZoom < 5:
+            scale = .275;
+            break;
+        case currentZoom >= 5 && currentZoom < 6:
             scale = .40;
             break;
-        case 6:
+        case currentZoom >= 6 && currentZoom < 7:
             scale = .60;
             break;
-        case 7:
+        case currentZoom >= 7 && currentZoom < 8:
             scale = .80;
             break;
-        case 8:
+        case currentZoom >= 8 && currentZoom < 9:
             scale = 1;
             break;
-        case 9:
+        case currentZoom >= 9 && currentZoom < 10:
             scale = 1.2;
             break;
-        case 10:
+        case currentZoom >= 10 && currentZoom < 11:
             scale = 1.4;
             break;
-        case 11:
+        case currentZoom >= 11:
             scale = 1.6;
             break;
     }
