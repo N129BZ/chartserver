@@ -1392,9 +1392,9 @@ function resizeDots(newzoom) {
             metarMarkers[i].setScale(newscale);
         }
         //pirepMarker.setScale(newscale * .08);
-        airportMarker.setScale(newscale * .30);
-        heliportMarker.setScale(newscale * .50);
-        tafMarker.setScale(newscale * .25);
+        airportMarker.setScale(newscale);
+        heliportMarker.setScale(newscale);
+        tafMarker.setScale(newscale);
         resizing = false;
     }
 }
