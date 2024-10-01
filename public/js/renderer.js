@@ -391,7 +391,7 @@ let tafMarker = new ol.style.Icon({
     size: [126, 90],
     offset: [0, 0],
     opacity: 1,
-    scale: .25
+    scale: .2
 });
 /*--------------------------------------*/
 let airportMarker = new ol.style.Icon({
@@ -884,7 +884,7 @@ function parseForecastField(rawfieldname, fieldvalue) {
             break;
         case "turbulence_condition":
         case "icing_condition":
-            formattedvalue = decodeIcingCondition(fieldvalue);
+            formattedvalue = decodeIcingOrTurbulenceCondition(fieldvalue);
             html = `<label class="tafskyheader">${fieldname}</label><br />${formattedvalue}`;
             break;
         case "wind_dir_degrees":
@@ -1394,7 +1394,7 @@ function resizeDots(newzoom) {
         //pirepMarker.setScale(newscale * .08);
         airportMarker.setScale(newscale);
         heliportMarker.setScale(newscale);
-        tafMarker.setScale(newscale);
+        tafMarker.setScale(newscale * .2);
         resizing = false;
     }
 }
