@@ -6,7 +6,7 @@
     "startupzoom": 5,
     "useOSMonlinemap": true,
     "debug": false,
-    "externalcharts": "/home/bro/charts",
+    "externalcharts": "",
     "uselocaltime": true,
     "distanceunit": "sm",
     "usestratux": false,
