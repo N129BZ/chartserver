@@ -19,9 +19,9 @@ docker run -it -p 8500:8500 -p 8550:8550 -v /mylocalchartfolder:/chartserver/ext
 ```
 ./runserver.sh
 ```
-**To copy a mbtiles <yourchartname>.db file to the container, ***the container must be running -*** press Ctrl-c to stop the web server, then open a second terminal and enter the docker cp command:**
+**To copy a mbtiles <yourchartname> database file to the container, ***the container must be running -*** press Ctrl-c to stop the web server, then open a second terminal and enter the docker cp command:**
 ```
-docker cp <local path to your db file>.db <containerid>:/chartserver/public/data/
+docker cp <local path to your db file> <containerid>:/chartserver/public/data/
 after successful filecopy, in the terminal on the running container, enter ./runserver.sh to restart the web server 
 ```
 
