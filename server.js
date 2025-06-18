@@ -553,10 +553,11 @@ async function sendMessageToClients(jsonmessage) {
  * Clean up connection map before exiting.
  */
 process.on('SIGINT', () => {
-  console.log("Received SIGINT, exiting application!"); 
+  console.log("\nReceived SIGINT, exiting application."); 
   process.exit(0); 
 });
 
 process.on('exit', () => {
     connections.clear();
+    console.log("Connections array cleared.")
 });
