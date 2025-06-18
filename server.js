@@ -123,6 +123,7 @@ const metadatasets = new Map();
     try {
         wss.on('connection', (ws) => {
             const id = Date.now();
+            ws.tag = id;
             connections.set(ws, id);
             console.log(`Websocket connected, id: ${id}`);
 
@@ -137,7 +138,7 @@ const metadatasets = new Map();
 
             ws.on('close', function() {
                 connections.delete(ws);
-                console.log("connection closed");
+                console.log(`Websocket closed, id: ${ws.tag}`);
             });
 
             ws.on('message', (data) => { });
@@ -547,3 +548,15 @@ async function sendMessageToClients(jsonmessage) {
         client.send(jsonmessage);
     });
 }
+
+/**
+ * Clean up connection map before exiting.
+ */
+process.on('SIGINT', () => {
+  console.log("Received SIGINT, exiting application!"); 
+  process.exit(0); 
+});
+
+process.on('exit', () => {
+    connections.clear();
+});
