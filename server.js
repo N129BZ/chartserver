@@ -185,11 +185,11 @@ try {
     app.use(express.json({}));
     app.use(cors());
     app.use(favicon(`${__dirname }/images/favicon.png`));
-    app.use(express.static('public'))
     console.log(`Server listening on port ${settings.httpport}`);
     app.listen(settings.httpport, '0.0.0.0'); 
 
     let appOptions = {
+        maxAge: 900000,
         dotfiles: 'ignore',
         etag: false,
         extensions: ['html'],

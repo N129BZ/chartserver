@@ -1574,7 +1574,7 @@ Object.entries(dblist).forEach((db) => {
     if (JSON.stringify(metadata) != "{}") {
         let dburl = URL_GET_TILE.replace("{dbname}", dbname);
         var layer = new ol.layer.Tile({
-            title: metadata.description,
+            title: metadata.description.replace(" Chart", ""),
             type: metadata.type,
             source: new ol.source.XYZ({
                 url: dburl,
