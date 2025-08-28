@@ -310,19 +310,26 @@ $.get({
 
 function setupStratuxWebsockets() {
     let wsturl = settings.stratuxtrafficws.replace("[stratuxip]", settings.stratuxip);
-    wsTraffic = new WebSocket(wsturl);
+    let wsTraffic = new WebSocket(wsturl);
     wsTraffic.onmessage = function(evt){
-        let tdata = JSON.parse(evt.data);
-        addTrafficItem(tdata);
+        let data = JSON.parse(evt.data);
+        addTrafficItem(data);
     }
 
     let wssurl = settings.stratuxsituationws.replace("[stratuxip]", settings.stratuxip);
-    wsSituation = new WebSocket(wssurl);
+    let wsSituation = new WebSocket(wssurl);
     wsSituation.onmessage = function(evt){
         if (myairplane !== null) {
-            let sdata = JSON.parse(evt.data);
-            setOwnshipOrientation(sdata);
+            let data = JSON.parse(evt.data);
+            setOwnshipOrientation(data);
         }
+    }
+
+    let wxurl = settings.stratuxweatherws.replace("[stratuxip]", settings.stratuxip);
+    let wsWeather = new WebSocket(wxurl);
+    wsWeather.onmessage = function(evt){
+        let data = JSON.parse(evt.data);
+        console.log(data);
     }
 }
 
