@@ -158,3 +158,5 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+**/implementation_plan*
