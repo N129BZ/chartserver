@@ -1966,6 +1966,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const aerialBtn = popupcontent.querySelector('#view-aerial');
         if (aerialBtn) {
             aerialBtn.addEventListener('click', () => {
+                aerialBtn.style.display = 'none';
                 switchToAerialView(airport.lon, airport.lat);
             });
         }
@@ -1995,6 +1996,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             };
         }
 
+        // Dock popup in the upper-left corner and hide the radius selector so the airport view is unobstructed
+        popup.classList.add('aerial-docked');
+        if (popup.parentElement) {
+            popup.parentElement.classList.add('aerial-docked-container');
+        }
+        radiusSelector.style.display = 'none';
+
         if (aerialLayer) {
             aerialLayer.setVisible(true);
         }
@@ -2023,6 +2031,10 @@ document.addEventListener('DOMContentLoaded', async function () {
      * Restore map layers and view state captured prior to switching to aerial view.
      */
     function restoreFromAerialView() {
+        popup.classList.remove('aerial-docked');
+        if (popup.parentElement) {
+            popup.parentElement.classList.remove('aerial-docked-container');
+        }
         if (!preAerialState) return;
         const savedState = preAerialState;
         preAerialState = null;
@@ -2034,6 +2046,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             entry.layer.setVisible(entry.visible);
         }
         syncBaseMapVisibility();
+        updateMapLegends();
 
         const view = map.getView();
         if (savedState.center) {

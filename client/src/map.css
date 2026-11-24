@@ -69,6 +69,26 @@ html, body {
     left: 48px;
     margin-left: -11px;
 }
+.ol-overlay-container.aerial-docked-container {
+    transform: none !important;
+    top: 20px !important;
+    left: 45px !important;
+    z-index: 2500;
+}
+.ol-popup.aerial-docked {
+    position: relative;
+    top: 0;
+    left: 0;
+    bottom: auto;
+    right: auto;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    z-index: 2500;
+}
+.ol-popup.aerial-docked:after,
+.ol-popup.aerial-docked:before {
+    display: none;
+}
 .ol-popup-closer {
     visibility: hidden;
     text-decoration:none;
