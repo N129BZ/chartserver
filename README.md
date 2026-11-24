@@ -1,6 +1,8 @@
 # Chart Server
+## Aviation Chart Server displays FAA charts and OpenStreetMaps with animated weather, geo-referenced METARS, TAFS, Pireps, and much more - using node express web server with the OpenLayers map API.   
 
-A lightweight Express-based server and client for serving chart tiles, airport information, and weather data. The project is designed around MBTiles/SQLite map databases, with a client WebSocket stream for live weather updates.
+### See *https://github.com/n129bz/chartmaker* for a chart database processing utility that produces FAA charts including Sectional, Terminal, Helicopter, Caribbean, Grand Canyon, IFR Enroute-High, and IFR Enroute-Low mbtiles databases. Chartserver can display any mbtiles databases that are dropped into the /public/data folder.   
+### Chartserver menu options control the display of all geo-referenced markers, including airports by range from a point.   
 
 ## Overview
 
