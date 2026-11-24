@@ -18,6 +18,7 @@ pids
 weather/
 Sectional.db
 Sectional.mbtiles
+tiles/
 
 # package-lock.json
 downloadmaps.sh
