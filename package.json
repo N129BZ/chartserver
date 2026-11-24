@@ -1,5 +1,5 @@
 {
-  "name": "mapserver",
+  "name": "chartserver",
   "version": "1.0.0",
   "description": "HTML application to display FAA charts and weather",
   "author": "n129bz <n129bz@outlook.com>",

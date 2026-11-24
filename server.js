@@ -16,7 +16,7 @@ import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import { XMLParser } from 'fast-xml-parser';
 import * as yaml from 'js-yaml';
-         
+
 //////////////////////////////////////////////////////////////
 // Download link for airport, runway, and frequency csv data:
 //    https://davidmegginson.github.io/ourairports-data/
@@ -45,7 +45,7 @@ function isRunningInDocker() {
     }
     if (indocker) {
         console.log("Running in docker!");
-        appdir = "/mapserver";
+        appdir = "/chartserver";
     }
     return indocker;
 }

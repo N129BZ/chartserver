@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chart Server System Settings | Configuration Editor</title>
-  <meta name="description" content="Modern configuration and telemetry settings editor for Chart Server, Nexrad radar, METAR feeds, touch gesture tuning, and map defaults.">
+  <meta name="description"
+    content="Modern configuration and telemetry settings editor for Chart Server, Nexrad radar, METAR feeds, touch gesture tuning, and map defaults.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <!-- Optional Leaflet map for interactive position preview -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
-  
+
   <style>
     :root {
       --bg-base: #0b0f19;
@@ -26,7 +30,7 @@
       --text-main: #f3f4f6;
       --text-muted: #9ca3af;
       --text-dim: #6b7280;
-      
+
       --accent-cyan: #38bdf8;
       --accent-cyan-rgb: 56, 189, 248;
       --accent-blue: #2563eb;
@@ -76,7 +80,7 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-base);
-      background-image: 
+      background-image:
         radial-gradient(ellipse at 50% -10%, rgba(56, 189, 248, 0.12) 0%, transparent 60%),
         radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 40%),
         radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 45%);
@@ -139,7 +143,7 @@
       width: 100%;
       height: 100%;
       border-radius: var(--radius-md);
-      border: 1px solid rgba(255,255,255,0.4);
+      border: 1px solid rgba(255, 255, 255, 0.4);
       pointer-events: none;
     }
 
@@ -279,7 +283,7 @@
     .btn-outline:hover {
       color: var(--text-main);
       border-color: var(--text-muted);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .btn-icon {
@@ -298,7 +302,7 @@
       font-weight: 500;
       padding: 4px 10px;
       border-radius: var(--radius-pill);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
     }
@@ -318,8 +322,17 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.15); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(1.15);
+      }
     }
 
     /* Main Container & Grid */
@@ -375,6 +388,7 @@
     .stat-chip span.label {
       color: var(--text-dim);
     }
+
     .stat-chip span.val {
       font-weight: 600;
       font-family: 'JetBrains Mono', monospace;
@@ -393,9 +407,11 @@
       .settings-grid {
         grid-template-columns: 1fr;
       }
+
       .search-box {
         width: 100%;
       }
+
       .search-box input:focus {
         width: 100%;
       }
@@ -691,16 +707,16 @@
       background-color: #fff;
       transition: var(--transition-normal);
       border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
 
-    input:checked + .switch-slider {
+    input:checked+.switch-slider {
       background-color: var(--accent-cyan);
       border-color: var(--accent-cyan);
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
     }
 
-    input:checked + .switch-slider:before {
+    input:checked+.switch-slider:before {
       transform: translateX(20px);
     }
 
@@ -755,14 +771,14 @@
       margin-top: 1px;
     }
 
-    .segmented-option input[type="radio"]:checked + label {
+    .segmented-option input[type="radio"]:checked+label {
       background: var(--bg-surface);
       color: var(--accent-cyan);
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border-accent);
     }
 
-    .segmented-option input[type="radio"]:checked + label .code {
+    .segmented-option input[type="radio"]:checked+label .code {
       color: var(--accent-cyan);
     }
 
@@ -935,7 +951,7 @@
       z-index: 100;
       display: flex;
       flex-direction: column;
-      box-shadow: -10px 0 35px rgba(0,0,0,0.6);
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.6);
       transform: translateX(100%);
       transition: transform var(--transition-normal);
     }
@@ -985,12 +1001,15 @@
     .json-viewer-box .json-key {
       color: #38bdf8;
     }
+
     .json-viewer-box .json-string {
       color: #a7f3d0;
     }
+
     .json-viewer-box .json-number {
       color: #fde047;
     }
+
     .json-viewer-box .json-boolean {
       color: #f472b6;
     }
@@ -1045,16 +1064,25 @@
     .toast.success {
       border-left: 4px solid var(--accent-emerald);
     }
+
     .toast.error {
       border-left: 4px solid var(--accent-rose);
     }
+
     .toast.info {
       border-left: 4px solid var(--accent-cyan);
     }
 
     @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     /* Spinner Animation */
@@ -1068,7 +1096,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Modified field indicator */
@@ -1120,6 +1150,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- App Header -->
@@ -1128,7 +1159,8 @@
       <div class="brand-section">
         <div class="brand-icon" title="Avionics & Chart Server Telemetry">
           <!-- Compass / Radar SVG -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
           </svg>
@@ -1152,7 +1184,8 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="input-search-settings" placeholder="Filter settings... (Ctrl+K)" aria-label="Filter settings">
+          <input type="text" id="input-search-settings" placeholder="Filter settings... (Ctrl+K)"
+            aria-label="Filter settings">
         </div>
 
         <!-- Connection / Status Badge -->
@@ -1162,7 +1195,8 @@
         </div>
 
         <!-- Theme Toggle -->
-        <button type="button" class="btn btn-outline btn-icon" id="btn-toggle-theme" title="Toggle Dark / Light Theme" aria-label="Toggle Theme">
+        <button type="button" class="btn btn-outline btn-icon" id="btn-toggle-theme" title="Toggle Dark / Light Theme"
+          aria-label="Toggle Theme">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
           </svg>
@@ -1185,7 +1219,8 @@
     <div class="page-intro">
       <div class="page-intro-text">
         <h2>Chart Server/Client Configuration Editor</h2>
-        <p>Edit backend parameters, Doppler weather WMS feeds, METAR caching, map center coordinates, and tablet gestures.</p>
+        <p>Edit backend parameters, Doppler weather WMS feeds, METAR caching, map center coordinates, and tablet
+          gestures.</p>
       </div>
       <div class="quick-stats">
         <div class="stat-chip">
@@ -1243,7 +1278,8 @@
               </div>
               <p class="field-desc">TCP listen port for Chart Server web application and REST endpoints.</p>
               <div class="input-wrapper">
-                <input type="number" id="input-httpport" name="httpport" class="form-input font-mono" min="1" max="65535" required>
+                <input type="number" id="input-httpport" name="httpport" class="form-input font-mono" min="1"
+                  max="65535" required>
                 <span class="input-suffix">1-65535</span>
               </div>
             </div>
@@ -1257,10 +1293,12 @@
                 </label>
                 <span class="field-key">wsroute</span>
               </div>
-              <p class="field-desc">Live bidirectional stream path for real-time aircraft traffic, GPS fixes, and weather updates.</p>
+              <p class="field-desc">Live bidirectional stream path for real-time aircraft traffic, GPS fixes, and
+                weather updates.</p>
               <div class="input-wrapper">
                 <span class="input-prefix">ws://</span>
-                <input type="text" id="input-wsroute" name="wsroute" class="form-input font-mono has-prefix" required placeholder="/api/chartserver-stream">
+                <input type="text" id="input-wsroute" name="wsroute" class="form-input font-mono has-prefix" required
+                  placeholder="/api/chartserver-stream">
               </div>
             </div>
 
@@ -1272,7 +1310,8 @@
                     Debug Diagnostics Mode
                     <span class="modified-tag">MODIFIED</span>
                   </span>
-                  <span class="field-desc">Emit verbose request logs, socket heartbeats, and raw WMS tile debug metrics.</span>
+                  <span class="field-desc">Emit verbose request logs, socket heartbeats, and raw WMS tile debug
+                    metrics.</span>
                   <span class="field-key">debug</span>
                 </div>
                 <label class="switch" for="toggle-debug">
@@ -1314,7 +1353,8 @@
               </div>
               <p class="field-desc">NOAA / NWS GeoServer MRMS base reflectivity radar WMS endpoint.</p>
               <div class="input-wrapper">
-                <input type="url" id="input-animatedwxurl" name="animatedwxurl" class="form-input font-mono" style="padding-right: 70px;" required>
+                <input type="url" id="input-animatedwxurl" name="animatedwxurl" class="form-input font-mono"
+                  style="padding-right: 70px;" required>
                 <a href="#" target="_blank" id="link-test-radar" class="url-test-btn" rel="noreferrer">Test URL</a>
               </div>
             </div>
@@ -1328,9 +1368,11 @@
                 </label>
                 <span class="field-key">addscurrentwxurl</span>
               </div>
-              <p class="field-desc">AviationWeather.gov compressed XML cache feed. <code>###</code> is substituted by timestamp/type.</p>
+              <p class="field-desc">AviationWeather.gov compressed XML cache feed. <code>###</code> is substituted by
+                timestamp/type.</p>
               <div class="input-wrapper">
-                <input type="text" id="input-addscurrentwxurl" name="addscurrentwxurl" class="form-input font-mono" required>
+                <input type="text" id="input-addscurrentwxurl" name="addscurrentwxurl" class="form-input font-mono"
+                  required>
               </div>
             </div>
 
@@ -1343,9 +1385,11 @@
                 </label>
                 <span class="field-key">addscurrentwxurlcsv</span>
               </div>
-              <p class="field-desc">Lightweight compressed CSV cache feed for low-bandwidth cellular/satellite links.</p>
+              <p class="field-desc">Lightweight compressed CSV cache feed for low-bandwidth cellular/satellite links.
+              </p>
               <div class="input-wrapper">
-                <input type="text" id="input-addscurrentwxurlcsv" name="addscurrentwxurlcsv" class="form-input font-mono" required>
+                <input type="text" id="input-addscurrentwxurlcsv" name="addscurrentwxurlcsv"
+                  class="form-input font-mono" required>
               </div>
             </div>
 
@@ -1360,7 +1404,8 @@
               </div>
               <p class="field-desc">Frequency in minutes to fetch updated METARs, TAFs, and Doppler frames.</p>
               <div class="input-wrapper">
-                <input type="number" id="input-wxupdateintervalminutes" name="wxupdateintervalminutes" class="form-input font-mono has-suffix" min="1" step="1" required>
+                <input type="number" id="input-wxupdateintervalminutes" name="wxupdateintervalminutes"
+                  class="form-input font-mono has-suffix" min="1" step="1" required>
                 <span class="input-suffix">min</span>
               </div>
               <div class="interval-pills">
@@ -1383,8 +1428,10 @@
               </div>
               <p class="field-desc">Upper bound on parsed weather observation stations kept in memory buffer.</p>
               <div class="range-control-group">
-                <input type="range" id="slider-maxmetarcount" class="range-slider" min="50" max="3000" step="50" value="800">
-                <input type="number" id="input-maxmetarcount" name="maxmetarcount" class="form-input font-mono range-number-box" min="50" max="10000" required>
+                <input type="range" id="slider-maxmetarcount" class="range-slider" min="50" max="3000" step="50"
+                  value="800">
+                <input type="number" id="input-maxmetarcount" name="maxmetarcount"
+                  class="form-input font-mono range-number-box" min="50" max="10000" required>
               </div>
             </div>
 
@@ -1410,7 +1457,7 @@
             <span class="card-badge-count">6 settings</span>
           </div>
           <div class="card-body">
-            
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
 
               <!-- Left Column: Coordinate Picker & Interactive Map -->
@@ -1427,11 +1474,13 @@
                 <div class="coord-inputs">
                   <div class="coord-field">
                     <label for="input-pos-lat">Latitude (deg)</label>
-                    <input type="number" id="input-pos-lat" class="form-input font-mono" step="0.00001" min="-90" max="90" required>
+                    <input type="number" id="input-pos-lat" class="form-input font-mono" step="0.00001" min="-90"
+                      max="90" required>
                   </div>
                   <div class="coord-field">
                     <label for="input-pos-lon">Longitude (deg)</label>
-                    <input type="number" id="input-pos-lon" class="form-input font-mono" step="0.00001" min="-180" max="180" required>
+                    <input type="number" id="input-pos-lon" class="form-input font-mono" step="0.00001" min="-180"
+                      max="180" required>
                   </div>
                 </div>
 
@@ -1440,7 +1489,8 @@
                   <div id="positionMap"></div>
                   <div class="map-bar">
                     <span>Click or drag pin to re-center</span>
-                    <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.7rem;" id="btn-use-geolocation">
+                    <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.7rem;"
+                      id="btn-use-geolocation">
                       📍 Use My GPS
                     </button>
                   </div>
@@ -1448,18 +1498,24 @@
 
                 <!-- Quick presets -->
                 <div class="preset-pills">
-                  <span style="font-size: 0.72rem; color: var(--text-dim); display: flex; align-items: center;">Presets:</span>
-                  <button type="button" class="preset-pill" onclick="setPresetCoord(30.73659, -98.23643)">Austin/Burnet, TX (Default)</button>
-                  <button type="button" class="preset-pill" onclick="setPresetCoord(43.9844, -88.5569)">KOSH (Oshkosh EAA)</button>
-                  <button type="button" class="preset-pill" onclick="setPresetCoord(41.9742, -87.9073)">KORD (Chicago)</button>
-                  <button type="button" class="preset-pill" onclick="setPresetCoord(39.8561, -104.6737)">KDEN (Denver)</button>
-                  <button type="button" class="preset-pill" onclick="setPresetCoord(37.6213, -122.3790)">KSFO (San Francisco)</button>
+                  <span
+                    style="font-size: 0.72rem; color: var(--text-dim); display: flex; align-items: center;">Presets:</span>
+                  <button type="button" class="preset-pill" onclick="setPresetCoord(30.73659, -98.23643)">Austin/Burnet,
+                    TX (Default)</button>
+                  <button type="button" class="preset-pill" onclick="setPresetCoord(43.9844, -88.5569)">KOSH (Oshkosh
+                    EAA)</button>
+                  <button type="button" class="preset-pill" onclick="setPresetCoord(41.9742, -87.9073)">KORD
+                    (Chicago)</button>
+                  <button type="button" class="preset-pill" onclick="setPresetCoord(39.8561, -104.6737)">KDEN
+                    (Denver)</button>
+                  <button type="button" class="preset-pill" onclick="setPresetCoord(37.6213, -122.3790)">KSFO (San
+                    Francisco)</button>
                 </div>
               </div>
 
               <!-- Right Column: Map Behavior & Toggles -->
               <div style="display: flex; flex-direction: column; gap: 16px;">
-                
+
                 <!-- startupzoom -->
                 <div class="field-row" id="field-startupzoom">
                   <div class="field-header">
@@ -1471,8 +1527,10 @@
                   </div>
                   <p class="field-desc">Default magnification level (1 = Global view, 18 = Runway detail).</p>
                   <div class="range-control-group">
-                    <input type="range" id="slider-startupzoom" class="range-slider" min="3" max="18" step="1" value="10">
-                    <input type="number" id="input-startupzoom" name="startupzoom" class="form-input font-mono range-number-box" min="1" max="20" required>
+                    <input type="range" id="slider-startupzoom" class="range-slider" min="3" max="18" step="1"
+                      value="10">
+                    <input type="number" id="input-startupzoom" name="startupzoom"
+                      class="form-input font-mono range-number-box" min="1" max="20" required>
                   </div>
                 </div>
 
@@ -1485,9 +1543,11 @@
                     </label>
                     <span class="field-key">defaultsearchradius</span>
                   </div>
-                  <p class="field-desc">Geographic query radius around active position for METAR stations and Navaids.</p>
+                  <p class="field-desc">Geographic query radius around active position for METAR stations and Navaids.
+                  </p>
                   <div class="input-wrapper">
-                    <input type="number" id="input-defaultsearchradius" name="defaultsearchradius" class="form-input font-mono has-suffix" min="1" max="500" required>
+                    <input type="number" id="input-defaultsearchradius" name="defaultsearchradius"
+                      class="form-input font-mono has-suffix" min="1" max="500" required>
                     <span class="input-suffix" id="suffix-search-unit">sm</span>
                   </div>
                 </div>
@@ -1500,7 +1560,8 @@
                         Use Online OpenStreetMap Tiles
                         <span class="modified-tag">MODIFIED</span>
                       </span>
-                      <span class="field-desc">Fetch standard OSM base cartography over internet. When disabled, uses offline vector cache.</span>
+                      <span class="field-desc">Fetch standard OSM base cartography over internet. When disabled, uses
+                        offline vector cache.</span>
                       <span class="field-key">useOSMonlinemap</span>
                     </div>
                     <label class="switch" for="toggle-useOSMonlinemap">
@@ -1518,7 +1579,8 @@
                         Override Last Position on Boot
                         <span class="modified-tag">MODIFIED</span>
                       </span>
-                      <span class="field-desc">Force map to center on default coordinates instead of recalling the last known GPS session point.</span>
+                      <span class="field-desc">Force map to center on default coordinates instead of recalling the last
+                        known GPS session point.</span>
                       <span class="field-key">overridelastposition</span>
                     </div>
                     <label class="switch" for="toggle-overridelastposition">
@@ -1536,7 +1598,8 @@
                         Show Map & Data Attribution
                         <span class="modified-tag">MODIFIED</span>
                       </span>
-                      <span class="field-desc">Display legal OpenStreetMap, NOAA, and ADDS copyright watermarks in bottom corner.</span>
+                      <span class="field-desc">Display legal OpenStreetMap, NOAA, and ADDS copyright watermarks in
+                        bottom corner.</span>
                       <span class="field-key">showattribution</span>
                     </div>
                     <label class="switch" for="toggle-showattribution">
@@ -1582,7 +1645,7 @@
                 <span class="field-key">distanceunit</span>
               </div>
               <p class="field-desc">Select measurement standard used for flight plan distances and radar ranges.</p>
-              
+
               <div class="segmented-group">
                 <div class="segmented-option">
                   <input type="radio" id="unit-sm" name="distanceunit" value="sm">
@@ -1616,7 +1679,8 @@
                     Use Metric Units
                     <span class="modified-tag">MODIFIED</span>
                   </span>
-                  <span class="field-desc">Display temperatures in Celsius (°C) and pressures in hectopascals (hPa) instead of inHg.</span>
+                  <span class="field-desc">Display temperatures in Celsius (°C) and pressures in hectopascals (hPa)
+                    instead of inHg.</span>
                   <span class="field-key">usemetricunits</span>
                 </div>
                 <label class="switch" for="toggle-usemetricunits">
@@ -1634,7 +1698,8 @@
                     Use Device Local Time
                     <span class="modified-tag">MODIFIED</span>
                   </span>
-                  <span class="field-desc">Render observation timestamps in browser time zone instead of Coordinated Universal Time (UTC / Zulu).</span>
+                  <span class="field-desc">Render observation timestamps in browser time zone instead of Coordinated
+                    Universal Time (UTC / Zulu).</span>
                   <span class="field-key">uselocaltime</span>
                 </div>
                 <label class="switch" for="toggle-uselocaltime">
@@ -1653,7 +1718,9 @@
             <div class="card-title-group">
               <div class="card-icon-bubble">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"></path>
+                  <path
+                    d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z">
+                  </path>
                 </svg>
               </div>
               <div>
@@ -1674,9 +1741,11 @@
                 </label>
                 <span class="field-key">airportsFilter</span>
               </div>
-              <p class="field-desc">Country code filter (e.g. <code>US</code>, <code>CA</code>, <code>ALL</code>) for airfield directory ingestion.</p>
+              <p class="field-desc">Country code filter (e.g. <code>US</code>, <code>CA</code>, <code>ALL</code>) for
+                airfield directory ingestion.</p>
               <div class="input-wrapper">
-                <input type="text" id="input-airportsFilter" name="airportsFilter" class="form-input font-mono" placeholder="US" required>
+                <input type="text" id="input-airportsFilter" name="airportsFilter" class="form-input font-mono"
+                  placeholder="US" required>
               </div>
             </div>
 
@@ -1727,8 +1796,10 @@
               </div>
               <p class="field-desc">Touch padding radius expansion for tapping icons on mobile/cockpit tablets.</p>
               <div class="range-control-group">
-                <input type="range" id="slider-smallScreenHitTolerance" class="range-slider" min="10" max="100" step="5" value="40">
-                <input type="number" id="input-smallScreenHitTolerance" name="smallScreenHitTolerance" class="form-input font-mono range-number-box" min="5" max="150" required>
+                <input type="range" id="slider-smallScreenHitTolerance" class="range-slider" min="10" max="100" step="5"
+                  value="40">
+                <input type="number" id="input-smallScreenHitTolerance" name="smallScreenHitTolerance"
+                  class="form-input font-mono range-number-box" min="5" max="150" required>
               </div>
             </div>
 
@@ -1741,10 +1812,13 @@
                 </label>
                 <span class="field-key">swipeThreshold</span>
               </div>
-              <p class="field-desc">Minimum finger travel distance required to trigger drawer or drawer switch gestures.</p>
+              <p class="field-desc">Minimum finger travel distance required to trigger drawer or drawer switch gestures.
+              </p>
               <div class="range-control-group">
-                <input type="range" id="slider-swipeThreshold" class="range-slider" min="30" max="300" step="10" value="100">
-                <input type="number" id="input-swipeThreshold" name="swipeThreshold" class="form-input font-mono range-number-box" min="20" max="500" required>
+                <input type="range" id="slider-swipeThreshold" class="range-slider" min="30" max="300" step="10"
+                  value="100">
+                <input type="number" id="input-swipeThreshold" name="swipeThreshold"
+                  class="form-input font-mono range-number-box" min="20" max="500" required>
               </div>
             </div>
 
@@ -1762,7 +1836,8 @@
       <span id="bar-status-text" style="color: var(--text-muted); font-size: 0.8rem;">Ready</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <button type="button" class="btn btn-outline" id="btn-reload-server" title="Reload fresh settings from GET /api/config">
+      <button type="button" class="btn btn-outline" id="btn-reload-server"
+        title="Reload fresh settings from GET /api/config">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
@@ -1802,7 +1877,8 @@
     </div>
     <div class="drawer-body">
       <p style="font-size: 0.8rem; color: var(--text-muted);">
-        Real-time serialization matching server endpoint <code>POST /api/config/edit</code>. You can copy, export, or paste custom configuration JSON.
+        Real-time serialization matching server endpoint <code>POST /api/config/edit</code>. You can copy, export, or
+        paste custom configuration JSON.
       </p>
 
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -1812,7 +1888,8 @@
         <button type="button" class="btn btn-secondary" style="font-size: 0.75rem;" id="btn-download-json">
           💾 Download config.json
         </button>
-        <button type="button" class="btn btn-outline" style="font-size: 0.75rem;" id="btn-drawer-reload-server" title="Re-fetch /api/config">
+        <button type="button" class="btn btn-outline" style="font-size: 0.75rem;" id="btn-drawer-reload-server"
+          title="Re-fetch /api/config">
           ↻ Re-fetch /api/config
         </button>
       </div>
@@ -1822,10 +1899,12 @@
       </div>
 
       <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px;">
-        <label for="textarea-import-json" style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 6px;">
+        <label for="textarea-import-json"
+          style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 6px;">
           Import / Paste Custom JSON
         </label>
-        <textarea id="textarea-import-json" class="raw-textarea" placeholder="Paste your settings JSON here and click Apply..."></textarea>
+        <textarea id="textarea-import-json" class="raw-textarea"
+          placeholder="Paste your settings JSON here and click Apply..."></textarea>
         <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
           <button type="button" class="btn btn-primary" style="font-size: 0.78rem;" id="btn-apply-imported-json">
             Apply to Form
@@ -1925,7 +2004,7 @@
      * Theme Initialization (Dark mode default with system or local storage recall)
      */
     function initTheme() {
-      const savedTheme = localStorage.getItem("mapserver_theme") || "dark";
+      const savedTheme = localStorage.getItem("chartserver_theme") || "dark";
       document.documentElement.setAttribute("data-theme", savedTheme);
       updateThemeIcon(savedTheme);
 
@@ -1933,7 +2012,7 @@
         const cur = document.documentElement.getAttribute("data-theme");
         const next = cur === "dark" ? "light" : "dark";
         document.documentElement.setAttribute("data-theme", next);
-        localStorage.setItem("mapserver_theme", next);
+        localStorage.setItem("chartserver_theme", next);
         updateThemeIcon(next);
         if (leafletMap) {
           leafletMap.invalidateSize();
@@ -1992,7 +2071,7 @@
       } catch (err) {
         console.warn(`Could not fetch from ${GET_SETTINGS_URL}:`, err.message);
         // Fallback to local storage or defaults
-        const cached = localStorage.getItem("mapserver_settings");
+        const cached = localStorage.getItem("chartserver_settings");
         if (cached) {
           try {
             const parsedCached = JSON.parse(cached);
@@ -2000,7 +2079,7 @@
             initialLoadedState = sanitizeConfig(parsedCached);
             currentState = JSON.parse(JSON.stringify(initialLoadedState));
             showToast("Loaded saved local settings (Server unreachable)", "info");
-          } catch(e) {
+          } catch (e) {
             applyFallback();
           }
         } else {
@@ -2446,11 +2525,11 @@
             leafletMap.panTo([numLat, numLon]);
           }
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     // Helper for quick presets
-    window.setPresetCoord = function(lat, lon) {
+    window.setPresetCoord = function (lat, lon) {
       latInput.value = lat;
       lonInput.value = lon;
       currentState.defaultposition = { lat, lon };
@@ -2460,7 +2539,7 @@
       showToast(`Selected preset coordinate: ${lat}, ${lon}`, "info");
     };
 
-    window.setIntervalVal = function(minutes) {
+    window.setIntervalVal = function (minutes) {
       document.getElementById("input-wxupdateintervalminutes").value = minutes;
       currentState.wxupdateintervalminutes = minutes;
       updateHumanInterval(minutes);
@@ -2552,7 +2631,7 @@
           }
           initialLoadedState = JSON.parse(JSON.stringify(currentState));
           rawServerConfig = JSON.parse(JSON.stringify(payload));
-          localStorage.setItem("mapserver_settings", JSON.stringify(payload));
+          localStorage.setItem("chartserver_settings", JSON.stringify(payload));
           checkDirtyState();
           showToast("Settings successfully saved to /api/config/edit!", "success");
         } else {
@@ -2561,7 +2640,7 @@
       } catch (err) {
         console.warn("POST to /api/config/edit failed:", err);
         // Persist locally in standalone mode
-        localStorage.setItem("mapserver_settings", JSON.stringify(payload));
+        localStorage.setItem("chartserver_settings", JSON.stringify(payload));
         initialLoadedState = JSON.parse(JSON.stringify(currentState));
         checkDirtyState();
         showToast(`Saved locally (${err.message}). Ready for server sync.`, "info");
@@ -2684,7 +2763,7 @@
     function showToast(message, type = "info") {
       const toast = document.createElement("div");
       toast.className = `toast ${type}`;
-      
+
       let icon = "ℹ️";
       if (type === "success") icon = "✓";
       if (type === "error") icon = "⚠";
@@ -2704,4 +2783,5 @@
     }
   </script>
 </body>
+
 </html>
