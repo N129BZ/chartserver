@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         title: "Street Map",
         source: onlineOsmSource,
         visible: internetAvailable,
-        type: "base",
+        type: "none",
         zIndex: 0,
         displayInLayerSwitcher: true
     });
@@ -517,8 +517,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         title: "Aerial Imagery",
         source: aerialSource,
         visible: false,
-        type: "base",
-        zIndex: 0,
+        type: "overlay",
+        zIndex: 3,
         displayInLayerSwitcher: true
     });
     map.addLayer(aerialLayer);
