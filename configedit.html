@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Map Server System Settings | Configuration Editor</title>
-  <meta name="description" content="Modern configuration and telemetry settings editor for Map Server, Nexrad radar, METAR feeds, touch gesture tuning, and map defaults.">
+  <title>Chart Server System Settings | Configuration Editor</title>
+  <meta name="description" content="Modern configuration and telemetry settings editor for Chart Server, Nexrad radar, METAR feeds, touch gesture tuning, and map defaults.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1126,7 +1126,7 @@
   <header class="app-header">
     <div class="header-container">
       <div class="brand-section">
-        <div class="brand-icon" title="Avionics & Map Server Telemetry">
+        <div class="brand-icon" title="Avionics & Chart Server Telemetry">
           <!-- Compass / Radar SVG -->
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -1135,7 +1135,7 @@
         </div>
         <div class="brand-info">
           <h1>
-            Map Server/Client Settings
+            Chart Server/Client Settings
             <span class="brand-badge">v2.4 API</span>
           </h1>
           <div class="brand-sub">
@@ -1184,7 +1184,7 @@
   <main class="main-content">
     <div class="page-intro">
       <div class="page-intro-text">
-        <h2>Map Server/Client Configuration Editor</h2>
+        <h2>Chart Server/Client Configuration Editor</h2>
         <p>Edit backend parameters, Doppler weather WMS feeds, METAR caching, map center coordinates, and tablet gestures.</p>
       </div>
       <div class="quick-stats">
@@ -1194,7 +1194,7 @@
         </div>
         <div class="stat-chip">
           <span class="label">WS Route:</span>
-          <span class="val" id="stat-ws">/api/Map Server-stream</span>
+          <span class="val" id="stat-ws">/api/chartserver-stream</span>
         </div>
         <div class="stat-chip">
           <span class="label">Weather Cache:</span>
@@ -1241,7 +1241,7 @@
                 </label>
                 <span class="field-key">httpport</span>
               </div>
-              <p class="field-desc">TCP listen port for Map Server web application and REST endpoints.</p>
+              <p class="field-desc">TCP listen port for Chart Server web application and REST endpoints.</p>
               <div class="input-wrapper">
                 <input type="number" id="input-httpport" name="httpport" class="form-input font-mono" min="1" max="65535" required>
                 <span class="input-suffix">1-65535</span>
@@ -1260,7 +1260,7 @@
               <p class="field-desc">Live bidirectional stream path for real-time aircraft traffic, GPS fixes, and weather updates.</p>
               <div class="input-wrapper">
                 <span class="input-prefix">ws://</span>
-                <input type="text" id="input-wsroute" name="wsroute" class="form-input font-mono has-prefix" required placeholder="/api/Map Server-stream">
+                <input type="text" id="input-wsroute" name="wsroute" class="form-input font-mono has-prefix" required placeholder="/api/chartserver-stream">
               </div>
             </div>
 
@@ -1841,7 +1841,7 @@
   <!-- Main JavaScript Application Logic -->
   <script>
     /**
-     * Map Server / Client Settings Editor
+     * Chart Server / Client Settings Editor
      * Dynamic configuration loaded from: GET /api/config
      * Persisted to: POST /api/config/edit
      */

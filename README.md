@@ -1,6 +1,6 @@
-# mapserver
+# Chart Server
 
-A lightweight Express-based map server and client for serving chart tiles, airport information, and weather data. The project is designed around MBTiles/SQLite map databases, with a client WebSocket stream for live weather updates.
+A lightweight Express-based server and client for serving chart tiles, airport information, and weather data. The project is designed around MBTiles/SQLite map databases, with a client WebSocket stream for live weather updates.
 
 ## Overview
 
