@@ -112,9 +112,9 @@ This project is distributed under the Apache 2 License. See `LICENSE` for detail
 
 ###
 **Animated weather radar layer over the Sectional chart, ownship image displayed via Stratux integration**
-![ANIMWX](./repository-images/SectWithWx.png)
-**OpenStreetMap with airport status colored markers and METAR popup**   
-![OSMWMETAR](./repository-images/OsmWithMetars.png)
+![Animated Weather layer](./repository-images/SectWithWx.png)
+**OpenStreetMap with airports in radius of a point, with airport information popup**   
+![Airports in range](./repository-images/AirportsWithPopup.png)
 **Enroute High IFR chart**   
 ![enroutehigh](https://github.com/user-attachments/assets/caf0df83-44b2-47bb-9f9c-bab816fa5acc)
 **Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
