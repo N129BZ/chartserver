@@ -1,13 +1,13 @@
 services:
-  mapserver:
-    image: ghcr.io/n129bz/mapserver:latest
-    container_name: mapserver
+  chartserver:
+    image: ghcr.io/n129bz/chartserver:latest
+    container_name: chartserver
     restart: unless-stopped
     ports:
       - "80:8600" 
     volumes:
-      - ./tiles:/mapserver/tiles
-      - .:/mapserver/config
+      - ./tiles:/chartserver/tiles
+      - .:/chartserver/config
     environment:
       - DOCKER=true
       - HTTP_PORT=8600
