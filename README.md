@@ -111,9 +111,9 @@ The app can download weather data from ADDS endpoints and save it under `weather
 This project is distributed under the Apache 2 License. See `LICENSE` for details.
 
 ###
-**Animated weather radar layer over the Sectional chart, ownship image displayed via Stratux integration**
-![Animated Weather layer](./repository-images/SectWithWx.png)
-**OpenStreetMap with airports in radius of a point, with airport information popup**   
+**Animated weather radar layer**
+![Animated Weather layer](./repository-images/AnimatedWx.png)
+**Airports in radius of a point, with airport information popup**   
 ![Airports in range](./repository-images/AirportsWithPopup.png)
 **Enroute High IFR chart**   
 ![enroutehigh](https://github.com/user-attachments/assets/caf0df83-44b2-47bb-9f9c-bab816fa5acc)
