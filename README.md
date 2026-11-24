@@ -107,3 +107,18 @@ The app can download weather data from ADDS endpoints and save it under `weather
 ## License
 
 This project is distributed under the Apache 2 License. See `LICENSE` for details.
+
+###
+**Animated weather radar layer over the Sectional chart, ownship image displayed via Stratux integration**
+![ANIMWX](./repository-images/SectWithWx.png)
+**OpenStreetMap with airport status colored markers and METAR popup**   
+![OSMWMETAR](./repository-images/OsmWithMetars.png)
+**Enroute High IFR chart**   
+![enroutehigh](https://github.com/user-attachments/assets/caf0df83-44b2-47bb-9f9c-bab816fa5acc)
+**Multiple layers, layer switcher has OSM, Grand Canyon GA, Helicopter, and animated weather selected**
+![MULTI](./repository-images/MultiLayer.png)
+**Caribbean chart with color-coded airport features, showing a METAR when hovering mouse over an airport**
+![CARIBMETAR](./repository-images/CaribbeanWithMetars.png)
+**Sectional chart zoomed in**  
+![SECTCLOSE](./repository-images/SectionalCloseup.png)
+
