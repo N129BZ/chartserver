@@ -211,11 +211,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         }, 5000); // 5-second retry delay (or use exponential backoff)
     }
 
+    let preAerialState = null;
+
     async function saveUserData() {
         const view = map.getView();
         const layers = map.getLayers();
-        const center = view.getCenter();
-        const zoom = view.getZoom();
+        const center = preAerialState ? preAerialState.center : view.getCenter();
+        const zoom = preAerialState ? preAerialState.zoom : view.getZoom();
         const rotation = view.getRotation();
 
         const layerStates = [];
@@ -223,10 +225,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         // 2. Safely extract visibility states
         layers.forEach((layer) => {
             const layerName = layer.get('name');
-            if (layerName) {
+            if (layerName && layerName !== 'aerial') {
+                const savedEntry = preAerialState
+                    ? preAerialState.layers.find((entry) => entry.layer === layer)
+                    : null;
                 layerStates.push({
                     name: layerName,
-                    visible: layer.getVisible()
+                    visible: savedEntry ? savedEntry.visible : layer.getVisible()
                 });
             }
         });
@@ -280,6 +285,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             if (maplayers && Array.isArray(mapstate.layerstates)) {
                 for (const layer of mapstate.layerstates) {
+                    if (layer.name === 'aerial') continue;
                     try {
                         // Find matching layer by a custom 'name' property
                         const targetLayer = maplayers.find(l => l.get('name') === layer.name);
@@ -296,6 +302,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                         console.log(`Error updating layer "${layer.name}":`, err);
                     }
                 }
+            }
+            if (aerialLayer) {
+                aerialLayer.setVisible(false);
             }
 
             if (mapstate.center && mapstate.zoom) {
@@ -512,12 +521,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     const aerialLayer = new TileLayer({
         name: "aerial",
-        title: "Aerial Imagery",
+        title: "",
         source: aerialSource,
         visible: false,
         type: "overlay",
         zIndex: 3,
-        displayInLayerSwitcher: true
+        displayInLayerSwitcher: false
     });
     map.addLayer(aerialLayer);
 
@@ -1015,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', async function () {
      */
     function closePopup() {
         popupoverlay.setPosition(undefined);
+        restoreFromAerialView();
         return false;
     }
     window.closePopup = closePopup;
@@ -1385,7 +1395,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (currentZoom != newZoom) {
             resizeDots(newZoom);
             currentZoom = newZoom;
-            closePopup();
+            if (!preAerialState) {
+                closePopup();
+            }
         }
     });
 
@@ -1945,6 +1957,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const backBtn = popupcontent.querySelector('#go-back');
             if (backBtn) {
                 backBtn.addEventListener('click', async () => {
+                    restoreFromAerialView();
                     await callbackFunction(feature);
                 });
             }
@@ -1953,7 +1966,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         const aerialBtn = popupcontent.querySelector('#view-aerial');
         if (aerialBtn) {
             aerialBtn.addEventListener('click', () => {
-                closePopup();
                 switchToAerialView(airport.lon, airport.lat);
             });
         }
@@ -1965,6 +1977,24 @@ document.addEventListener('DOMContentLoaded', async function () {
      * @param {number|string} lat
      */
     function switchToAerialView(lon, lat) {
+        const view = map.getView();
+        if (!preAerialState) {
+            const layers = [];
+            map.getLayers().forEach((layer) => {
+                if (layer !== aerialLayer) {
+                    layers.push({
+                        layer,
+                        visible: layer.getVisible()
+                    });
+                }
+            });
+            preAerialState = {
+                layers,
+                center: view.getCenter() ? [...view.getCenter()] : null,
+                zoom: view.getZoom()
+            };
+        }
+
         if (aerialLayer) {
             aerialLayer.setVisible(true);
         }
@@ -1977,15 +2007,42 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Temporarily hide aeronautical chart overlays so the aerial imagery is visible
         map.getLayers().forEach((layer) => {
             const name = layer.get('name');
-            if (name && name !== 'airports' && layer.get('type') === 'overlay' && (layer.get('zIndex') || 0) < 100) {
+            if (name && name !== 'airports' && name !== 'aerial' && layer.get('type') === 'overlay' && (layer.get('zIndex') || 0) < 99) {
                 layer.setVisible(false);
             }
         });
-        map.getView().animate({
+        layerSwitcher.renderPanel();
+        view.animate({
             center: fromLonLat([parseFloat(lon), parseFloat(lat)]),
             zoom: 16,
             duration: 900
         });
+    }
+
+    /**
+     * Restore map layers and view state captured prior to switching to aerial view.
+     */
+    function restoreFromAerialView() {
+        if (!preAerialState) return;
+        const savedState = preAerialState;
+        preAerialState = null;
+
+        if (aerialLayer) {
+            aerialLayer.setVisible(false);
+        }
+        for (const entry of savedState.layers) {
+            entry.layer.setVisible(entry.visible);
+        }
+        syncBaseMapVisibility();
+
+        const view = map.getView();
+        if (savedState.center) {
+            view.setCenter(savedState.center);
+        }
+        if (typeof savedState.zoom === 'number' && !Number.isNaN(savedState.zoom)) {
+            view.setZoom(savedState.zoom);
+        }
+        layerSwitcher.renderPanel();
     }
     
     /**
