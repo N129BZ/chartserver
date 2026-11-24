@@ -496,8 +496,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const onlineOsmSource = new OSM();
     const onlineOsmLayer = new TileLayer({
-        name: "osm",
-        title: "Street Map",
         source: onlineOsmSource,
         visible: internetAvailable,
         type: "none",
