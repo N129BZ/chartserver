@@ -75,10 +75,10 @@ Or run directly:
 node server.js
 ```
 
-The server listens on `0.0.0.0:8500` by default but will use any port you designate:
+The server listens on `0.0.0.0:8600` by default but will use any port you designate:
 
 ```text
-http://localhost:8500/
+http://localhost:8600/
 ```
 
 ## Main endpoints
