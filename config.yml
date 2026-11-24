@@ -5,6 +5,7 @@ distanceunit: "sm"
 startupzoom: 13
 swipeThreshold: 100
 
+esriworldimageryurl: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 animatedwxurl: "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows"
 animatedwxfetchminutes: 120
 animatedwxframerateseconds: 3

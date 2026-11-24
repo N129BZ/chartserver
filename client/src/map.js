@@ -496,12 +496,32 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const onlineOsmSource = new OSM();
     const onlineOsmLayer = new TileLayer({
+        name: "osm",
+        title: "Street Map",
         source: onlineOsmSource,
         visible: internetAvailable,
-        type: "none",
+        type: "base",
         zIndex: 0,
+        displayInLayerSwitcher: true
     });
     map.addLayer(onlineOsmLayer);
+
+    const aerialSource = new XYZ({
+        url: configuration.esriworldimageryurl,
+        maxZoom: 19,
+        attributions: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        attributionsCollapsible: true
+    });
+    const aerialLayer = new TileLayer({
+        name: "aerial",
+        title: "Aerial Imagery",
+        source: aerialSource,
+        visible: false,
+        type: "base",
+        zIndex: 0,
+        displayInLayerSwitcher: true
+    });
+    map.addLayer(aerialLayer);
 
     let offlineOsmLayer = null;
     let consecutiveOsmTileErrors = 0;
@@ -516,6 +536,15 @@ document.addEventListener('DOMContentLoaded', async function () {
      * Keep online OSM and local osm.mbtiles base layers synchronized with connectivity state.
      */
     function syncBaseMapVisibility() {
+        const isAerial = aerialLayer && aerialLayer.getVisible();
+        if (isAerial) {
+            if (!internetAvailable && offlineOsmLayer) {
+                aerialLayer.setVisible(false);
+                onlineOsmLayer.setVisible(false);
+                offlineOsmLayer.setVisible(true);
+            }
+            return;
+        }
         const useOnline = internetAvailable || !offlineOsmLayer;
         onlineOsmLayer.setVisible(useOnline);
         if (offlineOsmLayer) {
@@ -1901,9 +1930,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         html += `${frhtml}${rwhtml}`;
         html += `</table>`;
         html += `</div></div>`; // closes 2 opened <div> elements
-        html += `<div class="popup-button-row" style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">`;
+        html += `<div class="popup-button-row" style="display: flex; flex-direction: row; justify-content: space-between; width: 100%; gap: 6px; flex-wrap: wrap;">`;
         if (parameters.hascallback) {
             html += `<button class="custom-popup-button" id="go-back" style="background:${bgcolor}; color:${fgcolor};">Back to ${callertype}</button>`;
+        }
+        if (airport && airport.lat != null && airport.lon != null) {
+            html += `<button class="custom-popup-button" id="view-aerial" style="background:${bgcolor}; color:${fgcolor};">Aerial View</button>`;
         }
         html += `<button class="custom-popup-button" onclick="closePopup()" style="background:${bgcolor}; color:${fgcolor};">Close</button>`;
         html += `</div>`; // closes button-popup-row 
@@ -1919,8 +1951,45 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
             }
         }
+        
+        const aerialBtn = popupcontent.querySelector('#view-aerial');
+        if (aerialBtn) {
+            aerialBtn.addEventListener('click', () => {
+                closePopup();
+                switchToAerialView(airport.lon, airport.lat);
+            });
+        }
     }
 
+    /**
+     * Switch active base map to aerial imagery, hide chart overlays, and center on airport.
+     * @param {number|string} lon
+     * @param {number|string} lat
+     */
+    function switchToAerialView(lon, lat) {
+        if (aerialLayer) {
+            aerialLayer.setVisible(true);
+        }
+        if (onlineOsmLayer) {
+            onlineOsmLayer.setVisible(false);
+        }
+        if (offlineOsmLayer) {
+            offlineOsmLayer.setVisible(false);
+        }
+        // Temporarily hide aeronautical chart overlays so the aerial imagery is visible
+        map.getLayers().forEach((layer) => {
+            const name = layer.get('name');
+            if (name && name !== 'airports' && layer.get('type') === 'overlay' && (layer.get('zIndex') || 0) < 100) {
+                layer.setVisible(false);
+            }
+        });
+        map.getView().animate({
+            center: fromLonLat([parseFloat(lon), parseFloat(lat)]),
+            zoom: 16,
+            duration: 900
+        });
+    }
+    
     /**
      * Parse forcast fields from metars or tafs
      * @param {string} rawfieldname - the object key before "cleaning" underscores, etc.
