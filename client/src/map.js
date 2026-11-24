@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 view.setCenter(defaultPosition);
                 view.setZoom(parseFloat(configuration.startupzoom));
             }
+            await updateMapLegends();
             console.log("Map state restored!");
         } catch (error) {
             console.log(`Error restoring map state: ${error}`);
@@ -620,17 +621,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     map.addLayer(metarVectorLayer);
 
-    metarVectorLayer.on('change:visible', async () => {
-        const colorLegend = await getWeatherMapLegend();
-        if (metarVectorLayer.getVisible()) {
-            colorLegend.style.display = 'block';
-        }
-        else {
-            if (!tafVectorLayer.getVisible()) {
-                colorLegend.style.display = 'none';
-            }
-        }
-    })
+    metarVectorLayer.on('change:visible', updateMapLegends);
 
     const tafVectorSource = new VectorSource({});
     const tafVectorLayer = new VectorLayer({
@@ -645,17 +636,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     map.addLayer(tafVectorLayer);
 
-    tafVectorLayer.on('change:visible', async () => {
-        const colorLegend = await getWeatherMapLegend();
-        if (tafVectorLayer.getVisible()) {
-            colorLegend.style.display = 'block';
-        }
-        else {
-            if (!metarVectorLayer.getVisible()) {
-                colorLegend.style.display = 'none';
-            }
-        }
-    })
+    tafVectorLayer.on('change:visible', updateMapLegends);
 
     const pirepVectorSource = new VectorSource({});
     const pirepVectorLayer = new VectorLayer({
@@ -683,17 +664,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     map.addLayer(airportVectorLayer);
 
-    airportVectorLayer.on('change:visible', async () => {
-        const colorLegend = await getAirportLegend();
-        if (airportVectorLayer.getVisible()) {
-            radiusSelector.style.display = 'block';
-            colorLegend.style.display = 'block';
-        }
-        else {
-            radiusSelector.style.display = 'none';
-            colorLegend.style.display = 'none';
-        }
-    });
+    airportVectorLayer.on('change:visible', updateMapLegends);
 
     await startListening();
 
@@ -1070,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         return weatherSvgs;
     }
 
-    async function getWeatherMapLegend() {
+    async function getWeatherMapLegendHtml() {
         const weatherSvgs = await getWeatherSvgs();
         let detailhtml = `<table style="width: 100%; border-collapse: collapse;">
                             <tr><td colspan="2" class="radius-header" style="text-align:center">Weather Marker Legend</td></tr>`;
@@ -1087,12 +1058,33 @@ document.addEventListener('DOMContentLoaded', async function () {
             <tr><td class="legend-dot-label">LIFR</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(weatherSvgs.lifr).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>
-        </table`;
+        </table>`;
 
+        return detailhtml;
+    }
+
+    async function updateMapLegends() {
         const colorLegend = document.getElementById('color-legend');
-        colorLegend.style = "display:block;"
-        colorLegend.innerHTML = detailhtml;
-        return colorLegend;
+        const weatherVisible = metarVectorLayer.getVisible() || tafVectorLayer.getVisible();
+        const airportsVisible = airportVectorLayer.getVisible();
+
+        radiusSelector.style.display = airportsVisible ? 'block' : 'none';
+
+        const sections = [];
+        if (airportsVisible) {
+            sections.push(await getAirportLegendHtml());
+        }
+        if (weatherVisible) {
+            sections.push(await getWeatherMapLegendHtml());
+        }
+
+        if (sections.length > 0) {
+            colorLegend.innerHTML = sections.join('<hr style="margin: 0;">');
+            colorLegend.style.display = 'block';
+        } else {
+            colorLegend.innerHTML = '';
+            colorLegend.style.display = 'none';
+        }
     }
 
     // Function to clear airport features
@@ -1167,13 +1159,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         return airportSvgs;
     }
 
-    async function getAirportLegend() {
+    async function getAirportLegendHtml() {
         const airportSvgs = await getAirportSvgs();
-        const closedhtml = `<tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Closed</td>
+        const closedhtml = `<tr><td class="legend-dot-label">Closed</td>
                 <td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.closed).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>`;
-        const helihtml = `<tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Heliport</td>
+        const helihtml = `<tr><td class="legend-dot-label">Heliport</td>
                 <td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.heliport).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>`;
@@ -1186,24 +1178,21 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (configuration.getHeliports) {
             detailhtml += helihtml;
         }
-        detailhtml += `<tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Towered</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
+        detailhtml += `<tr><td class="legend-dot-label">Towered</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.towered).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>
-            <tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Uncontrolled</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
+            <tr><td class="legend-dot-label">Uncontrolled</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.uncontrolled).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>
-            <tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Turf</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
+            <tr><td class="legend-dot-label">Turf</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.turf).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>
-            <tr><td style="padding:6px 8px; border-bottom: 1px solid #e0e0e0;">Seaplane Base</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
+            <tr><td class="legend-dot-label">Seaplane Base</td><td style="text-align:right; padding:6px 8px; border-bottom: 1px solid #e0e0e0;">
                 <img src='data:image/svg+xml;utf8,${encodeURIComponent(String(airportSvgs.seaport).replace(`width="12" height="12"`, `width="20" height="20"`))}'>
                 </td></tr>
-        </table`;
+        </table>`;
 
-        const colorLegend = document.getElementById('color-legend');
-        colorLegend.style = "display:block;"
-        colorLegend.innerHTML = detailhtml;
-        return colorLegend;
+        return detailhtml;
     }
 
     /**

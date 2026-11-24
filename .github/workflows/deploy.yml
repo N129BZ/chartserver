@@ -49,5 +49,5 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/n129bz/mapserver:latest
+        tags: ghcr.io/n129bz/chartserver:latest
 
