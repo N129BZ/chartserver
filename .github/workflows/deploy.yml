@@ -28,7 +28,7 @@ jobs:
   #     run: npm run build-client
 
   push-store:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
